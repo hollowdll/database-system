@@ -12,10 +12,12 @@ use std::{
 // /help doesn't work yet
 fn init() {
     let mut exit = false;
+    let help_message = "Write /help for all available commands";
 
-    println!("\n\x1b[93mDatabase Engine Project\x1b[0m\n");
-    println!("Write /help for all available commands\n");
+    println!("\n{}\n", "Database Engine Project");
+    println!("{}\n", help_message);
 
+    // Program main loop
     while !exit {
         let mut input_command = String::new();
 
@@ -27,13 +29,17 @@ fn init() {
         let input_command = input_command.trim();
 
         match input_command {
+            "/help" => {
+                println!("List all available commands here\n");
+                continue
+            }
             "/q" => {
                 println!("Exiting...");
                 exit = true
             },
             _ => {
                 println!("No such command found!");
-                println!("Write /help for all available commands\n");
+                println!("{}\n", help_message);
                 continue
             },
         }
