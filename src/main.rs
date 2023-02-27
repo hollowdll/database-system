@@ -8,17 +8,20 @@ use std::{
     io,
 };
 
+fn exit_program() {
+    println!("Exiting...");
+    process::exit(0);
+}
+
 // TODO: Make this a config/build data structure in lib.rs
-// /help doesn't work yet
 fn init() {
-    let mut exit = false;
     let help_message = "Write /help for all available commands";
 
     println!("\n{}\n", "Database Engine Project");
     println!("{}\n", help_message);
 
     // Program main loop
-    while !exit {
+    loop {
         let mut input_command = String::new();
 
         println!("Enter a command:");
@@ -40,18 +43,13 @@ fn init() {
                 continue
             }
             "/q" => {
-                println!("Exiting...");
-                exit = true
+                exit_program()
             },
             _ => {
                 println!("No such command found!");
                 println!("{}\n", help_message);
                 continue
             },
-        }
-
-        if exit {
-            process::exit(0);
         }
     }
 }

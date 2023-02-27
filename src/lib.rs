@@ -2,17 +2,13 @@
 
 #![allow(unused)]
 
-struct Config {
-    exit: bool,
-}
+struct Config {}
 
 impl Config {
     pub fn build() -> Config {
 
 
-        return Config {
-            exit: false,
-        }
+        return Config {}
     }
 }
 
