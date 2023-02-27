@@ -30,7 +30,13 @@ fn init() {
 
         match input_command {
             "/help" => {
-                println!("List all available commands here\n");
+                println!("\n{}", "All available commands:");
+                println!(
+"
+  /help    List all available commands
+  /q       Quit
+"
+                );
                 continue
             }
             "/q" => {
