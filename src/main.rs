@@ -36,8 +36,18 @@ fn init() {
                 println!("\n{}", "All available commands:");
                 println!(
 "
-  /help    List all available commands
-  /q       Quit
+  /help                                   List all available commands
+  /q                                      Quit
+  (DISABLED) /connect                     Connect to database manager
+  (DISABLED) /disconnect                  Disconnect from database manager
+  (DISABLED) /databases                   List all databases
+  (DISABLED) /create database [name]      Create a database with the given name
+  (DISABLED) /delete database [nane]      Delete a database with the given name
+  (DISABLED) /checkout database [name]    Switch currently active database
+  (DISABLED) /create table [name]         Create a new table in the current database
+  (DISABLED) /delete table [name]         Delete a table in the current database
+  (DISABLED) /tables                      List all tables in the current database
+  More commands in the future...
 "
                 );
                 continue

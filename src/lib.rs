@@ -2,6 +2,7 @@
 
 #![allow(unused)]
 
+/// Configure program
 struct Config {}
 
 impl Config {
