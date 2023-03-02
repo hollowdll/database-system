@@ -15,16 +15,19 @@ fn exit_program() {
 
 // TODO: Make this a config/build data structure in lib.rs
 fn init() {
+    use engine_core::Config;
+    let config = Config::build();
+
     let help_message = "Write /help for all available commands";
 
     println!("\n{}\n", "Database Engine Project");
-    println!("{}\n", help_message);
+    println!("{}", help_message);
 
     // Program main loop
     loop {
         let mut input_command = String::new();
 
-        println!("Enter a command:");
+        println!("\n{}", "Enter a command:");
         io::stdin()
             .read_line(&mut input_command)
             .expect("Failed to read line");
@@ -38,6 +41,7 @@ fn init() {
 "
   /help                                   List all available commands
   /q                                      Quit
+  (FOR TESTING) /test connection          Test connection to database manager
   (DISABLED) /connect                     Connect to database manager
   (DISABLED) /disconnect                  Disconnect from database manager
   (DISABLED) /databases                   List all databases
@@ -55,9 +59,12 @@ fn init() {
             "/q" => {
                 exit_program()
             },
+            "/test connection" => {
+                println!("{:?}", config.database_manager())
+            },
             _ => {
                 println!("No such command found!");
-                println!("{}\n", help_message);
+                println!("{}", help_message);
                 continue
             },
         }
