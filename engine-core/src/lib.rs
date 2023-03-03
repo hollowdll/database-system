@@ -35,7 +35,7 @@ pub struct Database {
 
 }
 
-struct DatabaseTable {
+pub struct DatabaseTable {
 
 }
 
@@ -75,7 +75,7 @@ impl DatabaseManager {
         }
     }
 
-    // Disconnect from this database manager.
+    /// Disconnect from this database manager.
     pub fn disconnect(&mut self) {
         if self.connected {
             self.connected = false;
@@ -101,5 +101,15 @@ impl DatabaseManager {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
 
+    #[test]
+    fn connect_to_db_manager() {
+        // not needed yet
+    }
+
+    #[test]
+    fn disconnect_from_db_manager() {
+        // not needed yet
+    }
 }
