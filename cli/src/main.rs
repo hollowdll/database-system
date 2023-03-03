@@ -14,8 +14,36 @@ fn exit_program() {
     process::exit(0);
 }
 
+// Consider moving to cli crate's lib.rs
 fn create_database() {
+    let mut database_name = String::new();
+    let mut confirm = String::new();
 
+    println!("\n{}", "Database name:");
+    io::stdin()
+        .read_line(&mut database_name)
+        .expect("Failed to read line");
+
+    let database_name = database_name.trim();
+
+    println!("Confirm to create a new database named {}", database_name);
+    println!("[Yes?]: y");
+    io::stdin()
+        .read_line(&mut confirm)
+        .expect("Failed to read line");
+
+    let confirm = confirm.trim();
+
+    match confirm {
+        "y" => {
+            println!("Created database: {}", database_name);
+            // Create database here
+            // More code ...
+        },
+        _ => {
+            println!("Canceled database creation");
+        },
+    }
 }
 
 // TODO: Make this a config/build data structure in lib.rs

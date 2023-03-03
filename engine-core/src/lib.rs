@@ -32,7 +32,7 @@ impl Config {
 
 #[derive(Debug)]
 pub struct Database {
-
+    
 }
 
 pub struct DatabaseTable {
