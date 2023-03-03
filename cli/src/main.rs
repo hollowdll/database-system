@@ -7,6 +7,7 @@ use std::{
     process,
     io,
 };
+use engine_core;
 
 fn exit_program() {
     println!("Exiting...");
@@ -15,8 +16,8 @@ fn exit_program() {
 
 // TODO: Make this a config/build data structure in lib.rs
 fn init() {
-    use engine_core::Config;
-    let config = Config::build();
+    let mut config = engine_core::Config::build();
+    let database_manager = config.database_manager();
 
     let help_message = "Write /help for all available commands";
 
@@ -42,8 +43,8 @@ fn init() {
   /help                                   List all available commands
   /q                                      Quit
   (FOR TESTING) /test connection          Test connection to database manager
-  (DISABLED) /connect                     Connect to database manager
-  (DISABLED) /disconnect                  Disconnect from database manager
+  /connect                                Connect to database manager
+  /disconnect                             Disconnect from database manager
   (DISABLED) /databases                   List all databases
   (DISABLED) /create database [name]      Create a database with the given name
   (DISABLED) /delete database [nane]      Delete a database with the given name
@@ -60,8 +61,14 @@ fn init() {
                 exit_program()
             },
             "/test connection" => {
-                println!("{:?}", config.database_manager())
+                println!("{:?}", database_manager)
             },
+            "/connect" => {
+                database_manager.connect();
+            },
+            "/disconnect" => {
+                database_manager.disconnect();
+            }
             _ => {
                 println!("No such command found!");
                 println!("{}", help_message);

@@ -11,8 +11,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn database_manager(&self) -> &DatabaseManager {
-        &self.database_manager
+    pub fn database_manager(&mut self) -> &mut DatabaseManager {
+        &mut self.database_manager
     }
 }
 
@@ -21,6 +21,8 @@ impl Config {
     // and all program data
 
     /// Builds a new program configuration.
+    /// 
+    /// This is intended to be called only once.
     pub fn build() -> Config {
         return Config {
             database_manager: DatabaseManager::build(),
@@ -65,23 +67,19 @@ impl DatabaseManager {
 
     /// Connect to this database manager.
     pub fn connect(&mut self) {
-        self.connected = true
-        // more code
+        self.connected = true;
+        println!("Connected to database manager");
     }
 
     // Disconnect from this database manager.
     pub fn disconnect(&mut self) {
-        self.connected = false
-        // more code
+        self.connected = false;
+        println!("Disconnected from database manager");
     }
 }
 
 impl DatabaseManager {
-    /// Build a new database manager.
-    /// 
-    /// This is supposed to be called only once.
-    /// 
-    /// `Config` handles this so user doesn't need to worry about this.
+    // Build a new database manager.
     fn build() -> Self {
         Self {
             connected: false,
