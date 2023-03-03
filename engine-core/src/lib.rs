@@ -67,14 +67,22 @@ impl DatabaseManager {
 
     /// Connect to this database manager.
     pub fn connect(&mut self) {
-        self.connected = true;
-        println!("Connected to database manager");
+        if !self.connected {
+            self.connected = true;
+            println!("Connected to database manager");
+        } else {
+            println!("Already connected to database manager");
+        }
     }
 
     // Disconnect from this database manager.
     pub fn disconnect(&mut self) {
-        self.connected = false;
-        println!("Disconnected from database manager");
+        if self.connected {
+            self.connected = false;
+            println!("Disconnected from database manager");
+        } else {
+            println!("Already disconnected from database manager");
+        }
     }
 }
 
