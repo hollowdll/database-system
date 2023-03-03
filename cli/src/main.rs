@@ -14,6 +14,10 @@ fn exit_program() {
     process::exit(0);
 }
 
+fn create_database() {
+
+}
+
 // TODO: Make this a config/build data structure in lib.rs
 fn init() {
     let mut config = engine_core::Config::build();
@@ -45,9 +49,9 @@ fn init() {
   (FOR TESTING) /test connection          Test connection to database manager
   /connect                                Connect to database manager
   /disconnect                             Disconnect from database manager
-  (DISABLED) /databases                   List all databases
-  (DISABLED) /create database [name]      Create a database with the given name
-  (DISABLED) /delete database [nane]      Delete a database with the given name
+  /databases                              List all databases
+  /create database                        Create a new database
+  (DISABLED) /delete database [name]      Delete a database with the given name
   (DISABLED) /checkout database [name]    Switch currently active database
   (DISABLED) /create table [name]         Create a new table in the current database
   (DISABLED) /delete table [name]         Delete a table in the current database
@@ -68,7 +72,18 @@ fn init() {
             },
             "/disconnect" => {
                 database_manager.disconnect();
-            }
+            },
+            "/databases" => {
+                println!(
+                    "\n{}{}\n",
+                    "Number of databases: ",
+                    database_manager.database_count(),
+                );
+                // Also list all databases
+            },
+            "/create database" => {
+                create_database();
+            },
             _ => {
                 println!("No such command found!");
                 println!("{}", help_message);
