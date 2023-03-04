@@ -32,14 +32,25 @@ impl Config {
 
 #[derive(Debug)]
 pub struct Database {
-    
+    name: String,
+    tables: Vec<DatabaseTable>,
 }
 
+impl Database {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn tables(&self) -> &[DatabaseTable] {
+        &self.tables
+    }
+}
+
+#[derive(Debug)]
 pub struct DatabaseTable {
 
 }
 
-// This will be configured better later
 /// Database manager that will
 /// manage all database instances.
 /// 
@@ -48,17 +59,12 @@ pub struct DatabaseTable {
 #[derive(Debug)]
 pub struct DatabaseManager {
     connected: bool,
-    database_count: u32,
     databases: Vec<Database>,
 }
 
 impl DatabaseManager {
     pub fn connected(&self) -> bool {
         self.connected
-    }
-
-    pub fn database_count(&self) -> u32 {
-        self.database_count
     }
 
     pub fn databases(&self) -> &[Database] {
@@ -84,6 +90,16 @@ impl DatabaseManager {
             println!("Already disconnected from database manager");
         }
     }
+
+    /// Creates a new database to this database manager
+    pub fn create_database(&mut self) {
+
+    }
+
+    /// Deletes a database from this database manager
+    pub fn delete_database(&mut self) {
+
+    }
 }
 
 impl DatabaseManager {
@@ -91,7 +107,6 @@ impl DatabaseManager {
     fn build() -> Self {
         Self {
             connected: false,
-            database_count: 0,
             databases: Vec::new(),
         }
     }

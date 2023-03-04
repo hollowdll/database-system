@@ -105,7 +105,7 @@ fn init() {
                 println!(
                     "\n{}{}\n",
                     "Number of databases: ",
-                    database_manager.database_count(),
+                    database_manager.databases().len(),
                 );
                 // Also list all databases
             },
