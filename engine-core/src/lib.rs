@@ -48,7 +48,33 @@ impl Database {
 
 #[derive(Debug)]
 pub struct DatabaseTable {
+    name: String,
+    columns: Vec<DatabaseTableColumn>,
+    // Might be changed later
+    id_column: Option<DatabaseTableColumn>,
+}
 
+impl DatabaseTable {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn columns(&self) -> &[DatabaseTableColumn] {
+        &self.columns
+    }
+}
+
+#[derive(Debug)]
+pub struct DatabaseTableColumn {
+    name: String,
+    data_type: DatabaseDataType,
+}
+
+#[derive(Debug)]
+enum DatabaseDataType {
+    // All database data types
+    // Some of these are still in planning phase
+    // Some types that will be added: serial(identity), text, int, decimal, bool
 }
 
 /// Database manager that will
