@@ -64,6 +64,15 @@ impl DatabaseTable {
     }
 }
 
+impl DatabaseTable {
+    fn create_id_column() -> DatabaseTableColumn {
+        DatabaseTableColumn {
+            name: String::from("id"),
+            data_type: DatabaseDataType::Id,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct DatabaseTableColumn {
     name: String,
@@ -75,6 +84,7 @@ enum DatabaseDataType {
     // All database data types
     // Some of these are still in planning phase
     // Some types that will be added: serial(identity), text, int, decimal, bool
+    Id,
 }
 
 /// Database manager that will
@@ -118,8 +128,19 @@ impl DatabaseManager {
     }
 
     /// Creates a new database to this database manager
-    pub fn create_database(&mut self) {
+    pub fn create_database(&mut self, database_name: &str) {
+        if self.connected {
+            let database = Database {
+                name: database_name.to_string(),
+                tables: Vec::new(),
+            };
 
+            println!("{:?}", database);
+            
+            self.databases.push(database);
+        } else {
+            println!("Connect to database manager before attempting to create a database!");
+        }
     }
 
     /// Deletes a database from this database manager

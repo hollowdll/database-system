@@ -7,7 +7,10 @@ use std::{
     process,
     io,
 };
-use engine_core;
+use engine_core::{
+    self,
+    DatabaseManager,
+};
 
 fn exit_program() {
     println!("Exiting...");
@@ -15,7 +18,7 @@ fn exit_program() {
 }
 
 // Consider moving to cli crate's lib.rs
-fn create_database() {
+fn prompt_database_creation(database_manager: &mut DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -36,9 +39,10 @@ fn create_database() {
 
     match confirm {
         "y" => {
-            println!("Created database: {}", database_name);
             // Create database here
-            // More code ...
+            database_manager.create_database(database_name);
+
+            println!("Created database: {}", database_name);
         },
         _ => {
             println!("Canceled database creation");
@@ -102,15 +106,23 @@ fn init() {
                 database_manager.disconnect();
             },
             "/databases" => {
-                println!(
-                    "\n{}{}\n",
-                    "Number of databases: ",
-                    database_manager.databases().len(),
-                );
-                // Also list all databases
+                if database_manager.connected() {
+                    println!(
+                        "\n{}{}\n",
+                        "Number of databases: ",
+                        database_manager.databases().len(),
+                    );
+                    // Also list all databases
+                } else {
+                    println!("Not connected to database manager! Type /connect to connect to database manager.");
+                }
             },
             "/create database" => {
-                create_database();
+                if database_manager.connected() {
+                    prompt_database_creation(database_manager);
+                } else {
+                    println!("Not connected to database manager! Type /connect to connect to database manager.");
+                }
             },
             _ => {
                 println!("No such command found!");
