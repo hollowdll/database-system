@@ -148,7 +148,11 @@ impl DatabaseManager {
 
     /// Deletes a database from this database manager
     pub fn delete_database(&mut self) {
-
+        if self.connected {
+            
+        } else {
+            println!("Connect to database manager before attempting to delete a database!");
+        }
     }
 }
 

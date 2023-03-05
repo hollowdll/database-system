@@ -30,7 +30,7 @@ fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
     let database_name = database_name.trim();
 
     println!("Confirm to create a new database named {}", database_name);
-    println!("[Yes?]: y");
+    println!("Yes?: y");
     io::stdin()
         .read_line(&mut confirm)
         .expect("Failed to read line");
@@ -48,6 +48,10 @@ fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
             println!("Canceled database creation");
         },
     }
+}
+
+fn prompt_database_deletion(_database_manager_mut: &mut DatabaseManager) {
+    println!("\n{}", "Database deletion here");
 }
 
 fn list_all_databases(database_manager: &DatabaseManager) {
@@ -94,7 +98,7 @@ fn init() {
   /disconnect                             Disconnect from database manager
   /databases                              List all databases
   /create database                        Create a new database
-  (DISABLED) /delete database [name]      Delete a database with the given name
+  /delete database                        Delete a database
   (DISABLED) /checkout database [name]    Switch currently active database
   (DISABLED) /create table [name]         Create a new table in the current database
   (DISABLED) /delete table [name]         Delete a table in the current database
@@ -129,6 +133,16 @@ Type /connect to connect to database manager."
             "/create database" => {
                 if config.database_manager().connected() {
                     prompt_database_creation(config.database_manager_mut());
+                } else {
+                    println!("\
+Not connected to database manager! \
+Type /connect to connect to database manager."
+                    );
+                }
+            },
+            "/delete database" => {
+                if config.database_manager().connected() {
+                    prompt_database_deletion(config.database_manager_mut());
                 } else {
                     println!("\
 Not connected to database manager! \
