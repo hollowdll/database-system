@@ -149,10 +149,32 @@ impl DatabaseManager {
     /// Deletes a database from this database manager
     pub fn delete_database(&mut self, database_name: &str) {
         if self.connected {
-            
+            self.databases.retain(|database| {
+                database.name.as_str() != database_name
+            });
         } else {
             println!("Connect to database manager before attempting to delete a database!");
         }
+    }
+
+    fn database_exists(&self, database_name: &str) -> bool {
+        for i in self.databases.iter() {
+            if i.name.as_str() == database_name {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    fn find_database(&self, database_name: &str) -> Option<usize> {
+        for (i, val) in self.databases.iter().enumerate() {
+            if val.name.as_str() == database_name {
+                return Some(i);
+            }
+        }
+
+        return None;
     }
 }
 
