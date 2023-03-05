@@ -120,14 +120,20 @@ fn init() {
                 if config.database_manager().connected() {
                     list_all_databases(config.database_manager());
                 } else {
-                    println!("Not connected to database manager! Type /connect to connect to database manager.");
+                    println!("\
+Not connected to database manager! \
+Type /connect to connect to database manager."
+                    );
                 }
             },
             "/create database" => {
                 if config.database_manager().connected() {
                     prompt_database_creation(config.database_manager_mut());
                 } else {
-                    println!("Not connected to database manager! Type /connect to connect to database manager.");
+                    println!("\
+Not connected to database manager! \
+Type /connect to connect to database manager."
+                    );
                 }
             },
             _ => {

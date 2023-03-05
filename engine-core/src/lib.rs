@@ -11,24 +11,23 @@ pub struct Config {
 }
 
 impl Config {
+    /// Returns an immutable reference to `DatabaseManager`
     pub fn database_manager(&self) -> &DatabaseManager {
         &self.database_manager
     }
 
+    /// Returns a mutable reference to `DatabaseManager`
     pub fn database_manager_mut(&mut self) -> &mut DatabaseManager {
         &mut self.database_manager
     }
 }
 
 impl Config {
-    //TODO: this will build database manager
-    // and all program data
-
-    /// Builds a new program configuration.
+    /// Builds a new program configuration with program data.
     /// 
     /// This is intended to be called only once.
     pub fn build() -> Config {
-        return Config {
+        Config {
             database_manager: DatabaseManager::build(),
         }
     }
