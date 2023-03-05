@@ -17,6 +17,15 @@ fn exit_program() {
     process::exit(0);
 }
 
+// Temporary
+// Consider moving to library code
+fn not_connected_to_db_manager() {
+    println!("\
+Not connected to database manager! \
+Type /connect to connect to database manager."
+    );
+}
+
 // Consider moving to cli crate's lib.rs
 fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
     let mut database_name = String::new();
@@ -38,8 +47,8 @@ fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
     let confirm = confirm.trim();
 
     match confirm {
+        // Create database
         "y" => {
-            // Create database here
             database_manager_mut.create_database(database_name);
 
             println!("Created database: {}", database_name);
@@ -50,8 +59,36 @@ fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
     }
 }
 
-fn prompt_database_deletion(_database_manager_mut: &mut DatabaseManager) {
-    println!("\n{}", "Database deletion here");
+fn prompt_database_deletion(database_manager_mut: &mut DatabaseManager) {
+    let mut database_name = String::new();
+    let mut confirm = String::new();
+
+    println!("\n{}", "Database name:");
+    io::stdin()
+        .read_line(&mut database_name)
+        .expect("Failed to read line");
+
+    let database_name = database_name.trim();
+
+    println!("Confirm to delete database named {}", database_name);
+    println!("Yes?: y");
+    io::stdin()
+        .read_line(&mut confirm)
+        .expect("Failed to read line");
+
+    let confirm = confirm.trim();
+
+    match confirm {
+        // Delete database
+        "y" => {
+            database_manager_mut.delete_database(database_name);
+
+            println!("Deleted database: {}", database_name);
+        },
+        _ => {
+            println!("Canceled database deletion");
+        },
+    }
 }
 
 fn list_all_databases(database_manager: &DatabaseManager) {
@@ -124,30 +161,21 @@ fn init() {
                 if config.database_manager().connected() {
                     list_all_databases(config.database_manager());
                 } else {
-                    println!("\
-Not connected to database manager! \
-Type /connect to connect to database manager."
-                    );
+                    not_connected_to_db_manager();
                 }
             },
             "/create database" => {
                 if config.database_manager().connected() {
                     prompt_database_creation(config.database_manager_mut());
                 } else {
-                    println!("\
-Not connected to database manager! \
-Type /connect to connect to database manager."
-                    );
+                    not_connected_to_db_manager();
                 }
             },
             "/delete database" => {
                 if config.database_manager().connected() {
                     prompt_database_deletion(config.database_manager_mut());
                 } else {
-                    println!("\
-Not connected to database manager! \
-Type /connect to connect to database manager."
-                    );
+                    not_connected_to_db_manager();
                 }
             },
             _ => {

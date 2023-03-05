@@ -147,7 +147,7 @@ impl DatabaseManager {
     }
 
     /// Deletes a database from this database manager
-    pub fn delete_database(&mut self) {
+    pub fn delete_database(&mut self, database_name: &str) {
         if self.connected {
             
         } else {
