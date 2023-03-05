@@ -11,7 +11,11 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn database_manager(&mut self) -> &mut DatabaseManager {
+    pub fn database_manager(&self) -> &DatabaseManager {
+        &self.database_manager
+    }
+
+    pub fn database_manager_mut(&mut self) -> &mut DatabaseManager {
         &mut self.database_manager
     }
 }

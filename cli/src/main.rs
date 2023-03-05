@@ -18,7 +18,7 @@ fn exit_program() {
 }
 
 // Consider moving to cli crate's lib.rs
-fn prompt_database_creation(database_manager: &mut DatabaseManager) {
+fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -40,7 +40,7 @@ fn prompt_database_creation(database_manager: &mut DatabaseManager) {
     match confirm {
         "y" => {
             // Create database here
-            database_manager.create_database(database_name);
+            database_manager_mut.create_database(database_name);
 
             println!("Created database: {}", database_name);
         },
@@ -50,7 +50,7 @@ fn prompt_database_creation(database_manager: &mut DatabaseManager) {
     }
 }
 
-fn list_all_databases(database_manager: &mut DatabaseManager) {
+fn list_all_databases(database_manager: &DatabaseManager) {
     println!(
         "\n{}{}",
         "Number of databases: ",
@@ -65,7 +65,6 @@ fn list_all_databases(database_manager: &mut DatabaseManager) {
 // TODO: Make this a config/build data structure in lib.rs
 fn init() {
     let mut config = engine_core::Config::build();
-    let database_manager = config.database_manager();
 
     let help_message = "Write /help for all available commands";
 
@@ -109,24 +108,24 @@ fn init() {
                 exit_program()
             },
             "/test connection" => {
-                println!("{:?}", database_manager)
+                println!("{:?}", config.database_manager())
             },
             "/connect" => {
-                database_manager.connect();
+                config.database_manager_mut().connect();
             },
             "/disconnect" => {
-                database_manager.disconnect();
+                config.database_manager_mut().disconnect();
             },
             "/databases" => {
-                if database_manager.connected() {
-                    list_all_databases(database_manager);
+                if config.database_manager().connected() {
+                    list_all_databases(config.database_manager());
                 } else {
                     println!("Not connected to database manager! Type /connect to connect to database manager.");
                 }
             },
             "/create database" => {
-                if database_manager.connected() {
-                    prompt_database_creation(database_manager);
+                if config.database_manager().connected() {
+                    prompt_database_creation(config.database_manager_mut());
                 } else {
                     println!("Not connected to database manager! Type /connect to connect to database manager.");
                 }
