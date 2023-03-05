@@ -133,27 +133,39 @@ impl DatabaseManager {
     /// Creates a new database to this database manager
     pub fn create_database(&mut self, database_name: &str) {
         if self.connected {
-            let database = Database {
-                name: database_name.to_string(),
-                tables: Vec::new(),
-            };
+            if !self.database_exists(database_name) {
+                let database = Database {
+                    name: database_name.to_string(),
+                    tables: Vec::new(),
+                };
+    
+                println!("{:?}", database);
+                
+                self.databases.push(database);
 
-            println!("{:?}", database);
-            
-            self.databases.push(database);
+                println!("Created database: {}", database_name);
+            } else {
+                eprintln!("Error: A database with this name already exists!");
+            }
         } else {
-            println!("Connect to database manager before attempting to create a database!");
+            eprintln!("Error: Connect to database manager before attempting to create a database!");
         }
     }
 
     /// Deletes a database from this database manager
     pub fn delete_database(&mut self, database_name: &str) {
         if self.connected {
-            self.databases.retain(|database| {
-                database.name.as_str() != database_name
-            });
+            if self.database_exists(database_name) {
+                self.databases.retain(|database| {
+                    database.name.as_str() != database_name
+                });
+
+                println!("Deleted database: {}", database_name);
+            } else {
+                eprintln!("Error: Database with this name doesn't exist");
+            }
         } else {
-            println!("Connect to database manager before attempting to delete a database!");
+            eprintln!("Error: Connect to database manager before attempting to delete a database!");
         }
     }
 

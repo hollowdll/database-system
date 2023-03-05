@@ -50,8 +50,6 @@ fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
         // Create database
         "y" => {
             database_manager_mut.create_database(database_name);
-
-            println!("Created database: {}", database_name);
         },
         _ => {
             println!("Canceled database creation");
@@ -82,8 +80,6 @@ fn prompt_database_deletion(database_manager_mut: &mut DatabaseManager) {
         // Delete database
         "y" => {
             database_manager_mut.delete_database(database_name);
-
-            println!("Deleted database: {}", database_name);
         },
         _ => {
             println!("Canceled database deletion");
