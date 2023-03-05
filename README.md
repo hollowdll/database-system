@@ -11,5 +11,3 @@ Small cross-platform database engine built with Rust. A GUI based management sys
 - Hobby project for fun
 
 Note! This is in early development. Currently almost nothing is done!
-
-This is my first big project with Rust and my first big low-level software project. Therefore things can be messy at the start.
