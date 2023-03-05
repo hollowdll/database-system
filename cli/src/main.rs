@@ -50,6 +50,18 @@ fn prompt_database_creation(database_manager: &mut DatabaseManager) {
     }
 }
 
+fn list_all_databases(database_manager: &mut DatabaseManager) {
+    println!(
+        "\n{}{}",
+        "Number of databases: ",
+        database_manager.databases().len(),
+    );
+
+    for i in database_manager.databases().iter() {
+        println!("{:?}", i);
+    }
+}
+
 // TODO: Make this a config/build data structure in lib.rs
 fn init() {
     let mut config = engine_core::Config::build();
@@ -107,12 +119,7 @@ fn init() {
             },
             "/databases" => {
                 if database_manager.connected() {
-                    println!(
-                        "\n{}{}\n",
-                        "Number of databases: ",
-                        database_manager.databases().len(),
-                    );
-                    // Also list all databases
+                    list_all_databases(database_manager);
                 } else {
                     println!("Not connected to database manager! Type /connect to connect to database manager.");
                 }
