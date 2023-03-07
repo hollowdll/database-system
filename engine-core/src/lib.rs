@@ -36,12 +36,17 @@ impl Config {
 #[derive(Debug)]
 pub struct Database {
     name: String,
+    connected: bool,
     tables: Vec<DatabaseTable>,
 }
 
 impl Database {
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn connected(&self) -> bool {
+        self.connected
     }
 
     pub fn tables(&self) -> &[DatabaseTable] {
@@ -136,6 +141,7 @@ impl DatabaseManager {
             if !self.database_exists(database_name) {
                 let database = Database {
                     name: database_name.to_string(),
+                    connected: false,
                     tables: Vec::new(),
                 };
     

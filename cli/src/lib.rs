@@ -122,13 +122,18 @@ fn display_connection_status(database_manager: &DatabaseManager) {
         true => "Yes",
         false => "No",
     };
-    let connected_database = "None";
-
+    
     // Display whether connected to database manager
     println!("\nConnected to database manager: {}", db_manager_connected);
+    
+    // Display connected databases
+    println!("Connected databases:");
 
-    // Display whether connected to any database
-    println!("Connected database: {}", connected_database);
+    for i in database_manager.databases().iter() {
+        if i.connected() {
+            println!("{}", i.name());
+        }
+    }
 }
 
 // Temporary
