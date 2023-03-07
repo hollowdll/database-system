@@ -5,7 +5,7 @@
 
 #![allow(unused)]
 
-/// Configure program data.
+/// Configure engine data.
 pub struct Config {
     database_manager: DatabaseManager,
 }
@@ -23,7 +23,7 @@ impl Config {
 }
 
 impl Config {
-    /// Builds a new program configuration with program data.
+    /// Builds a new engine configuration with needed data.
     /// 
     /// This is intended to be called only once.
     pub fn build() -> Config {

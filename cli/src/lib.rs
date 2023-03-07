@@ -1,8 +1,6 @@
 // CLI management system library
 // Code will be improved later
 
-// TODO: Restructure code into structs
-
 use std::{
     process,
     io,
@@ -12,9 +10,23 @@ use engine_core::{
     DatabaseManager,
 };
 
-// TODO: Make this a config/build data structure
-pub fn init() {
-    let mut config = engine_core::Config::build();
+/// Configures program data
+pub struct Config {
+    engine_core_config: engine_core::Config,
+}
+
+impl Config {
+    /// Builds a new program configuration
+    pub fn build() -> Self {
+        Self {
+            engine_core_config: engine_core::Config::build(),
+        }
+    }
+}
+
+/// Runs the program
+pub fn run(config: Config) {
+    let mut engine = config.engine_core_config;
 
     let help_message = "Write /help for all available commands";
 
@@ -59,35 +71,35 @@ pub fn init() {
                 exit_program()
             },
             "/test connection" => {
-                println!("{:?}", config.database_manager())
+                println!("{:?}", engine.database_manager())
             },
             "/connection status" => {
                 // Display whether connected to database manager
                 // Display whether connected to any database
             },
             "/connect" => {
-                config.database_manager_mut().connect();
+                engine.database_manager_mut().connect();
             },
             "/disconnect" => {
-                config.database_manager_mut().disconnect();
+                engine.database_manager_mut().disconnect();
             },
             "/databases" => {
-                if config.database_manager().connected() {
-                    list_all_databases(config.database_manager());
+                if engine.database_manager().connected() {
+                    list_all_databases(engine.database_manager());
                 } else {
                     not_connected_to_db_manager();
                 }
             },
             "/create database" => {
-                if config.database_manager().connected() {
-                    prompt_database_creation(config.database_manager_mut());
+                if engine.database_manager().connected() {
+                    prompt_database_creation(engine.database_manager_mut());
                 } else {
                     not_connected_to_db_manager();
                 }
             },
             "/delete database" => {
-                if config.database_manager().connected() {
-                    prompt_database_deletion(config.database_manager_mut());
+                if engine.database_manager().connected() {
+                    prompt_database_deletion(engine.database_manager_mut());
                 } else {
                     not_connected_to_db_manager();
                 }
