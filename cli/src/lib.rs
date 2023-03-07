@@ -74,8 +74,7 @@ pub fn run(config: Config) {
                 println!("{:?}", engine.database_manager())
             },
             "/connection status" => {
-                // Display whether connected to database manager
-                // Display whether connected to any database
+                display_connection_status(engine.database_manager())
             },
             "/connect" => {
                 engine.database_manager_mut().connect();
@@ -116,6 +115,20 @@ pub fn run(config: Config) {
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
+}
+
+fn display_connection_status(database_manager: &DatabaseManager) {
+    let db_manager_connected = match database_manager.connected() {
+        true => "Yes",
+        false => "No",
+    };
+    let connected_database = "None";
+
+    // Display whether connected to database manager
+    println!("\nConnected to database manager: {}", db_manager_connected);
+
+    // Display whether connected to any database
+    println!("Connected database: {}", connected_database);
 }
 
 // Temporary
