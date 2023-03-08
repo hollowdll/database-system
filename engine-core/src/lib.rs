@@ -52,6 +52,26 @@ impl Database {
     pub fn tables(&self) -> &[DatabaseTable] {
         &self.tables
     }
+
+    /// Connect to this database.
+    pub fn connect(&mut self) {
+        if !self.connected {
+            self.connected = true;
+            println!("Connected to database {}", self.name);
+        } else {
+            println!("Already connected to this database");
+        }
+    }
+
+    /// Disconnect from this database.
+    pub fn disconnect(&mut self) {
+        if self.connected {
+            self.connected = false;
+            println!("Disconnected from database {}", self.name);
+        } else {
+            println!("Already disconnected from this database");
+        }
+    }
 }
 
 #[derive(Debug)]
