@@ -54,22 +54,18 @@ impl Database {
     }
 
     /// Connect to this database.
-    pub fn connect(&mut self) {
+    fn connect(&mut self) {
         if !self.connected {
             self.connected = true;
             println!("Connected to database {}", self.name);
-        } else {
-            println!("Already connected to this database");
         }
     }
 
     /// Disconnect from this database.
-    pub fn disconnect(&mut self) {
+    fn disconnect(&mut self) {
         if self.connected {
             self.connected = false;
             println!("Disconnected from database {}", self.name);
-        } else {
-            println!("Already disconnected from this database");
         }
     }
 }
@@ -140,8 +136,6 @@ impl DatabaseManager {
         if !self.connected {
             self.connected = true;
             println!("Connected to database manager");
-        } else {
-            println!("Already connected to database manager");
         }
     }
 
@@ -150,8 +144,12 @@ impl DatabaseManager {
         if self.connected {
             self.connected = false;
             println!("Disconnected from database manager");
-        } else {
-            println!("Already disconnected from database manager");
+
+            // Disconnect all databases
+            for i in self.databases.iter_mut() {
+                i.disconnect();
+            }
+            println!("Disconnected all connected databases");
         }
     }
 
