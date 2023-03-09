@@ -158,7 +158,7 @@ impl DatabaseManager {
                 i.disconnect();
             }
             println!("Disconnected all connected databases");
-            
+
             format!("Disconnected from database manager")
         } else {
             format!("Already disconnected from database manager")
@@ -166,7 +166,7 @@ impl DatabaseManager {
     }
 
     /// Creates a new database to this database manager
-    pub fn create_database(&mut self, database_name: &str) {
+    pub fn create_database(&mut self, database_name: &str) -> String {
         if self.connected {
             if !self.database_exists(database_name) {
                 let database = Database {
@@ -179,29 +179,28 @@ impl DatabaseManager {
                 
                 self.databases.push(database);
 
-                println!("Created database: {}", database_name);
+                format!("Created database: {}", database_name)
             } else {
-                eprintln!("Error: A database with this name already exists!");
+                format!("Error: A database with name {} already exists!", database_name)
             }
         } else {
-            eprintln!("Error: Connect to database manager before attempting to create a database!");
+            format!("Error: Connect to database manager before attempting to create a database!")
         }
     }
 
     /// Deletes a database from this database manager
-    pub fn delete_database(&mut self, database_name: &str) {
+    pub fn delete_database(&mut self, database_name: &str) -> String {
         if self.connected {
-            if self.database_exists(database_name) {
-                self.databases.retain(|database| {
-                    database.name.as_str() != database_name
-                });
+            if let Some(i) = self.find_database(database_name) {
+                println!("Database found at index: {}", i);
+                self.databases.remove(i);
 
-                println!("Deleted database: {}", database_name);
+                format!("Deleted database: {}", database_name)
             } else {
-                eprintln!("Error: Database with this name doesn't exist");
+                format!("Error: Database named {} doesn't exist", database_name)
             }
         } else {
-            eprintln!("Error: Connect to database manager before attempting to delete a database!");
+            format!("Error: Connect to database manager before attempting to delete a database!")
         }
     }
 
