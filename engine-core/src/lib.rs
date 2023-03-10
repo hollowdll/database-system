@@ -154,9 +154,9 @@ impl DatabaseManager {
             self.connected = false;
             
             // Disconnect all databases
-            for i in self.databases.iter_mut() {
-                if i.connected {
-                    i.disconnect();
+            for db in self.databases.iter_mut() {
+                if db.connected {
+                    db.disconnect();
                 }
             }
 
@@ -205,8 +205,8 @@ impl DatabaseManager {
     }
 
     fn database_exists(&self, database_name: &str) -> bool {
-        for i in self.databases.iter() {
-            if i.name.as_str() == database_name {
+        for db in self.databases.iter() {
+            if db.name.as_str() == database_name {
                 return true;
             }
         }
@@ -215,8 +215,8 @@ impl DatabaseManager {
     }
 
     fn find_database(&self, database_name: &str) -> Option<usize> {
-        for (i, val) in self.databases.iter().enumerate() {
-            if val.name.as_str() == database_name {
+        for (i, db) in self.databases.iter().enumerate() {
+            if db.name.as_str() == database_name {
                 return Some(i);
             }
         }
