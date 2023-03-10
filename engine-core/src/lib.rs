@@ -54,24 +54,24 @@ impl Database {
     }
 
     /// Connect to this database.
-    fn connect(&mut self) -> String {
+    fn connect(&mut self) {
         if !self.connected {
             self.connected = true;
 
-            format!("Connected to database {}", self.name)
+            println!("Connected to database {}", self.name);
         } else {
-            format!("Already connected to database {}", self.name)
+            eprintln!("Already connected to database {}", self.name);
         }
     }
 
     /// Disconnect from this database.
-    fn disconnect(&mut self) -> String {
+    fn disconnect(&mut self) {
         if self.connected {
             self.connected = false;
 
-            format!("Disconnected from database {}", self.name)
+            println!("Disconnected from database {}", self.name);
         } else {
-            format!("Already disconnected from database {}", self.name)
+            eprintln!("Already disconnected from database {}", self.name);
         }
     }
 }
@@ -138,35 +138,36 @@ impl DatabaseManager {
     }
 
     /// Connect to this database manager.
-    pub fn connect(&mut self) -> String {
+    pub fn connect(&mut self) {
         if !self.connected {
             self.connected = true;
 
-            format!("Connected to database manager")
+            println!("Connected to database manager");
         } else {
-            format!("Already connected to database manager")
+            println!("Already connected to database manager");
         }
     }
 
     /// Disconnect from this database manager.
-    pub fn disconnect(&mut self) -> String {
+    pub fn disconnect(&mut self) {
         if self.connected {
             self.connected = false;
             
             // Disconnect all databases
             for i in self.databases.iter_mut() {
-                i.disconnect();
+                if i.connected {
+                    i.disconnect();
+                }
             }
-            println!("Disconnected all connected databases");
 
-            format!("Disconnected from database manager")
+            println!("Disconnected from database manager");
         } else {
-            format!("Already disconnected from database manager")
+            println!("Already disconnected from database manager");
         }
     }
 
     /// Creates a new database to this database manager
-    pub fn create_database(&mut self, database_name: &str) -> String {
+    pub fn create_database(&mut self, database_name: &str) {
         if self.connected {
             if !self.database_exists(database_name) {
                 let database = Database {
@@ -179,28 +180,27 @@ impl DatabaseManager {
                 
                 self.databases.push(database);
 
-                format!("Created database: {}", database_name)
+                println!("Created database: {}", database_name);
             } else {
-                format!("Error: A database with name {} already exists!", database_name)
+                eprintln!("Error: A database with name {} already exists!", database_name);
             }
         } else {
-            format!("Error: Connect to database manager before attempting to create a database!")
+            eprintln!("Error: Connect to database manager before attempting to create a database!");
         }
     }
 
     /// Deletes a database from this database manager
-    pub fn delete_database(&mut self, database_name: &str) -> String {
+    pub fn delete_database(&mut self, database_name: &str) {
         if self.connected {
             if let Some(i) = self.find_database(database_name) {
-                println!("Database found at index: {}", i);
                 self.databases.remove(i);
 
-                format!("Deleted database: {}", database_name)
+                println!("Deleted database: {}", database_name);
             } else {
-                format!("Error: Database named {} doesn't exist", database_name)
+                eprintln!("Error: Database named {} doesn't exist", database_name);
             }
         } else {
-            format!("Error: Connect to database manager before attempting to delete a database!")
+            eprintln!("Error: Connect to database manager before attempting to delete a database!");
         }
     }
 
