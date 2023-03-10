@@ -13,6 +13,8 @@ use engine_core::{
 /// Configures program data
 pub struct Config {
     engine_core_config: engine_core::Config,
+    // TODO
+    // current_database: Option<&'a engine_core::Database<'a>>,
 }
 
 impl Config {
@@ -55,13 +57,18 @@ pub fn run(config: Config) {
   /connection status                      Display current connection status
   /connect                                Connect to database manager
   /disconnect                             Disconnect from database manager
+
   /databases                              List all databases
   /create database                        Create a new database
   /delete database                        Delete a database
-  (DISABLED) /checkout database [name]    Switch currently active database
-  (DISABLED) /create table [name]         Create a new table in the current database
-  (DISABLED) /delete table [name]         Delete a table in the current database
+  /connect database                       Connect to a database
+  (DISABLED) /disconnect database         Disconnect from a database
+
   (DISABLED) /tables                      List all tables in the current database
+  (DISABLED) /create table                Create a new table in the currently connected database
+  (DISABLED) /delete table                Delete a table in the currently connected database
+  (DISABLED) /view table                  View a table in the currently connected database
+  (DISABLED) /view table data             View table data in the currently connected database
   More commands in the future...
 "
                 );
@@ -102,6 +109,11 @@ pub fn run(config: Config) {
                 } else {
                     not_connected_to_db_manager();
                 }
+            },
+            "/connect database" => {
+                // Disconnect current database
+                // Connect to a database
+                // Make that database the current database
             },
             _ => {
                 println!("No such command found!");
