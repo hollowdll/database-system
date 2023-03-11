@@ -206,7 +206,7 @@ impl DatabaseManager {
 
     fn database_exists(&self, database_name: &str) -> bool {
         for db in self.databases.iter() {
-            if db.name.as_str() == database_name {
+            if db.name() == database_name {
                 return true;
             }
         }
@@ -214,9 +214,13 @@ impl DatabaseManager {
         return false;
     }
 
-    fn find_database(&self, database_name: &str) -> Option<usize> {
+    /// Tries to find a database with the given name.
+    /// 
+    /// Returns the index of found database wrapped inside `Some`
+    /// or `None` if no database was found.
+    pub fn find_database(&self, database_name: &str) -> Option<usize> {
         for (i, db) in self.databases.iter().enumerate() {
-            if db.name.as_str() == database_name {
+            if db.name() == database_name {
                 return Some(i);
             }
         }

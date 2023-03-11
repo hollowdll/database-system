@@ -1,6 +1,8 @@
 // CLI management system library
 // Code will be improved later
 
+#![allow(unused)]
+
 use std::{
     process,
     io,
@@ -98,21 +100,24 @@ pub fn run(config: Config) {
             },
             "/create database" => {
                 if engine.database_manager().connected() {
-                    prompt_database_creation(engine.database_manager_mut());
+                    prompt_create_database(engine.database_manager_mut());
                 } else {
                     not_connected_to_db_manager();
                 }
             },
             "/delete database" => {
                 if engine.database_manager().connected() {
-                    prompt_database_deletion(engine.database_manager_mut());
+                    prompt_delete_database(engine.database_manager_mut());
                 } else {
                     not_connected_to_db_manager();
                 }
             },
             "/connect database" => {
                 // Disconnect current database
+
                 // Connect to a database
+                prompt_connect_database(engine.database_manager_mut());
+
                 // Make that database the current database
             },
             _ => {
@@ -156,7 +161,7 @@ Type /connect to connect to database manager."
     );
 }
 
-fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
+fn prompt_create_database(database_manager_mut: &mut DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -186,7 +191,7 @@ fn prompt_database_creation(database_manager_mut: &mut DatabaseManager) {
     }
 }
 
-fn prompt_database_deletion(database_manager_mut: &mut DatabaseManager) {
+fn prompt_delete_database(database_manager_mut: &mut DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -214,6 +219,20 @@ fn prompt_database_deletion(database_manager_mut: &mut DatabaseManager) {
             println!("Canceled database deletion");
         },
     }
+}
+
+fn prompt_connect_database(database_manager_mut: &mut DatabaseManager) {
+    let mut database_name = String::new();
+
+    println!("\n{}", "Database name:");
+    io::stdin()
+        .read_line(&mut database_name)
+        .expect("Failed to read line");
+
+    let database_name = database_name.trim();
+
+    // If db exists, tell db manager to connect to it.
+    // Connect dbs from db manager to make sure db manager is connected first
 }
 
 fn list_all_databases(database_manager: &DatabaseManager) {
