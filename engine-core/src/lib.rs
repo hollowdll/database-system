@@ -192,7 +192,7 @@ impl DatabaseManager {
     /// Deletes a database from this database manager
     pub fn delete_database(&mut self, database_name: &str) {
         if self.connected {
-            if let Some(i) = self.find_database(database_name) {
+            if let Some((i, _db)) = self.find_database(database_name) {
                 self.databases.remove(i);
 
                 println!("Deleted database: {}", database_name);
@@ -201,6 +201,30 @@ impl DatabaseManager {
             }
         } else {
             eprintln!("Error: Connect to database manager before attempting to delete a database!");
+        }
+    }
+
+    /// Connect a database in this database manager.
+    pub fn connect_database(&mut self, database_name: &str) {
+        if self.connected {
+            if let Some((_i, db)) = self.find_database_mut(database_name) {
+                db.connect();
+
+                println!("Connected database: {}", database_name);
+            } else {
+                eprintln!("Error: Database named {} doesn't exist", database_name);
+            }
+        } else {
+            eprintln!("Error: Not connected to database manager");
+        }
+    }
+
+    /// Disconnect a database in this database manager.
+    pub fn disconnect_database(&mut self, database_name: &str) {
+        if self.connected {
+
+        } else {
+            eprintln!("Error: Not connected to database manager");
         }
     }
 
@@ -218,10 +242,20 @@ impl DatabaseManager {
     /// 
     /// Returns the index of found database wrapped inside `Some`
     /// or `None` if no database was found.
-    pub fn find_database(&self, database_name: &str) -> Option<usize> {
+    fn find_database(&self, database_name: &str) -> Option<(usize, &Database)> {
         for (i, db) in self.databases.iter().enumerate() {
             if db.name() == database_name {
-                return Some(i);
+                return Some((i, db));
+            }
+        }
+
+        return None;
+    }
+
+    fn find_database_mut(&mut self, database_name: &str) -> Option<(usize, &mut Database)> {
+        for (i, db) in self.databases.iter_mut().enumerate() {
+            if db.name() == database_name {
+                return Some((i, db));
             }
         }
 
