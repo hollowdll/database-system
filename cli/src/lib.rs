@@ -233,6 +233,8 @@ fn prompt_connect_database(database_manager_mut: &mut DatabaseManager) {
 
     // If db exists, tell db manager to connect to it.
     // Connect dbs from db manager to make sure db manager is connected first
+
+    database_manager_mut.connect_database(database_name);
 }
 
 fn list_all_databases(database_manager: &DatabaseManager) {

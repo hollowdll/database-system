@@ -197,7 +197,7 @@ impl DatabaseManager {
 
                 println!("Deleted database: {}", database_name);
             } else {
-                eprintln!("Error: Database named {} doesn't exist", database_name);
+                eprintln!("Error: Cannot find database named {}", database_name);
             }
         } else {
             eprintln!("Error: Connect to database manager before attempting to delete a database!");
@@ -209,10 +209,8 @@ impl DatabaseManager {
         if self.connected {
             if let Some((_i, db)) = self.find_database_mut(database_name) {
                 db.connect();
-
-                println!("Connected database: {}", database_name);
             } else {
-                eprintln!("Error: Database named {} doesn't exist", database_name);
+                eprintln!("Error: Cannot find database named {}", database_name);
             }
         } else {
             eprintln!("Error: Not connected to database manager");
