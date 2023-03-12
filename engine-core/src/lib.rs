@@ -220,7 +220,11 @@ impl DatabaseManager {
     /// Disconnect a database in this database manager.
     pub fn disconnect_database(&mut self, database_name: &str) {
         if self.connected {
-
+            if let Some((_i, db)) = self.find_database_mut(database_name) {
+                db.disconnect();
+            } else {
+                eprintln!("Error: Cannot find database named {}", database_name);
+            }
         } else {
             eprintln!("Error: Not connected to database manager");
         }

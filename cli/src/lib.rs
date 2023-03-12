@@ -16,7 +16,8 @@ use engine_core::{
 pub struct Config {
     engine_core_config: engine_core::Config,
     // TODO
-    // current_database: Option<&'a engine_core::Database<'a>>,
+    //Option 1: current_database: Option<&'a engine_core::Database<'a>>,
+    //Option 2: current_database: &'static str,
 }
 
 impl Config {
