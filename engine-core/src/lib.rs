@@ -167,7 +167,7 @@ impl DatabaseManager {
     }
 
     /// Creates a new database to this database manager
-    pub fn create_database(&mut self, database_name: &str) {
+    pub fn create_database(&mut self, database_name: &str) -> Result<(), &'static str> {
         if self.connected {
             if !self.database_exists(database_name) {
                 let database = Database {
@@ -181,52 +181,60 @@ impl DatabaseManager {
                 self.databases.push(database);
 
                 println!("Created database: {}", database_name);
+
+                return Ok(());
             } else {
-                eprintln!("Error: A database with name {} already exists!", database_name);
+                return Err("Database with given name already exists");
             }
         } else {
-            eprintln!("Error: Connect to database manager before attempting to create a database!");
+            return Err("Not connected to database manager");
         }
     }
 
     /// Deletes a database from this database manager
-    pub fn delete_database(&mut self, database_name: &str) {
+    pub fn delete_database(&mut self, database_name: &str) -> Result<(), &'static str> {
         if self.connected {
             if let Some((i, _db)) = self.find_database(database_name) {
                 self.databases.remove(i);
 
                 println!("Deleted database: {}", database_name);
+
+                return Ok(());
             } else {
-                eprintln!("Error: Cannot find database named {}", database_name);
+                return Err("Cannot find database");
             }
         } else {
-            eprintln!("Error: Connect to database manager before attempting to delete a database!");
+            return Err("Not connected to database manager");
         }
     }
 
     /// Connect a database in this database manager.
-    pub fn connect_database(&mut self, database_name: &str) {
+    pub fn connect_database(&mut self, database_name: &str) -> Result<&Database, &'static str> {
         if self.connected {
             if let Some((_i, db)) = self.find_database_mut(database_name) {
                 db.connect();
+
+                return Ok(db);
             } else {
-                eprintln!("Error: Cannot find database named {}", database_name);
+                return Err("Cannot find database");
             }
         } else {
-            eprintln!("Error: Not connected to database manager");
+            return Err("Not connected to database manager");
         }
     }
 
     /// Disconnect a database in this database manager.
-    pub fn disconnect_database(&mut self, database_name: &str) {
+    pub fn disconnect_database(&mut self, database_name: &str) -> Result<&Database, &'static str> {
         if self.connected {
             if let Some((_i, db)) = self.find_database_mut(database_name) {
                 db.disconnect();
+
+                return Ok(db);
             } else {
-                eprintln!("Error: Cannot find database named {}", database_name);
+                return Err("Cannot find database");
             }
         } else {
-            eprintln!("Error: Not connected to database manager");
+            return Err("Not connected to database manager");
         }
     }
 
