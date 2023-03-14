@@ -77,6 +77,7 @@ impl Database {
 }
 
 impl Database {
+    /// Creates a new database instance
     fn new(name: &str) -> Self {
         Self {
             name: String::from(name),
@@ -190,7 +191,7 @@ impl DatabaseManager {
 
                 return Ok(());
             } else {
-                return Err("Database with given name already exists");
+                return Err("Database with the given name already exists");
             }
         } else {
             return Err("Not connected to database manager");
@@ -244,6 +245,7 @@ impl DatabaseManager {
         }
     }
 
+    /// Checks if there is a database with the given name
     fn database_exists(&self, database_name: &str) -> bool {
         for db in self.databases.iter() {
             if db.name() == database_name {
@@ -256,8 +258,7 @@ impl DatabaseManager {
 
     /// Tries to find a database with the given name.
     /// 
-    /// Returns the index of found database wrapped inside `Some`
-    /// or `None` if no database was found.
+    /// Returned database is an immutable reference
     fn find_database(&self, database_name: &str) -> Option<(usize, &Database)> {
         for (i, db) in self.databases.iter().enumerate() {
             if db.name() == database_name {
@@ -268,6 +269,9 @@ impl DatabaseManager {
         return None;
     }
 
+    /// Tries to find a database with the given name.
+    /// 
+    /// Returned database is a mutable reference
     fn find_database_mut(&mut self, database_name: &str) -> Option<(usize, &mut Database)> {
         for (i, db) in self.databases.iter_mut().enumerate() {
             if db.name() == database_name {

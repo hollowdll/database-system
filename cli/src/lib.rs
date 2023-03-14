@@ -53,7 +53,6 @@ pub fn run(config: Config) {
 "
   /help                                   List all available commands
   /q                                      Quit
-  (FOR TESTING) /test connection          Test connection to database manager
   /connection status                      Display current connection status
   /connect                                Connect to database manager
   /disconnect                             Disconnect from database manager
@@ -62,7 +61,6 @@ pub fn run(config: Config) {
   /create database                        Create a new database
   /delete database                        Delete a database
   /connect database                       Connect to a database
-  (DISABLED) /disconnect database         Disconnect from a database
 
   (DISABLED) /tables                      List all tables in the current database
   (DISABLED) /create table                Create a new table in the currently connected database
@@ -76,9 +74,6 @@ pub fn run(config: Config) {
             }
             "/q" => {
                 exit_program()
-            },
-            "/test connection" => {
-                println!("{:?}", engine.database_manager())
             },
             "/connection status" => {
                 display_connection_status(engine.database_manager())
@@ -111,13 +106,7 @@ pub fn run(config: Config) {
                 }
             },
             "/connect database" => {
-                // Disconnect current database
-
-                // Connect to a database
                 prompt_connect_database(engine.database_manager_mut());
-
-                // Make database the current database
-                
             },
             _ => {
                 println!("No such command found!");
