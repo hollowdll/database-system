@@ -60,7 +60,7 @@ impl Database {
 
             println!("Connected to database {}", self.name);
         } else {
-            eprintln!("Already connected to database {}", self.name);
+            println!("Already connected to database {}", self.name);
         }
     }
 
@@ -71,7 +71,17 @@ impl Database {
 
             println!("Disconnected from database {}", self.name);
         } else {
-            eprintln!("Already disconnected from database {}", self.name);
+            println!("Already disconnected from database {}", self.name);
+        }
+    }
+}
+
+impl Database {
+    fn new(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+            connected: false,
+            tables: Vec::new(),
         }
     }
 }
@@ -170,11 +180,7 @@ impl DatabaseManager {
     pub fn create_database(&mut self, database_name: &str) -> Result<(), &'static str> {
         if self.connected {
             if !self.database_exists(database_name) {
-                let database = Database {
-                    name: database_name.to_string(),
-                    connected: false,
-                    tables: Vec::new(),
-                };
+                let database = Database::new(database_name);
     
                 println!("{:?}", database);
                 
