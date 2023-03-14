@@ -1,13 +1,9 @@
 # About
 
-Small cross-platform database engine built with Rust. A GUI based management system will be built with Tauri at a later time.
+Small cross-platform NoSQL database engine built with Rust.
 
-- NoSQL
-- Low level and fast
-- Easy to use and integrate
-- Data is stored in files on the disk (not in-memory)
-- Designed for small apps
-- Designed to be used locally (no server/auth involved)
-- Hobby project for fun
+A GUI based management system will be built with Tauri at a later time.
 
-Note! This is in early development. Currently almost nothing is done!
+Note! This is in early development. Documentation will be added later.
+
+Nothing is final and code will likely change a lot.
