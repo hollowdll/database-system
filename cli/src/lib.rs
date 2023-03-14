@@ -15,9 +15,6 @@ use engine_core::{
 /// Configures program data
 pub struct Config {
     engine_core_config: engine_core::Config,
-    // TODO
-    //Option 1: current_database: Option<&'a engine_core::Database<'a>>,
-    //Option 2: current_database: &'static str,
 }
 
 impl Config {
@@ -119,7 +116,8 @@ pub fn run(config: Config) {
                 // Connect to a database
                 prompt_connect_database(engine.database_manager_mut());
 
-                // Make that database the current database
+                // Make database the current database
+                
             },
             _ => {
                 println!("No such command found!");
@@ -184,11 +182,11 @@ fn prompt_create_database(database_manager_mut: &mut DatabaseManager) {
     match confirm {
         // Create database
         "y" => {
-            database_manager_mut.create_database(database_name);
+            if let Err(e) = database_manager_mut.create_database(database_name) {
+                eprintln!("Error: {e}");
+            }
         },
-        _ => {
-            println!("Canceled database creation");
-        },
+        _ => println!("Canceled database creation"),
     }
 }
 
@@ -214,11 +212,11 @@ fn prompt_delete_database(database_manager_mut: &mut DatabaseManager) {
     match confirm {
         // Delete database
         "y" => {
-            database_manager_mut.delete_database(database_name);
+            if let Err(e) = database_manager_mut.delete_database(database_name) {
+                eprintln!("Error: {e}");
+            }
         },
-        _ => {
-            println!("Canceled database deletion");
-        },
+        _ => println!("Canceled database deletion"),
     }
 }
 
@@ -235,7 +233,14 @@ fn prompt_connect_database(database_manager_mut: &mut DatabaseManager) {
     // If db exists, tell db manager to connect to it.
     // Connect dbs from db manager to make sure db manager is connected first
 
-    database_manager_mut.connect_database(database_name);
+    let connected_db = database_manager_mut.connect_database(database_name);
+
+    let connected_db = match connected_db {
+        Ok(db) => db,
+        Err(e) => {
+            return eprintln!("Error: {e}");
+        }
+    };
 }
 
 fn list_all_databases(database_manager: &DatabaseManager) {
