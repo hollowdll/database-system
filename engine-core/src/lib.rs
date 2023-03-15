@@ -3,7 +3,13 @@
 // Will be organized and structured better later
 // This library will be split into modules later
 
+// TODO
+// Split this library into modules
+// so everything is not in this same file
+
 #![allow(unused)]
+
+mod logs;
 
 /// Configure engine data.
 pub struct Config {
