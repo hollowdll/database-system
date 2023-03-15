@@ -62,11 +62,12 @@ pub fn run(config: Config) {
   /delete database                        Delete a database
   /connect database                       Connect to a database
 
-  (DISABLED) /tables                      List all tables in the current database
-  (DISABLED) /create table                Create a new table in the currently connected database
-  (DISABLED) /delete table                Delete a table in the currently connected database
-  (DISABLED) /view table                  View a table in the currently connected database
-  (DISABLED) /view table data             View table data in the currently connected database
+  (DISABLED) /tables                      List all tables of a connected database
+  (DISABLED) /create table                Create a new table in a connected database
+  (DISABLED) /delete table                Delete a table in a connected database
+  (DISABLED) /view table                  View a table in a connected database
+  (DISABLED) /view table data             View table data in a connected database
+  
   More commands in the future...
 "
                 );
