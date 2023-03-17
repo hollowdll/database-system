@@ -9,7 +9,7 @@
 
 #![allow(unused)]
 
-mod logs;
+pub mod logs;
 
 /// Configure engine data.
 pub struct Config {

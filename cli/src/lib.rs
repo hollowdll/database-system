@@ -67,6 +67,9 @@ pub fn run(config: Config) {
   (DISABLED) /delete table                Delete a table in a connected database
   (DISABLED) /view table                  View a table in a connected database
   (DISABLED) /view table data             View table data in a connected database
+
+  (Commands for testing)
+  /create test log                        Creates test log
   
   More commands in the future...
 "
@@ -108,6 +111,10 @@ pub fn run(config: Config) {
             },
             "/connect database" => {
                 prompt_connect_database(engine.database_manager_mut());
+            },
+            "/create test log" => {
+                use engine_core::logs;
+                logs::create_test_log();
             },
             _ => {
                 println!("No such command found!");
