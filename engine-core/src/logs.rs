@@ -18,28 +18,18 @@ fn create_logs_dir() -> io::Result<()> {
 
     if !Path::new("./logs").is_dir() {
         fs::create_dir("./logs")?;
-        println!("Created logs dir");
     } else {
         println!("logs dir already exists");
-    }
-
-    if let Err(e) = create_log_file() {
-        eprintln!("Error: {e}");
     }
 
     Ok(())
 }
 
-fn create_log_file() -> io::Result<()> {
-    // Create .log file to logs directory with the given name
-    // if it doesn't exist
-
+fn create_log_file(name: &str, content: &str) -> io::Result<()> {
     if Path::new("./logs").is_dir() {
-        let mut file = fs::File::create("./logs/testlog.log")?;
-        println!("Created testlog.log");
+        let mut file = fs::File::create(format!("./logs/{name}"))?;
 
-        file.write(b"Test log 123")?;
-        println!("Write data to testlog.log");
+        file.write(content.as_bytes())?;
     } else {
         println!("logs dir not found");
     }
@@ -47,15 +37,23 @@ fn create_log_file() -> io::Result<()> {
     Ok(())
 }
 
-pub fn create_test_log() {
-    // Check if logs directory exists
-    // Check if .log file exists
-    // Create items above if false
-    // Write to the file
+pub fn create_test_log() -> Result<(), io::Error> {
+    let log_name = "testlog.log";
+    let log_content = "[Date and time] [TEST] test log 123";
 
     if let Err(e) = create_logs_dir() {
         eprintln!("Error: {e}");
+
+        return Err(e);
     }
+
+    if let Err(e) = create_log_file(log_name, log_content) {
+        eprintln!("Error: {e}");
+
+        return Err(e);
+    }
+
+    Ok(())
 }
 
 pub fn log_database_event() {
