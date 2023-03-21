@@ -7,7 +7,7 @@
 //#![allow(unused)]
 
 use std::{
-    fs,
+    fs::{self, OpenOptions},
     io::{self, Write},
     path::Path,
     time::{
@@ -33,7 +33,7 @@ struct DatabaseEventLog {
     location: DatabaseEventLocation,
     created: SystemTime,
     event_type: DatabaseEventType,
-    log_text: String,
+    content: String,
 }
 
 impl DatabaseEventLog {
@@ -43,17 +43,17 @@ impl DatabaseEventLog {
             Err(e) => panic!("SystemTime error: {e}"),
         };
 
-        format!("[{:?}] [{:?}] [{:?}] {}", self.location, time, self.event_type, self.log_text)
+        format!("[{:?}] [{:?}] [{:?}] {}", self.location, time, self.event_type, self.content)
     }
 }
 
 impl DatabaseEventLog {
-    fn from(location: DatabaseEventLocation, event_type: DatabaseEventType, log_text: &str) -> Self {
+    fn from(location: DatabaseEventLocation, event_type: DatabaseEventType, content: &str) -> Self {
         Self {
             location,
             created: SystemTime::now(),
             event_type,
-            log_text: String::from(log_text),
+            content: String::from(content),
         }
     }
 
@@ -62,10 +62,12 @@ impl DatabaseEventLog {
             location: DatabaseEventLocation::System,
             created: SystemTime::now(),
             event_type: DatabaseEventType::Test,
-            log_text: String::from("Test log 123"),
+            content: String::from("Test log 123"),
         }
     }
 }
+
+
 
 fn create_logs_dir() -> io::Result<()> {
     // Create logs directory to the project root
@@ -80,11 +82,9 @@ fn create_logs_dir() -> io::Result<()> {
     Ok(())
 }
 
-fn create_log_file(name: &str, content: String) -> io::Result<()> {
+fn create_log_file(name: &str) -> io::Result<()> {
     if Path::new("./logs").is_dir() {
         let mut file = fs::File::create(format!("./logs/{name}"))?;
-
-        file.write(content.as_bytes())?;
     } else {
         println!("logs dir not found");
     }
@@ -92,8 +92,30 @@ fn create_log_file(name: &str, content: String) -> io::Result<()> {
     Ok(())
 }
 
-fn write_to_log_file() {
-    
+fn write_log_file(name: &str, content: &str) -> io::Result<()> {
+    let mut file = fs::File::open(format!("./logs/{name}"))?;
+
+    file.write(content.as_bytes())?;
+
+    Ok(())
+}
+
+fn write_test_log(content: &str) -> io::Result<()> {
+    let mut file = OpenOptions::new().write(true).open("./logs/testlog.log")?;
+
+    file.write(content.as_bytes())?;
+    file.write(b"\nthis is test")?;
+    file.write(b"\nmore test")?;
+
+    Ok(())
+}
+
+fn write_database_events_log(content: &str) -> io::Result<()> {
+    let mut file = fs::File::open("./logs/database-events.log")?;
+
+    file.write(content.as_bytes())?;
+
+    Ok(())
 }
 
 pub fn create_test_log() -> Result<(), io::Error> {
@@ -108,7 +130,14 @@ pub fn create_test_log() -> Result<(), io::Error> {
         return Err(e);
     }
 
-    if let Err(e) = create_log_file(log_name, log_content) {
+    if let Err(e) = create_log_file(log_name) {
+        eprintln!("Error: {e}");
+
+        return Err(e);
+    }
+
+    // For testing
+    if let Err(e) = write_test_log(log_content.as_str()) {
         eprintln!("Error: {e}");
 
         return Err(e);
