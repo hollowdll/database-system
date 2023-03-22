@@ -39,11 +39,17 @@ struct DatabaseEventLog {
 impl DatabaseEventLog {
     fn format(&self) -> String {
         let time = match self.created.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(time) => time.as_nanos(),
+            Ok(time) => time,
             Err(e) => panic!("SystemTime error: {e}"),
         };
 
-        format!("[{:?}] [{:?}] [{:?}] {}", self.location, time, self.event_type, self.content)
+        format!(
+            "[{:?}] [System time in nanoseconds: {:?}] [{:?}] {}\n",
+            self.location,
+            time.as_nanos(),
+            self.event_type,
+            self.content
+        )
     }
 }
 
@@ -75,43 +81,33 @@ fn create_logs_dir() -> io::Result<()> {
 
     if !Path::new("./logs").is_dir() {
         fs::create_dir("./logs")?;
-    } else {
-        println!("logs dir already exists");
     }
 
     Ok(())
 }
 
 fn create_log_file(name: &str) -> io::Result<()> {
-    if Path::new("./logs").is_dir() {
-        let mut file = fs::File::create(format!("./logs/{name}"))?;
-    } else {
-        println!("logs dir not found");
+    if !Path::new(format!("./logs/{name}").as_str()).is_file() {
+        let file = fs::File::create(format!("./logs/{name}"))?;
     }
 
     Ok(())
 }
 
-fn write_log_file(name: &str, content: &str) -> io::Result<()> {
-    let mut file = fs::File::open(format!("./logs/{name}"))?;
-
-    file.write(content.as_bytes())?;
-
-    Ok(())
-}
-
 fn write_test_log(content: &str) -> io::Result<()> {
-    let mut file = OpenOptions::new().write(true).open("./logs/testlog.log")?;
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open("./logs/testlog.log")?;
 
     file.write(content.as_bytes())?;
-    file.write(b"\nthis is test")?;
-    file.write(b"\nmore test")?;
 
     Ok(())
 }
 
 fn write_database_events_log(content: &str) -> io::Result<()> {
-    let mut file = fs::File::open("./logs/database-events.log")?;
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open("./logs/database-events.log")?;
 
     file.write(content.as_bytes())?;
 
@@ -120,8 +116,7 @@ fn write_database_events_log(content: &str) -> io::Result<()> {
 
 pub fn create_test_log() -> Result<(), io::Error> {
     let log_name = "testlog.log";
-    let log = DatabaseEventLog::create_test_log();
-    let log_content = log.format();
+    let log = DatabaseEventLog::create_test_log().format();
     
 
     if let Err(e) = create_logs_dir() {
@@ -136,8 +131,7 @@ pub fn create_test_log() -> Result<(), io::Error> {
         return Err(e);
     }
 
-    // For testing
-    if let Err(e) = write_test_log(log_content.as_str()) {
+    if let Err(e) = write_test_log(log.as_str()) {
         eprintln!("Error: {e}");
 
         return Err(e);

@@ -114,7 +114,9 @@ pub fn run(config: Config) {
             },
             "/create test log" => {
                 use engine_core::logs;
-                logs::create_test_log();
+                for _ in 0..10 {
+                    logs::create_test_log();
+                }
             },
             _ => {
                 println!("No such command found!");
