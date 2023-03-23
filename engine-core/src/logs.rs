@@ -16,6 +16,13 @@ use std::{
 };
 
 #[derive(Debug)]
+pub enum DatabaseEventSource {
+    System,
+    DatabaseManager,
+    Database,
+}
+
+#[derive(Debug)]
 pub enum DatabaseEventType {
     Test,
     Connected,
@@ -27,6 +34,7 @@ pub enum DatabaseEventType {
 
 struct DatabaseEventLog {
     created: SystemTime,
+    event_source: DatabaseEventSource,
     event_type: DatabaseEventType,
     content: String,
 }
@@ -39,8 +47,9 @@ impl DatabaseEventLog {
         };
 
         format!(
-            "[System time in nanoseconds: {:?}] [{:?}] - {}\n",
+            "[System time in nanoseconds: {:?}] [{:?}] [{:?}] - {}\n",
             time.as_nanos(),
+            self.event_source,
             self.event_type,
             self.content
         )
@@ -48,9 +57,10 @@ impl DatabaseEventLog {
 }
 
 impl DatabaseEventLog {
-    fn from(event_type: DatabaseEventType, content: &str) -> Self {
+    fn from(event_source: DatabaseEventSource, event_type: DatabaseEventType, content: &str) -> Self {
         Self {
             created: SystemTime::now(),
+            event_source,
             event_type,
             content: String::from(content),
         }
@@ -59,6 +69,7 @@ impl DatabaseEventLog {
     fn create_test_log() -> Self {
         Self {
             created: SystemTime::now(),
+            event_source: DatabaseEventSource::System,
             event_type: DatabaseEventType::Test,
             content: String::from("Test log 123"),
         }
@@ -112,9 +123,14 @@ pub fn create_test_log() -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn log_database_event(event_type: DatabaseEventType, content: &str) -> Result<(), io::Error> {
+pub fn log_database_event(
+    event_source: DatabaseEventSource,
+    event_type: DatabaseEventType,
+    content: &str
+) -> Result<(), io::Error>
+{
     let log_name = "database-events.log";
-    let log = DatabaseEventLog::from(event_type, content).format();
+    let log = DatabaseEventLog::from(event_source, event_type, content).format();
 
     if let Err(e) = create_logs_dir() {
         return Err(e);

@@ -161,6 +161,7 @@ impl DatabaseManager {
 
             let log_content = "Connected to database manager";
             if let Err(e) = logs::log_database_event(
+                logs::DatabaseEventSource::DatabaseManager,
                 logs::DatabaseEventType::Connected,
                 log_content
             ) {
@@ -186,6 +187,7 @@ impl DatabaseManager {
 
             let log_content = "Disconnected from database manager";
             if let Err(e) = logs::log_database_event(
+                logs::DatabaseEventSource::DatabaseManager,
                 logs::DatabaseEventType::Disconnected,
                 log_content
             ) {
