@@ -159,7 +159,14 @@ impl DatabaseManager {
         if !self.connected {
             self.connected = true;
 
-            println!("Connected to database manager");
+            let log_content = "Connected to database manager";
+            if let Err(e) = logs::log_database_event(
+                logs::DatabaseEventType::Connected,
+                log_content
+            ) {
+                eprintln!("Error: {e}");
+            }
+            println!("{}", log_content);
         } else {
             println!("Already connected to database manager");
         }
@@ -177,7 +184,15 @@ impl DatabaseManager {
                 }
             }
 
-            println!("Disconnected from database manager");
+            let log_content = "Disconnected from database manager";
+            if let Err(e) = logs::log_database_event(
+                logs::DatabaseEventType::Disconnected,
+                log_content
+            ) {
+                eprintln!("Error: {e}");
+            }
+
+            println!("{}", log_content);
         } else {
             println!("Already disconnected from database manager");
         }
