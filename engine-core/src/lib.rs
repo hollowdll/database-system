@@ -64,7 +64,15 @@ impl Database {
         if !self.connected {
             self.connected = true;
 
-            println!("Connected to database {}", self.name);
+            let log_content = format!("Connected to database: {}", self.name);
+            if let Err(e) = logs::log_database_event(
+                logs::DatabaseEventSource::Database,
+                logs::DatabaseEventType::Connected,
+                log_content.as_str()
+            ) {
+                eprintln!("Error: {e}");
+            }
+            println!("{}", log_content);
         } else {
             println!("Already connected to database {}", self.name);
         }
@@ -75,7 +83,15 @@ impl Database {
         if self.connected {
             self.connected = false;
 
-            println!("Disconnected from database {}", self.name);
+            let log_content = format!("Disconnected from database: {}", self.name);
+            if let Err(e) = logs::log_database_event(
+                logs::DatabaseEventSource::Database,
+                logs::DatabaseEventType::Disconnected,
+                log_content.as_str()
+            ) {
+                eprintln!("Error: {e}");
+            }
+            println!("{}", log_content);
         } else {
             println!("Already disconnected from database {}", self.name);
         }
@@ -193,7 +209,6 @@ impl DatabaseManager {
             ) {
                 eprintln!("Error: {e}");
             }
-
             println!("{}", log_content);
         } else {
             println!("Already disconnected from database manager");
@@ -210,7 +225,15 @@ impl DatabaseManager {
                 
                 self.databases.push(database);
 
-                println!("Created database: {}", database_name);
+                let log_content = format!("Created database: {}", database_name);
+                if let Err(e) = logs::log_database_event(
+                    logs::DatabaseEventSource::Database,
+                    logs::DatabaseEventType::Created,
+                    log_content.as_str()
+                ) {
+                    eprintln!("Error: {e}");
+                }
+                println!("{}", log_content);
 
                 return Ok(());
             } else {
@@ -227,7 +250,15 @@ impl DatabaseManager {
             if let Some((i, _db)) = self.find_database(database_name) {
                 self.databases.remove(i);
 
-                println!("Deleted database: {}", database_name);
+                let log_content = format!("Deleted database: {}", database_name);
+                if let Err(e) = logs::log_database_event(
+                    logs::DatabaseEventSource::Database,
+                    logs::DatabaseEventType::Deleted,
+                    log_content.as_str()
+                ) {
+                    eprintln!("Error: {e}");
+                }
+                println!("{}", log_content);
 
                 return Ok(());
             } else {
