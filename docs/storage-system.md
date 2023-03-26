@@ -16,18 +16,12 @@ Each database will be stored in a separate database file. That file will contain
 - Location: `databases` directory in project root
 - Example file name: example-database.json
 
-Optional design:
-
-- Folder for each database
-- Separate JSON files for info, tables, fields, data etc.
-
 ## Structure
 
 - Size on disk
 - Database name
-- tables
-- table fields
-- stored data
+- Collections
+- Document objects
 
 ## Parsing
 
@@ -48,7 +42,40 @@ Will contain code to manipulate data.
 
 No query language. Instead make API for different queries.
 
+## Example database file structure
 
-## Example file structure
-
-TODO
+```json
+{
+    "database_name": "testdb",
+    "collections": [
+        "collection_1": [
+            {
+                "document_id": 1,
+                "document_field_1": "some data",
+                "document_field_2": "some data",
+            },
+            {
+                "document_id": 2,
+                "document_field_1": "some data",
+                "document_field_2": "some data",
+                "document_field_3": "some data",
+                "document_field_4": "some data",
+            }
+        ],
+        "collection_2": [
+            {
+                "document_id": 1,
+                "document_field_1": "some data",
+                "document_field_2": "some data",
+            },
+            {
+                "document_id": 2,
+                "document_field_1": "some data",
+                "document_field_2": "some data",
+                "document_field_3": "some data",
+                "document_field_4": "some data",
+            }
+        ],
+    ]
+}
+```

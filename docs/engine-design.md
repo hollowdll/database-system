@@ -52,8 +52,7 @@ Currently planned structure. Not final.
 
 <pre>
 Client/management system
-    -> Connect database manager
-        -> Access databases
+    -> Access databases
 
 Database manager
     -> Connect database
@@ -64,7 +63,7 @@ Database manager
 
 Document data can be different in each document. They don't need to have the same schema.
 
-Each document has a unique ID identifying the document in the database.
+Each document has a unique ID identifying the document in the collection it is in.
 
 For example
 
