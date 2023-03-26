@@ -2,13 +2,23 @@
 // Not final
 
 use std::{
-    fs,
-    io,
+    fs::{self, OpenOptions},
+    io::{self, Write},
     path::Path,
 };
 
 struct Database {
     name: String,
+}
+
+impl Database {
+    fn new() {
+        
+    }
+
+    fn new_json() {
+
+    }
 }
 
 struct DatabaseDocumentCollection {
@@ -19,7 +29,7 @@ struct DatabaseDocument {
     id: u64,
 }
 
-fn create_databases_dir() -> io::Result<()> {
+pub fn create_databases_dir() -> io::Result<()> {
     if !Path::new("./databases").is_dir() {
         fs::create_dir("./databases")?;
     }
@@ -27,9 +37,11 @@ fn create_databases_dir() -> io::Result<()> {
     Ok(())
 }
 
-fn create_database_file(database_name: &str) -> io::Result<bool> {
+pub fn create_database_file(database_name: &str) -> io::Result<bool> {
     if !Path::new(format!("./databases/{database_name}.json").as_str()).is_file() {
-        let file = fs::File::create(format!("./databases/{database_name}.json"))?;
+        let mut file = fs::File::create(format!("./databases/{database_name}.json"))?;
+
+        // write initial data
 
         return Ok(true);
     } else {
@@ -37,7 +49,7 @@ fn create_database_file(database_name: &str) -> io::Result<bool> {
     }
 }
 
-fn database_file_exists(database_name: &str) -> bool {
+pub fn database_file_exists(database_name: &str) -> bool {
     if Path::new(format!("./databases/{database_name}.json").as_str()).is_file() {
         return true;
     } else {

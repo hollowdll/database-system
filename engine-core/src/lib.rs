@@ -45,7 +45,6 @@ impl Config {
 pub struct Database {
     name: String,
     connected: bool,
-    tables: Vec<DatabaseTable>,
 }
 
 impl Database {
@@ -55,10 +54,6 @@ impl Database {
 
     pub fn connected(&self) -> bool {
         self.connected
-    }
-
-    pub fn tables(&self) -> &[DatabaseTable] {
-        &self.tables
     }
 
     /// Connect to this database.
@@ -106,50 +101,8 @@ impl Database {
         Self {
             name: String::from(name),
             connected: false,
-            tables: Vec::new(),
         }
     }
-}
-
-#[derive(Debug)]
-pub struct DatabaseTable {
-    name: String,
-    columns: Vec<DatabaseTableColumn>,
-    // Might be changed later
-    id_column: Option<DatabaseTableColumn>,
-}
-
-impl DatabaseTable {
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn columns(&self) -> &[DatabaseTableColumn] {
-        &self.columns
-    }
-}
-
-impl DatabaseTable {
-    fn create_id_column() -> DatabaseTableColumn {
-        DatabaseTableColumn {
-            name: String::from("id"),
-            data_type: DatabaseDataType::Id,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct DatabaseTableColumn {
-    name: String,
-    data_type: DatabaseDataType,
-}
-
-#[derive(Debug)]
-enum DatabaseDataType {
-    // All database data types
-    // Some of these are still in planning phase
-    // Some types that will be added: serial(identity), text, int, decimal, bool
-    Id,
 }
 
 /// Database manager that will

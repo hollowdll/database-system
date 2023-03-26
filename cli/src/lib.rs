@@ -54,21 +54,24 @@ pub fn run(config: Config) {
   /help                                   List all available commands
   /q                                      Quit
   /connection status                      Display current connection status
-  /connect                                Connect to database manager
-  /disconnect                             Disconnect from database manager
 
   /databases                              List all databases
   /create database                        Create a new database
   /delete database                        Delete a database
   /connect database                       Connect to a database
 
-  (DISABLED) /tables                      List all tables of a connected database
-  (DISABLED) /create table                Create a new table in a connected database
-  (DISABLED) /delete table                Delete a table in a connected database
-  (DISABLED) /view table                  View a table in a connected database
-  (DISABLED) /view table data             View table data in a connected database
+  ** THESE COMMANDS ARE NOT FINAL **
 
-  (Commands for testing)
+  (DISABLED) /collections                 List all collection of a connected database
+  (DISABLED) /create collection           Create a new collection in a connected database
+  (DISABLED) /delete collection           Delete a collection in a connected database
+  
+  (DISABLED) /documents                   List documents of a collection
+  (DISABLED) /create document             Create a new document in a collection
+  (DISABLED) /delete document             Delete a document in a collection
+
+  ** COMMANDS FOR TESTING **
+
   /create test log                        Creates test log
   
   More commands in the future...
