@@ -9,14 +9,21 @@ use crate::db;
 struct DatabaseManager {}
 
 impl DatabaseManager {
-    pub fn create_database(&self, database_name: &str) -> Result<(), io::Error> {
+    pub fn create_database(&self, database_name: &str) -> Result<bool, io::Error> {
         if let Err(e) = db::create_databases_dir() {
             return Err(e);
         }
+            
+        match db::create_database_file(database_name) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
 
-        db::create_database_file(database_name);
-
-        Ok(())
+        Ok(true)
     }
 
     pub fn delete_database(&self) {

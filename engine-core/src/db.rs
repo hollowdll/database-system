@@ -4,11 +4,12 @@
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
-    path::Path,
+    path::Path, collections::HashMap,
 };
 
 struct Database {
     name: String,
+    collections: Vec<DatabaseDocumentCollection>,
 }
 
 impl Database {
@@ -23,10 +24,12 @@ impl Database {
 
 struct DatabaseDocumentCollection {
     name: String,
+    documents: Vec<DatabaseDocument>,
 }
 
 struct DatabaseDocument {
     id: u64,
+    data: HashMap<String, String>,
 }
 
 pub fn create_databases_dir() -> io::Result<()> {
@@ -43,10 +46,12 @@ pub fn create_database_file(database_name: &str) -> io::Result<bool> {
 
         // write initial data
 
-        return Ok(true);
+
     } else {
         return Ok(false);
     }
+
+    Ok(true)
 }
 
 pub fn database_file_exists(database_name: &str) -> bool {
