@@ -1,11 +1,6 @@
 // Engine core library
 // Prototype phase
 // Will be organized and structured better later
-// This library will be split into modules later
-
-// TODO
-// Split this library into modules
-// so everything is not in this same file
 
 #![allow(unused)]
 
@@ -13,9 +8,11 @@ pub mod logs;
 mod db;
 mod db_manager;
 
+pub use db_manager::DatabaseManager;
+
 /// Configure engine data.
 pub struct Config {
-    database_manager: DatabaseManager,
+    database_manager: db_manager::DatabaseManager,
 }
 
 impl Config {
@@ -41,6 +38,7 @@ impl Config {
     }
 }
 
+/*
 #[derive(Debug)]
 pub struct Database {
     name: String,
@@ -104,7 +102,9 @@ impl Database {
         }
     }
 }
+*/
 
+/*
 /// Database manager that will
 /// manage all database instances.
 /// 
@@ -301,7 +301,7 @@ impl DatabaseManager {
         }
     }
 }
-
+*/
 
 
 #[cfg(test)]

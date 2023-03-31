@@ -55,13 +55,13 @@ pub fn run(config: Config) {
                 println!(
 "
   /help                                List all available commands
-  /q                                   Quit
-  /connection status                   Display current connection status
+  /q                                   Quit program
+  (DISABLED) /connection status        Display current connection status
 
-  /databases                           List all databases
+  (DISABLED) /databases                List all databases
   /create database                     Create a new database
-  /delete database                     Delete a database
-  /connect database                    Connect to a database
+  (DISABLED) /delete database          Delete a database
+  (DISABLED) /connect database         Connect to a database
 
   ** THESE COMMANDS ARE NOT FINAL **
 
@@ -82,11 +82,8 @@ pub fn run(config: Config) {
             "/q" => {
                 exit_program()
             },
-            "/connection status" => {
-                display_connection_status(engine.database_manager())
-            },
             "/create database" => {
-                create_database_menu(engine.database_manager_mut());
+                create_database_menu(engine.database_manager());
             },
             _ => {
                 println!("No such command found!");
@@ -97,18 +94,22 @@ pub fn run(config: Config) {
     }
 }
 
+/// Exit the program.
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
 }
 
+/// Display connected database.
 fn display_connection_status(database_manager: &DatabaseManager) {
     println!("Connected databases:");
 
     // Display connected databases
 }
 
-fn create_database_menu(database_manager_mut: &mut DatabaseManager) {
+/// Show menu asking the name of the database.
+/// After that, ask to confirm.
+fn create_database_menu(database_manager: &DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -127,19 +128,26 @@ fn create_database_menu(database_manager_mut: &mut DatabaseManager) {
 
     let confirm = confirm.trim();
 
-    /*
     match confirm {
         // Create database
         "y" => {
-            if let Err(e) = database_manager_mut.create_database(database_name) {
-                eprintln!("Error: {e}");
+            match database_manager.create_database(database_name) {
+                Ok(result) => {
+                    if result {
+                        println!("Created database");
+                    } else {
+                        println!("Failed to create database. It might already exist.");
+                    }
+                },
+                Err(e) => eprintln!("Error: {e}"),
             }
         },
         _ => println!("Canceled database creation"),
     }
-    */
+    
 }
 
+/// List all databases and display information about them.
 fn list_all_databases(database_manager: &DatabaseManager) {
     println!(
         "\n{}",

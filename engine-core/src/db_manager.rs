@@ -6,7 +6,7 @@ use std::{
 use crate::logs;
 use crate::db;
 
-struct DatabaseManager {}
+pub struct DatabaseManager {}
 
 impl DatabaseManager {
     pub fn create_database(&self, database_name: &str) -> Result<bool, io::Error> {
@@ -45,7 +45,7 @@ impl DatabaseManager {
 
 impl DatabaseManager {
     /// Build a new database manager.
-    fn build() -> Self {
+    pub fn build() -> Self {
         Self {}
     }
 }
