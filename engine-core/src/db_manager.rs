@@ -23,6 +23,15 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
+        let log_content = format!("Created database: {}", database_name);
+        if let Err(e) = logs::log_database_event(
+            logs::DatabaseEventSource::Database,
+            logs::DatabaseEventType::Created,
+            log_content.as_str()
+        ) {
+            eprintln!("Error: {e}");
+        }
+
         Ok(true)
     }
 

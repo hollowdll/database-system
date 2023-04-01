@@ -11,6 +11,7 @@ use std::{
     io::{self, Write},
     path::Path,
     time::{
+        Duration,
         SystemTime,
     },
 };
@@ -47,8 +48,8 @@ impl DatabaseEventLog {
         };
 
         format!(
-            "[System time in nanoseconds: {:?}] [{:?}] [{:?}] - {}\n",
-            time.as_nanos(),
+            "[System time in seconds: {:?}] [{:?}] [{:?}] - {}\n",
+            time.as_secs_f64(),
             self.event_source,
             self.event_type,
             self.content

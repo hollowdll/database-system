@@ -85,6 +85,12 @@ pub fn run(config: Config) {
             "/create database" => {
                 create_database_menu(engine.database_manager());
             },
+            "/create test log" => {
+                use engine_core::logs;
+                for _ in 0..5 {
+                    logs::create_test_log();
+                }
+            },
             _ => {
                 println!("No such command found!");
                 println!("{}", help_message);
