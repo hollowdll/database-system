@@ -52,9 +52,11 @@ struct DatabaseDocument {
     data: HashMap<String, String>,
 }
 
-/// Creates databases directory in root directory
+
+
+/// Creates databases directory in project directory
 pub fn create_databases_dir() -> io::Result<()> {
-    if !Path::new("./databases").is_dir() {
+    if !databases_dir_exists() {
         fs::create_dir("./databases")?;
     }
 
@@ -87,10 +89,35 @@ pub fn create_database_file(database_name: &str) -> io::Result<bool> {
 }
 
 /// Check if a database file exists in databases directory
-pub fn database_file_exists(database_name: &str) -> bool {
-    if Path::new(format!("./databases/{database_name}.json").as_str()).is_file() {
-        return true;
-    } else {
-        return false;
-    }
+fn database_file_exists(database_name: &str) -> bool {
+    return Path::new(format!("./databases/{database_name}.json").as_str()).is_file();
 }
+
+/// Check if databases directory exists in project root
+fn databases_dir_exists() -> bool {
+    return Path::new("./databases").is_dir();
+}
+
+// Find all database files in databases directory
+pub fn find_all_database_files() -> io::Result<()> {
+    let dir_path = format!("./databases");
+
+    create_databases_dir();
+
+    // Read all files
+    for entry in fs::read_dir(dir_path)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_file() {
+            if let Some(file_extension) = path.extension() {
+                if file_extension == "json" {
+                    println!("file is json");
+                    println!("File name: {:?}", entry.file_name());
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+

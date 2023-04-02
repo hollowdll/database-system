@@ -58,7 +58,7 @@ pub fn run(config: Config) {
   /q                                   Quit program
   (DISABLED) /connection status        Display current connection status
 
-  (DISABLED) /databases                List all databases
+  /databases                           List all databases
   /create database                     Create a new database
   (DISABLED) /delete database          Delete a database
   (DISABLED) /connect database         Connect to a database
@@ -81,6 +81,9 @@ pub fn run(config: Config) {
             },
             "/q" => {
                 exit_program()
+            },
+            "/databases" => {
+                list_all_databases(engine.database_manager());
             },
             "/create database" => {
                 create_database_menu(engine.database_manager());
@@ -155,10 +158,14 @@ fn create_database_menu(database_manager: &DatabaseManager) {
 
 /// List all databases and display information about them.
 fn list_all_databases(database_manager: &DatabaseManager) {
+    /*
     println!(
         "\n{}",
         "Number of databases: ",
     );
+    */
 
     // Read all database files and iterate over them
+
+    database_manager.find_all_databases();
 }
