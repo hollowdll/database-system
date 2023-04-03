@@ -158,6 +158,8 @@ fn create_database_menu(database_manager: &DatabaseManager) {
 
 /// List all databases and display information about them.
 fn list_all_databases(database_manager: &DatabaseManager) {
+    println!();
+
     /*
     println!(
         "\n{}",

@@ -2,7 +2,7 @@
 // Not final
 
 use std::{
-    fs::{self, OpenOptions},
+    fs::{self, OpenOptions, DirEntry},
     io::{self, Write},
     path::Path, collections::HashMap,
 };
@@ -14,6 +14,10 @@ struct Database {
 }
 
 impl Database {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
     fn to_json(&self) -> serde_json::Value {
         serde_json::json!({
             "name": self.name,
@@ -36,6 +40,11 @@ impl Database {
             collections: Vec::new(),
         }
     }
+}
+
+struct ListableDatabase {
+    name: String,
+    size: u64,
 }
 
 /// Database document collection
@@ -99,10 +108,12 @@ fn databases_dir_exists() -> bool {
 }
 
 // Find all database files in databases directory
-pub fn find_all_database_files() -> io::Result<()> {
+pub fn find_all_database_files() -> io::Result<Vec<DirEntry>> {
     let dir_path = format!("./databases");
 
     create_databases_dir();
+
+    let mut database_files = Vec::new();
 
     // Read all files
     for entry in fs::read_dir(dir_path)? {
@@ -113,11 +124,23 @@ pub fn find_all_database_files() -> io::Result<()> {
                 if file_extension == "json" {
                     println!("file is json");
                     println!("File name: {:?}", entry.file_name());
+                    println!("File size: {:?} bytes", entry.metadata()?.len());
+
+                    let contents = fs::read_to_string(path)?;
+
+                    let value: serde_json::Value = serde_json::from_str(contents.as_str())?;
+                    
+                    let database = Database::from_json(value);
+                    if database.name() == entry.file_name() {
+                        database_files.push(entry);
+                    }
                 }
             }
         }
     }
 
-    Ok(())
+    Ok(database_files)
 }
+
+
 

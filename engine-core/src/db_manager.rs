@@ -48,9 +48,10 @@ impl DatabaseManager {
     }
 
     pub fn find_all_databases(&self) -> Result<(), io::Error> {
-        if let Err(e) = db::find_all_database_files() {
-            return Err(e);
-        }
+        let database_files = match db::find_all_database_files() {
+            Ok(database_files) => database_files,
+            Err(e) => return Err(e),
+        };
 
         Ok(())
     }
