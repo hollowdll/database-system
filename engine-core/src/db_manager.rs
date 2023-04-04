@@ -47,13 +47,13 @@ impl DatabaseManager {
 
     }
 
-    pub fn find_all_databases(&self) -> Result<(), io::Error> {
-        let database_files = match db::find_all_database_files() {
-            Ok(database_files) => database_files,
+    pub fn find_all_databases(&self) -> Result<Vec<db::FormattedDatabase>, io::Error> {
+        let databases = match db::find_all_databases() {
+            Ok(databases) => databases,
             Err(e) => return Err(e),
         };
 
-        Ok(())
+        Ok(databases)
     }
 }
 

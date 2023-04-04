@@ -148,7 +148,7 @@ fn create_database_menu(database_manager: &DatabaseManager) {
                         println!("Failed to create database. It might already exist.");
                     }
                 },
-                Err(e) => eprintln!("Error: {e}"),
+                Err(e) => eprintln!("Error occurred while trying to create a database: {e}"),
             }
         },
         _ => println!("Canceled database creation"),
@@ -158,16 +158,20 @@ fn create_database_menu(database_manager: &DatabaseManager) {
 
 /// List all databases and display information about them.
 fn list_all_databases(database_manager: &DatabaseManager) {
-    println!();
+    let databases = match database_manager.find_all_databases() {
+        Ok(databases) => databases,
+        Err(e) => return eprintln!("Error occurred while trying to find databases: {e}"),
+    };
 
-    /*
-    println!(
-        "\n{}",
-        "Number of databases: ",
-    );
-    */
+    println!("\nNumber of databases: {}", databases.len());
 
-    // Read all database files and iterate over them
-
-    database_manager.find_all_databases();
+    for database in databases {
+        println!(
+"
+  Name: {}
+  Size: {} bytes",
+        database.name(),
+        database.size()
+        );
+    }
 }

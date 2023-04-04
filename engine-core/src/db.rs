@@ -42,9 +42,29 @@ impl Database {
     }
 }
 
-struct ListableDatabase {
+/// Formatted database that can be listed in database clients
+pub struct FormattedDatabase {
     name: String,
     size: u64,
+}
+
+impl FormattedDatabase {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn size(&self) -> &u64 {
+        &self.size
+    }
+}
+
+impl FormattedDatabase {
+    fn from(name: String, size: u64) -> Self {
+        Self {
+            name,
+            size,
+        }
+    }
 }
 
 /// Database document collection
@@ -108,12 +128,12 @@ fn databases_dir_exists() -> bool {
 }
 
 // Find all database files in databases directory
-pub fn find_all_database_files() -> io::Result<Vec<DirEntry>> {
+pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
     let dir_path = format!("./databases");
 
     create_databases_dir();
 
-    let mut database_files = Vec::new();
+    let mut databases = Vec::new();
 
     // Read all files
     for entry in fs::read_dir(dir_path)? {
@@ -122,24 +142,21 @@ pub fn find_all_database_files() -> io::Result<Vec<DirEntry>> {
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
                 if file_extension == "json" {
-                    println!("file is json");
-                    println!("File name: {:?}", entry.file_name());
-                    println!("File size: {:?} bytes", entry.metadata()?.len());
-
                     let contents = fs::read_to_string(path)?;
+                    let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
 
-                    let value: serde_json::Value = serde_json::from_str(contents.as_str())?;
+                    let database = FormattedDatabase::from(
+                        json_value["name"].to_string(),
+                        entry.metadata()?.len()
+                    );
                     
-                    let database = Database::from_json(value);
-                    if database.name() == entry.file_name() {
-                        database_files.push(entry);
-                    }
+                    databases.push(database);
                 }
             }
         }
     }
 
-    Ok(database_files)
+    Ok(databases)
 }
 
 
