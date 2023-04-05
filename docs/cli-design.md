@@ -8,15 +8,11 @@ Changes and additions will be added over time.
 
 Start program -> Loop inputs -> Read inputs -> Run commands -> Call engine core API
 
-Connect to database manager -> run database manager specific commands
-- Databases
+** Not implemented yet **
 
 Connect to a database -> run database specific commands
-- Tables
-
-Disconnect from database manager -> Disconnect all connected databases
-
-Database manager handles connecting and disconnecting databases
+- CRUD collections
+- CRUD documents
 
 ## Top-level commands
 
@@ -25,6 +21,5 @@ Database manager handles connecting and disconnecting databases
 /help -> Show all commands
 
 /connection status -> Displays connection status
-- Database manager
-- Databases
+- Currently connected database
 
