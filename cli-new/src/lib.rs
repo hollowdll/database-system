@@ -60,7 +60,7 @@ pub fn run(config: Config) {
 
   /databases                           List all databases
   /create database                     Create a new database
-  (DISABLED) /delete database          Delete a database
+  /delete database                     Delete a database
   (DISABLED) /connect database         Connect to a database
 
   ** THESE COMMANDS ARE NOT FINAL **
@@ -86,7 +86,10 @@ pub fn run(config: Config) {
                 list_all_databases(engine.database_manager());
             },
             "/create database" => {
-                create_database_menu(engine.database_manager());
+                show_create_database_menu(engine.database_manager());
+            },
+            "/delete database" => {
+                show_delete_database_menu(engine.database_manager());
             },
             "/create test log" => {
                 use engine_core::logs;
@@ -111,14 +114,14 @@ fn exit_program() {
 
 /// Display connected database.
 fn display_connection_status(database_manager: &DatabaseManager) {
-    println!("Connected databases:");
+    println!("Connected database:");
 
-    // Display connected databases
+    // Display connected database
 }
 
-/// Show menu asking the name of the database.
+/// Show CLI menu asking the name of the database to create.
 /// After that, ask to confirm.
-fn create_database_menu(database_manager: &DatabaseManager) {
+fn show_create_database_menu(database_manager: &DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -154,6 +157,12 @@ fn create_database_menu(database_manager: &DatabaseManager) {
         _ => println!("Canceled database creation"),
     }
     
+}
+
+/// Show CLI menu asking the name of the database to delete.
+/// After that, ask to confirm.
+fn show_delete_database_menu(database_manager: &DatabaseManager) {
+
 }
 
 /// List all databases and display information about them.

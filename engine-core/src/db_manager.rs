@@ -6,9 +6,12 @@ use std::{
 use crate::logs;
 use crate::db;
 
+/// Database manager that manages all databases
+/// and database related operations
 pub struct DatabaseManager {}
 
 impl DatabaseManager {
+    /// Creates a new database 
     pub fn create_database(&self, database_name: &str) -> Result<bool, io::Error> {
         if let Err(e) = db::create_databases_dir() {
             return Err(e);
@@ -29,14 +32,15 @@ impl DatabaseManager {
             logs::DatabaseEventType::Created,
             log_content.as_str()
         ) {
-            eprintln!("Error: {e}");
+            eprintln!("Error occurred while trying to log database event: {e}");
         }
 
         Ok(true)
     }
 
-    pub fn delete_database(&self) {
-
+    /// Deletes a database
+    pub fn delete_database(&self, database_name: &str) -> Result<bool, io::Error> {
+        Ok(false)
     }
 
     pub fn connect_database(&self) {
@@ -47,6 +51,7 @@ impl DatabaseManager {
 
     }
 
+    /// Finds all databases
     pub fn find_all_databases(&self) -> Result<Vec<db::FormattedDatabase>, io::Error> {
         let databases = match db::find_all_databases() {
             Ok(databases) => databases,
