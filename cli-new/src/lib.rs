@@ -156,13 +156,45 @@ fn show_create_database_menu(database_manager: &DatabaseManager) {
         },
         _ => println!("Canceled database creation"),
     }
-    
 }
 
 /// Show CLI menu asking the name of the database to delete.
 /// After that, ask to confirm.
 fn show_delete_database_menu(database_manager: &DatabaseManager) {
+    let mut database_name = String::new();
+    let mut confirm = String::new();
 
+    println!("\n{}", "Database name:");
+    io::stdin()
+        .read_line(&mut database_name)
+        .expect("Failed to read line");
+
+    let database_name = database_name.trim();
+
+    println!("Confirm to delete database named {}", database_name);
+    println!("Yes?: y");
+    io::stdin()
+        .read_line(&mut confirm)
+        .expect("Failed to read line");
+
+    let confirm = confirm.trim();
+
+    match confirm {
+        // Delete database
+        "y" => {
+            match database_manager.delete_database(database_name) {
+                Ok(result) => {
+                    if result {
+                        println!("Deleted database");
+                    } else {
+                        println!("Failed to delete database. It might not exist.");
+                    }
+                },
+                Err(e) => eprintln!("Error occurred while trying to delete database: {e}"),
+            }
+        },
+        _ => println!("Canceled database deletion"),
+    }
 }
 
 /// List all databases and display information about them.

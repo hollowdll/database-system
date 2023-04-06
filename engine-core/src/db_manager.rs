@@ -40,7 +40,25 @@ impl DatabaseManager {
 
     /// Deletes a database
     pub fn delete_database(&self, database_name: &str) -> Result<bool, io::Error> {
-        Ok(false)
+        match db::delete_database_file(database_name) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        let log_content = format!("Deleted database: {}", database_name);
+        if let Err(e) = logs::log_database_event(
+            logs::DatabaseEventSource::Database,
+            logs::DatabaseEventType::Deleted,
+            log_content.as_str()
+        ) {
+            eprintln!("Error occurred while trying to log database event: {e}");
+        }
+        
+        Ok(true)
     }
 
     pub fn connect_database(&self) {

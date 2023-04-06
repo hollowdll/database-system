@@ -117,6 +117,19 @@ pub fn create_database_file(database_name: &str) -> io::Result<bool> {
     Ok(true)
 }
 
+/// Deletes a database file in databases directory
+pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
+    let file_path = format!("./databases/{database_name}.json");
+
+    if Path::new(&file_path).is_file() {
+        fs::remove_file(&file_path)?;
+    } else {
+        return Ok(false);
+    }
+    
+    Ok(true)
+}
+
 /// Check if a database file exists in databases directory
 fn database_file_exists(database_name: &str) -> bool {
     return Path::new(format!("./databases/{database_name}.json").as_str()).is_file();
