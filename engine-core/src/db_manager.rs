@@ -78,6 +78,20 @@ impl DatabaseManager {
 
         Ok(databases)
     }
+
+    // Tries to find a database by name
+    pub fn find_database(&self, database_name: &str) -> Result<bool, io::Error> {
+        match db::find_database(database_name) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        Ok(true)
+    }
 }
 
 impl DatabaseManager {

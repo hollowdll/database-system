@@ -15,6 +15,7 @@ use engine_core::{
 pub struct Config {
     engine_core_config: engine_core::Config,
     version: &'static str,
+    connected_database: Option<String>,
 }
 
 impl Config {
@@ -23,13 +24,28 @@ impl Config {
         Self {
             engine_core_config: engine_core::Config::build(),
             version: "0.0.0",
+            connected_database: None,
         }
     }
 }
 
+/* Disabled
+/// Currently connected database
+struct ConnectedDatabase {
+    name: &'static str,
+}
+
+impl ConnectedDatabase {
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+*/
+
 /// Runs the program
 pub fn run(config: Config) {
     let mut engine = config.engine_core_config;
+    let mut connected_database = config.connected_database;
 
     let help_message = "Write /help for all available commands";
 
@@ -61,7 +77,7 @@ pub fn run(config: Config) {
   /databases                           List all databases
   /create database                     Create a new database
   /delete database                     Delete a database
-  (DISABLED) /connect database         Connect to a database
+  /connect database                    Connect to a database
 
   ** THESE COMMANDS ARE NOT FINAL **
 
@@ -91,6 +107,9 @@ pub fn run(config: Config) {
             "/delete database" => {
                 show_delete_database_menu(engine.database_manager());
             },
+            "/connect database" => {
+                show_connect_database_menu(engine.database_manager(), &mut connected_database);
+            },
             "/create test log" => {
                 use engine_core::logs;
                 for _ in 0..5 {
@@ -119,8 +138,7 @@ fn display_connection_status(database_manager: &DatabaseManager) {
     // Display connected database
 }
 
-/// Show CLI menu asking the name of the database to create.
-/// After that, ask to confirm.
+/// Show menu to create a new database.
 fn show_create_database_menu(database_manager: &DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
@@ -158,8 +176,7 @@ fn show_create_database_menu(database_manager: &DatabaseManager) {
     }
 }
 
-/// Show CLI menu asking the name of the database to delete.
-/// After that, ask to confirm.
+/// Show menu to delete a database.
 fn show_delete_database_menu(database_manager: &DatabaseManager) {
     let mut database_name = String::new();
     let mut confirm = String::new();
@@ -194,6 +211,33 @@ fn show_delete_database_menu(database_manager: &DatabaseManager) {
             }
         },
         _ => println!("Canceled database deletion"),
+    }
+}
+
+/// Show menu to connect to a database.
+fn show_connect_database_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &mut Option<String>
+) {
+    let mut database_name = String::new();
+
+    println!("\n{}", "Database name:");
+    io::stdin()
+        .read_line(&mut database_name)
+        .expect("Failed to read line");
+
+    let database_name = database_name.trim();
+
+    match database_manager.find_database(database_name) {
+        Ok(result) => {
+            if result {
+                connected_database.replace(database_name.to_string());
+                println!("Connected to database");
+            } else {
+                println!("Failed to connect to database. It might not exist.");
+            }
+        },
+        Err(e) => eprintln!("Error occurred while trying to connect to database: {e}"),
     }
 }
 

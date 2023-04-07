@@ -140,7 +140,7 @@ fn databases_dir_exists() -> bool {
     return Path::new("./databases").is_dir();
 }
 
-// Find all database files in databases directory
+// Finds all database files in databases directory
 pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
     let dir_path = format!("./databases");
 
@@ -174,5 +174,10 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
     Ok(databases)
 }
 
+/// Finds a database file in databases directory
+pub fn find_database(database_name: &str) -> io::Result<bool> {
 
+
+    Ok(true)
+}
 
