@@ -46,7 +46,6 @@ impl ConnectedDatabase {
 pub fn run(config: Config) {
     let mut engine = config.engine_core_config;
     let mut connected_database = config.connected_database;
-
     let help_message = "Write /help for all available commands";
 
     println!("\n{}", "NOTE: You are using the newer version of this program - 'cli-new' is the crate name");

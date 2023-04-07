@@ -7,6 +7,9 @@ use std::{
     path::Path, collections::HashMap,
 };
 
+// Path to databases directory in filesystem
+const DATABASES_DIR_PATH: &str = "./databases";
+
 /// Database structure for database files
 struct Database {
     name: String,
@@ -67,6 +70,7 @@ impl FormattedDatabase {
     }
 }
 
+
 /// Database document collection
 /// that holds database documents.
 struct DatabaseDocumentCollection {
@@ -81,12 +85,10 @@ struct DatabaseDocument {
     data: HashMap<String, String>,
 }
 
-
-
 /// Creates databases directory in project directory
 pub fn create_databases_dir() -> io::Result<()> {
     if !databases_dir_exists() {
-        fs::create_dir("./databases")?;
+        fs::create_dir(DATABASES_DIR_PATH)?;
     }
 
     Ok(())
@@ -95,7 +97,7 @@ pub fn create_databases_dir() -> io::Result<()> {
 /// Creates a database file in databases directory
 /// with initial data
 pub fn create_database_file(database_name: &str) -> io::Result<bool> {
-    let file_path = format!("./databases/{database_name}.json");
+    let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.json");
 
     if !Path::new(&file_path).is_file() {
         let mut file = fs::File::create(&file_path)?;
@@ -119,7 +121,7 @@ pub fn create_database_file(database_name: &str) -> io::Result<bool> {
 
 /// Deletes a database file in databases directory
 pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
-    let file_path = format!("./databases/{database_name}.json");
+    let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.json");
 
     if Path::new(&file_path).is_file() {
         fs::remove_file(&file_path)?;
@@ -132,26 +134,24 @@ pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
 
 /// Check if a database file exists in databases directory
 fn database_file_exists(database_name: &str) -> bool {
-    return Path::new(format!("./databases/{database_name}.json").as_str()).is_file();
+    return Path::new(format!("{DATABASES_DIR_PATH}/{database_name}.json").as_str()).is_file();
 }
 
 /// Check if databases directory exists in project root
 fn databases_dir_exists() -> bool {
-    return Path::new("./databases").is_dir();
+    return Path::new(DATABASES_DIR_PATH).is_dir();
 }
 
 // Finds all database files in databases directory
 pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
-    let dir_path = format!("./databases");
-
     create_databases_dir();
 
     let mut databases = Vec::new();
 
-    // Read all files
-    for entry in fs::read_dir(dir_path)? {
+    for entry in fs::read_dir(DATABASES_DIR_PATH)? {
         let entry = entry?;
         let path = entry.path();
+        
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
                 if file_extension == "json" {
@@ -176,8 +176,23 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 
 /// Finds a database file in databases directory
 pub fn find_database(database_name: &str) -> io::Result<bool> {
+    create_databases_dir();
 
+    for entry in fs::read_dir(DATABASES_DIR_PATH)? {
+        let entry = entry?;
+        let path = entry.path();
 
-    Ok(true)
+        if path.is_file() {
+            if entry.file_name() == format!("{database_name}.json").as_str() {
+                println!("Found: {:?}", entry.file_name());
+
+                // Check if json file has the name in it by reading it
+
+                return Ok(true);
+            }
+        }
+    }
+
+    Ok(false)
 }
 
