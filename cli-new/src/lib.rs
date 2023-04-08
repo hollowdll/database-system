@@ -4,7 +4,7 @@
 
 use std::{
     process,
-    io,
+    io::{self, Write},
 };
 use engine_core::{
     self,
@@ -57,7 +57,12 @@ pub fn run(config: Config) {
     loop {
         let mut input_command = String::new();
 
-        println!("\n{}", "Enter a command:");
+        println!();
+        if let Some(database_name) = &connected_database {
+            println!("Connected database: {database_name}");
+        }
+        println!("{}", "Enter a command:");
+
         io::stdin()
             .read_line(&mut input_command)
             .expect("Failed to read line");
@@ -135,10 +140,9 @@ fn exit_program() {
 
 /// Display connected database.
 fn display_connection_status(connected_database: &Option<String>) {
-    println!("\nConnected database:");
-
-    if let Some(database_name) = connected_database {
-        println!("{database_name}");
+    match connected_database {
+        Some(database_name) => println!("Connected database: {database_name}"),
+        None => println!("No connected database"),
     }
 }
 
