@@ -184,11 +184,13 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
 
         if path.is_file() {
             if entry.file_name() == format!("{database_name}.json").as_str() {
-                println!("Found: {:?}", entry.file_name());
+                // Check if json file contains the name
+                let contents = fs::read_to_string(path)?;
+                let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
 
-                // Check if json file has the name in it by reading it
-
-                return Ok(true);
+                if json_value["name"] == database_name {
+                    return Ok(true);
+                }
             }
         }
     }

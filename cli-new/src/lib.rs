@@ -71,7 +71,7 @@ pub fn run(config: Config) {
 "
   /help                                List all available commands
   /q                                   Quit program
-  (DISABLED) /connection status        Display current connection status
+  /connection status                   Display currently connected database
 
   /databases                           List all databases
   /create database                     Create a new database
@@ -96,6 +96,9 @@ pub fn run(config: Config) {
             },
             "/q" => {
                 exit_program()
+            },
+            "/connection status" => {
+                display_connection_status(&connected_database);
             },
             "/databases" => {
                 list_all_databases(engine.database_manager());
@@ -131,10 +134,12 @@ fn exit_program() {
 }
 
 /// Display connected database.
-fn display_connection_status(database_manager: &DatabaseManager) {
-    println!("Connected database:");
+fn display_connection_status(connected_database: &Option<String>) {
+    println!("\nConnected database:");
 
-    // Display connected database
+    if let Some(database_name) = connected_database {
+        println!("{database_name}");
+    }
 }
 
 /// Show menu to create a new database.
