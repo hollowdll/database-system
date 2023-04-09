@@ -57,6 +57,9 @@ pub fn run(config: Config) {
     loop {
         let mut input_command = String::new();
 
+        // If connected database doesn't exists anymore, reset it to None
+        refresh_connected_database(engine.database_manager(), &mut connected_database);
+
         println!();
         if let Some(database_name) = &connected_database {
             println!("Connected database: {database_name}");
@@ -140,6 +143,25 @@ pub fn run(config: Config) {
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
+}
+
+fn refresh_connected_database(
+    database_manager: &DatabaseManager,
+    connected_database: &mut Option<String>
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return,
+    };
+
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                connected_database.take();   
+            }
+        },
+        Err(e) => eprintln!("Error occurred while trying to find database: {e}"),
+    }
 }
 
 /// Display connected database.
@@ -282,8 +304,23 @@ fn show_create_collection_menu(
         return eprintln!("Failed to read line: {e}");
     }
 
-    let database_name = collection_name.trim();
+    let collection_name = collection_name.trim();
+
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database. Connect to a database to create a collection"),
+    };
 
     // Check if connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => eprintln!("Error occurred while trying to create a collection: {e}"),
+    }
+
     // Create collection
+    
 }
