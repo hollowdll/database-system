@@ -113,7 +113,7 @@ pub fn run(config: Config) {
                 show_create_database_menu(engine.database_manager());
             },
             "/delete database" => {
-                show_delete_database_menu(engine.database_manager());
+                show_delete_database_menu(engine.database_manager(), &mut connected_database);
             },
             "/connect database" => {
                 show_connect_database_menu(engine.database_manager(), &mut connected_database);
@@ -174,7 +174,10 @@ fn show_create_database_menu(database_manager: &DatabaseManager) {
 }
 
 /// Show menu to delete a database.
-fn show_delete_database_menu(database_manager: &DatabaseManager) {
+fn show_delete_database_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &mut Option<String>
+) {
     let mut database_name = String::new();
     let mut confirm = String::new();
 
@@ -201,6 +204,12 @@ fn show_delete_database_menu(database_manager: &DatabaseManager) {
             match database_manager.delete_database(database_name) {
                 Ok(result) => {
                     if result {
+                        // Disconnect database if it is connected
+                        if let Some(connected_database_name) = connected_database {
+                            if connected_database_name == database_name {
+                                connected_database.take();
+                            }
+                        }
                         println!("Deleted database");
                     } else {
                         println!("Failed to delete database. It might not exist.");
