@@ -63,9 +63,10 @@ pub fn run(config: Config) {
         }
         println!("{}", "Enter a command:");
 
-        io::stdin()
-            .read_line(&mut input_command)
-            .expect("Failed to read line");
+        if let Err(e) = io::stdin().read_line(&mut input_command) {
+            eprintln!("Failed to read line: {e}");
+            continue
+        }
 
         let input_command = input_command.trim();
 
@@ -152,38 +153,23 @@ fn display_connection_status(connected_database: &Option<String>) {
 /// Show menu to create a new database.
 fn show_create_database_menu(database_manager: &DatabaseManager) {
     let mut database_name = String::new();
-    let mut confirm = String::new();
 
     println!("\n{}", "Database name:");
-    io::stdin()
-        .read_line(&mut database_name)
-        .expect("Failed to read line");
+    if let Err(e) = io::stdin().read_line(&mut database_name) {
+        return eprintln!("Failed to read line: {e}");
+    };
 
     let database_name = database_name.trim();
 
-    println!("Confirm to create a new database named {}", database_name);
-    println!("Yes?: y");
-    io::stdin()
-        .read_line(&mut confirm)
-        .expect("Failed to read line");
-
-    let confirm = confirm.trim();
-
-    match confirm {
-        // Create database
-        "y" => {
-            match database_manager.create_database(database_name) {
-                Ok(result) => {
-                    if result {
-                        println!("Created database");
-                    } else {
-                        println!("Failed to create database. It might already exist.");
-                    }
-                },
-                Err(e) => eprintln!("Error occurred while trying to create a database: {e}"),
+    match database_manager.create_database(database_name) {
+        Ok(result) => {
+            if result {
+                println!("Created database");
+            } else {
+                println!("Failed to create database. It might already exist.");
             }
         },
-        _ => println!("Canceled database creation"),
+        Err(e) => eprintln!("Error occurred while trying to create a database: {e}"),
     }
 }
 
@@ -193,23 +179,25 @@ fn show_delete_database_menu(database_manager: &DatabaseManager) {
     let mut confirm = String::new();
 
     println!("\n{}", "Database name:");
-    io::stdin()
-        .read_line(&mut database_name)
-        .expect("Failed to read line");
+    if let Err(e) = io::stdin().read_line(&mut database_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
 
     let database_name = database_name.trim();
 
-    println!("Confirm to delete database named {}", database_name);
-    println!("Yes?: y");
-    io::stdin()
-        .read_line(&mut confirm)
-        .expect("Failed to read line");
+    println!("Are you sure you want to delete database '{}'?", database_name);
+    print!("Press 'Y' to confirm: ");
+    io::stdout().flush().unwrap();
+
+    if let Err(e) = io::stdin().read_line(&mut confirm) {
+        return eprintln!("Failed to read line: {e}");
+    }
 
     let confirm = confirm.trim();
 
     match confirm {
         // Delete database
-        "y" => {
+        "Y" => {
             match database_manager.delete_database(database_name) {
                 Ok(result) => {
                     if result {
@@ -233,9 +221,9 @@ fn show_connect_database_menu(
     let mut database_name = String::new();
 
     println!("\n{}", "Database name:");
-    io::stdin()
-        .read_line(&mut database_name)
-        .expect("Failed to read line");
+    if let Err(e) = io::stdin().read_line(&mut database_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
 
     let database_name = database_name.trim();
 
@@ -281,9 +269,9 @@ fn show_create_collection_menu(
     let mut collection_name = String::new();
 
     println!("\n{}", "Collection name:");
-    io::stdin()
-        .read_line(&mut collection_name)
-        .expect("Failed to read line");
+    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
 
     let database_name = collection_name.trim();
 
