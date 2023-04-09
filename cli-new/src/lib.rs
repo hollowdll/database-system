@@ -322,5 +322,5 @@ fn show_create_collection_menu(
     }
 
     // Create collection
-    
+    database_manager.create_collection(collection_name, connected_database_name);
 }

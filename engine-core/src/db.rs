@@ -10,6 +10,9 @@ use std::{
 // Path to databases directory in filesystem
 const DATABASES_DIR_PATH: &str = "./databases";
 
+// Database files have JSON file extension
+const DATABASE_FILE_EXTENSION: &str = "json";
+
 /// Database structure for database files
 struct Database {
     name: String,
@@ -70,7 +73,6 @@ impl FormattedDatabase {
     }
 }
 
-
 /// Database document collection
 /// that holds database documents.
 struct DatabaseDocumentCollection {
@@ -85,6 +87,23 @@ struct DatabaseDocument {
     data: HashMap<String, String>,
 }
 
+
+
+/// Gets database file path. Database files have JSON format.
+fn database_file_path(database_name: &str) -> String {
+    format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}")
+}
+
+/// Check if a database file exists in databases directory
+fn database_file_exists(database_name: &str) -> bool {
+    return Path::new(database_file_path(database_name).as_str()).is_file();
+}
+
+/// Check if databases directory exists in project root
+fn databases_dir_exists() -> bool {
+    return Path::new(DATABASES_DIR_PATH).is_dir();
+}
+
 /// Creates databases directory in project directory
 pub fn create_databases_dir() -> io::Result<()> {
     if !databases_dir_exists() {
@@ -97,7 +116,7 @@ pub fn create_databases_dir() -> io::Result<()> {
 /// Creates a database file in databases directory
 /// with initial data
 pub fn create_database_file(database_name: &str) -> io::Result<bool> {
-    let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.json");
+    let file_path = database_file_path(database_name);
 
     if !Path::new(&file_path).is_file() {
         let mut file = fs::File::create(&file_path)?;
@@ -121,7 +140,7 @@ pub fn create_database_file(database_name: &str) -> io::Result<bool> {
 
 /// Deletes a database file in databases directory
 pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
-    let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.json");
+    let file_path = database_file_path(database_name);
 
     if Path::new(&file_path).is_file() {
         fs::remove_file(&file_path)?;
@@ -130,16 +149,6 @@ pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
     }
     
     Ok(true)
-}
-
-/// Check if a database file exists in databases directory
-fn database_file_exists(database_name: &str) -> bool {
-    return Path::new(format!("{DATABASES_DIR_PATH}/{database_name}.json").as_str()).is_file();
-}
-
-/// Check if databases directory exists in project root
-fn databases_dir_exists() -> bool {
-    return Path::new(DATABASES_DIR_PATH).is_dir();
 }
 
 // Finds all database files in databases directory
@@ -154,7 +163,7 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
         
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
-                if file_extension == "json" {
+                if file_extension == DATABASE_FILE_EXTENSION {
                     let contents = fs::read_to_string(path)?;
                     let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
 
@@ -183,7 +192,7 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
         let path = entry.path();
 
         if path.is_file() {
-            if entry.file_name() == format!("{database_name}.json").as_str() {
+            if entry.file_name() == format!("{database_name}.{DATABASE_FILE_EXTENSION}").as_str() {
                 // Check if json file contains the name
                 let contents = fs::read_to_string(path)?;
                 let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
@@ -198,3 +207,21 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
     Ok(false)
 }
 
+/// Writes a new collection to database file
+pub fn create_collection_to_database_file(collection_name: &str, database_name: &str) -> io::Result<bool> {
+    let file_path = database_file_path(database_name);
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
+
+        let mut file = OpenOptions::new()
+            .append(true)
+            .open(&file_path)?;
+
+        // Create new JSON and append collection
+        
+    }
+
+    Ok(false)
+}
