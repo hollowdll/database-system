@@ -8,6 +8,7 @@ use crate::db;
 
 /// Database manager that manages all databases
 /// and database related operations
+#[derive(PartialEq, Debug)]
 pub struct DatabaseManager {}
 
 impl DatabaseManager {
