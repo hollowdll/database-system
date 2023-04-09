@@ -62,12 +62,11 @@ impl DatabaseManager {
         Ok(true)
     }
 
-    pub fn connect_database(&self) {
+    /// Creates a new collection in a database
+    pub fn create_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+        // Call db module
 
-    }
-
-    pub fn disconnect_database(&self) {
-
+        Ok(false)
     }
 
     /// Finds all databases

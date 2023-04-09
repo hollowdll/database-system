@@ -86,7 +86,7 @@ pub fn run(config: Config) {
   ** THESE COMMANDS ARE NOT FINAL **
 
   (DISABLED) /collections              List all collection of a connected database
-  (DISABLED) /create collection        Create a new collection in a connected database
+  /create collection                   Create a new collection in a connected database
   (DISABLED) /delete collection        Delete a collection in a connected database
   
   (DISABLED) /documents                List documents of a collection
@@ -116,6 +116,9 @@ pub fn run(config: Config) {
             },
             "/connect database" => {
                 show_connect_database_menu(engine.database_manager(), &mut connected_database);
+            },
+            "/create collection" => {
+                show_create_collection_menu(engine.database_manager(), &connected_database);
             },
             "/create test log" => {
                 use engine_core::logs;
@@ -267,4 +270,23 @@ fn list_all_databases(database_manager: &DatabaseManager) {
         database.size()
         );
     }
+}
+
+/// Show menu to create a new collection
+/// in the connected database
+fn show_create_collection_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>
+) {
+    let mut collection_name = String::new();
+
+    println!("\n{}", "Collection name:");
+    io::stdin()
+        .read_line(&mut collection_name)
+        .expect("Failed to read line");
+
+    let database_name = collection_name.trim();
+
+    // Check if connected database exists
+    // Create collection
 }
