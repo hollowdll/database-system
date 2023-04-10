@@ -6,6 +6,7 @@ use std::{
     io::{self, Write},
     path::Path, collections::HashMap,
 };
+use serde::{Serialize, Deserialize};
 
 // Path to databases directory in filesystem
 const DATABASES_DIR_PATH: &str = "./databases";
@@ -14,6 +15,7 @@ const DATABASES_DIR_PATH: &str = "./databases";
 const DATABASE_FILE_EXTENSION: &str = "json";
 
 /// Database structure for database files
+#[derive(Serialize, Deserialize)]
 struct Database {
     name: String,
     collections: Vec<DatabaseDocumentCollection>,
@@ -75,6 +77,7 @@ impl FormattedDatabase {
 
 /// Database document collection
 /// that holds database documents.
+#[derive(Serialize, Deserialize)]
 struct DatabaseDocumentCollection {
     name: String,
     documents: Vec<DatabaseDocument>,
@@ -82,6 +85,7 @@ struct DatabaseDocumentCollection {
 
 /// Database document that holds
 /// data in key-value pairs
+#[derive(Serialize, Deserialize)]
 struct DatabaseDocument {
     id: u64,
     data: HashMap<String, String>,
