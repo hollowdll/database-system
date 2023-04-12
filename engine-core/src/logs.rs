@@ -21,6 +21,8 @@ pub enum DatabaseEventSource {
     System,
     DatabaseManager,
     Database,
+    Collection,
+    Document,
 }
 
 #[derive(Debug)]

@@ -18,7 +18,7 @@ const DATABASE_FILE_EXTENSION: &str = "json";
 #[derive(Serialize, Deserialize)]
 struct Database {
     name: String,
-    collections: Vec<DatabaseDocumentCollection>,
+    collections: Vec<DocumentCollection>,
 }
 
 impl Database {
@@ -78,17 +78,27 @@ impl FormattedDatabase {
 /// Database document collection
 /// that holds database documents.
 #[derive(Serialize, Deserialize)]
-struct DatabaseDocumentCollection {
+struct DocumentCollection {
     name: String,
-    documents: Vec<DatabaseDocument>,
+    documents: Vec<Document>,
+}
+
+impl DocumentCollection {
+    fn from(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+            documents: Vec::new(),
+        }
+    }
 }
 
 /// Database document that holds
 /// data in key-value pairs
 #[derive(Serialize, Deserialize)]
-struct DatabaseDocument {
+struct Document {
     id: u64,
-    data: HashMap<String, String>,
+    data: HashMap<String, serde_json::Value>,
+    // Other option with generics or enums
 }
 
 
@@ -217,14 +227,20 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
-        let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
 
+        // Create new JSON and write to file
+        let collection = DocumentCollection::from(collection_name);
+        database.collections.push(collection);
+        let json = serde_json::to_string_pretty(&database)?;
+        
         let mut file = OpenOptions::new()
-            .append(true)
+            .write(true)
             .open(&file_path)?;
 
-        // Create new JSON and append collection
-        
+        file.write(json.as_bytes())?;
+
+        return Ok(true);
     }
 
     Ok(false)

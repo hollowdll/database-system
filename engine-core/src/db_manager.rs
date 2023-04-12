@@ -27,7 +27,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Created database: {}", database_name);
+        let log_content = format!("Created database '{}'", database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
             logs::DatabaseEventType::Created,
@@ -50,7 +50,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Deleted database: {}", database_name);
+        let log_content = format!("Deleted database '{}'", database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
             logs::DatabaseEventType::Deleted,
@@ -64,9 +64,25 @@ impl DatabaseManager {
 
     /// Creates a new collection in a database
     pub fn create_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
-        // Call db module
+        match db::create_collection_to_database_file(collection_name, database_name) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
 
-        Ok(false)
+        let log_content = format!("Created collection '{}' in database '{}'", collection_name, database_name);
+        if let Err(e) = logs::log_database_event(
+            logs::DatabaseEventSource::Collection,
+            logs::DatabaseEventType::Created,
+            log_content.as_str()
+        ) {
+            eprintln!("Error occurred while trying to log database event: {e}");
+        }
+
+        Ok(true)
     }
 
     /// Finds all databases

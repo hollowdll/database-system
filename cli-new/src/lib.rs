@@ -318,9 +318,18 @@ fn show_create_collection_menu(
                 return println!("Cannot find database '{connected_database_name}'");
             }
         },
-        Err(e) => eprintln!("Error occurred while trying to create a collection: {e}"),
+        Err(e) => return eprintln!("Error occurred while trying to create a collection: {e}"),
     }
 
     // Create collection
-    database_manager.create_collection(collection_name, connected_database_name);
+    match database_manager.create_collection(collection_name, connected_database_name) {
+        Ok(result) => {
+            if result {
+                println!("Created collection");
+            } else {
+                println!("Failed to create collection. Database might not exist.");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to create a collection: {e}"),
+    }
 }
