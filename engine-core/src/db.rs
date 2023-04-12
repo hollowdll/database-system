@@ -187,7 +187,7 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
                     );
                     
                     if formatted_database.name() != "null" {
-                        databases.push(database);
+                        databases.push(formatted_database);
                     }
                 }
             }
