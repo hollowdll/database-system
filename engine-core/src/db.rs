@@ -179,14 +179,14 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
             if let Some(file_extension) = path.extension() {
                 if file_extension == DATABASE_FILE_EXTENSION {
                     let contents = fs::read_to_string(path)?;
-                    let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
+                    let database: Database = serde_json::from_str(contents.as_str())?;
 
-                    let database = FormattedDatabase::from(
-                        json_value["name"].to_string(),
+                    let formatted_database = FormattedDatabase::from(
+                        String::from(database.name()),
                         entry.metadata()?.len()
                     );
                     
-                    if database.name() != "null" {
+                    if formatted_database.name() != "null" {
                         databases.push(database);
                     }
                 }
@@ -209,9 +209,9 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
             if entry.file_name() == format!("{database_name}.{DATABASE_FILE_EXTENSION}").as_str() {
                 // Check if json file contains the name
                 let contents = fs::read_to_string(path)?;
-                let json_value: serde_json::Value = serde_json::from_str(contents.as_str())?;
+                let database: Database = serde_json::from_str(contents.as_str())?;
 
-                if json_value["name"] == database_name {
+                if database.name() == database_name {
                     return Ok(true);
                 }
             }
