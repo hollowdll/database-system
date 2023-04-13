@@ -18,6 +18,7 @@ const DATABASE_FILE_EXTENSION: &str = "json";
 #[derive(Serialize, Deserialize)]
 struct Database {
     name: String,
+    description: String,
     collections: Vec<DocumentCollection>,
 }
 
@@ -26,33 +27,55 @@ impl Database {
         &self.name
     }
 
+    fn description(&self) -> &str {
+        &self.description
+    }
+
+    fn collections(&self) -> &Vec<DocumentCollection> {
+        &self.collections
+    }
+
+    fn collections_mut(&mut self) -> &mut Vec<DocumentCollection> {
+        &mut self.collections
+    }
+
     fn to_json(&self) -> serde_json::Value {
         serde_json::json!({
-            "name": self.name,
+            "name": &self.name,
+            "description": &self.description,
             "collections": [],
         })
     }
 }
 
-impl Database {
+impl Database {}
+
+impl From<&str> for Database {
     fn from(name: &str) -> Self {
         Self {
             name: String::from(name),
-            collections: Vec::new(),
-        }
-    }
-
-    fn from_json(json: serde_json::Value) -> Self {
-        Self {
-            name: json["name"].to_string(),
+            description: String::new(),
             collections: Vec::new(),
         }
     }
 }
 
-/// Formatted database that can be listed in database clients
+impl From<(&str, &str)> for Database {
+    fn from((name, description): (&str, &str)) -> Self {
+        Self {
+            name: String::from(name),
+            description: String::from(description),
+            collections: Vec::new(),
+        }
+    }
+}
+
+/// Formatted database that can be listed in database clients.
+/// 
+/// Size = database file size in bytes.
 pub struct FormattedDatabase {
     name: String,
+    description: String,
     size: u64,
 }
 
@@ -61,15 +84,20 @@ impl FormattedDatabase {
         &self.name
     }
 
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+
     pub fn size(&self) -> &u64 {
         &self.size
     }
 }
 
 impl FormattedDatabase {
-    fn from(name: String, size: u64) -> Self {
+    fn from(name: String, description: String, size: u64) -> Self {
         Self {
             name,
+            description,
             size,
         }
     }
@@ -98,7 +126,6 @@ impl DocumentCollection {
 struct Document {
     id: u64,
     data: HashMap<String, serde_json::Value>,
-    // Other option with generics or enums
 }
 
 
@@ -183,6 +210,7 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 
                     let formatted_database = FormattedDatabase::from(
                         String::from(database.name()),
+                        String::from(database.description()),
                         entry.metadata()?.len()
                     );
                     
@@ -231,7 +259,7 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
 
         // Create new JSON and write to file
         let collection = DocumentCollection::from(collection_name);
-        database.collections.push(collection);
+        database.collections_mut().push(collection);
         let json = serde_json::to_string_pretty(&database)?;
         
         let mut file = OpenOptions::new()
