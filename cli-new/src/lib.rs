@@ -284,9 +284,11 @@ fn list_all_databases(database_manager: &DatabaseManager) {
         println!(
 "
   Name: {}
-  Size: {} bytes",
+  Size: {} bytes
+  Description: {}",
         database.name(),
-        database.size()
+        database.size(),
+        database.description(),
         );
     }
 }
