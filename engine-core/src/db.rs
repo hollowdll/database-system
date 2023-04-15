@@ -206,7 +206,13 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
             if let Some(file_extension) = path.extension() {
                 if file_extension == DATABASE_FILE_EXTENSION {
                     let contents = fs::read_to_string(path)?;
-                    let database: Database = serde_json::from_str(contents.as_str())?;
+                    let database: Database = match serde_json::from_str(contents.as_str()) {
+                        Ok(database) => database,
+                        Err(e) => {
+                            eprintln!("Error parsing database: {e} ({:?})", entry.file_name());
+                            continue
+                        },
+                    };
 
                     let formatted_database = FormattedDatabase::from(
                         String::from(database.name()),
@@ -214,9 +220,7 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
                         entry.metadata()?.len()
                     );
                     
-                    if formatted_database.name() != "null" {
-                        databases.push(formatted_database);
-                    }
+                    databases.push(formatted_database);
                 }
             }
         }
