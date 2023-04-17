@@ -64,6 +64,15 @@ impl DatabaseManager {
 
     /// Creates a new collection in a database
     pub fn create_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+        match db::find_collection(collection_name, database_name) {
+            Ok(result) => {
+                if result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
         match db::create_collection_to_database_file(collection_name, database_name) {
             Ok(result) => {
                 if !result {

@@ -112,6 +112,20 @@ struct DocumentCollection {
 }
 
 impl DocumentCollection {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn documents(&self) -> &Vec<Document> {
+        &self.documents
+    }
+
+    fn documents_mut(&mut self) -> &mut Vec<Document> {
+        &mut self.documents
+    }
+}
+
+impl DocumentCollection {
     fn from(name: &str) -> Self {
         Self {
             name: String::from(name),
@@ -229,7 +243,9 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
     Ok(databases)
 }
 
-/// Finds a database file in databases directory
+/// Finds a database file in databases directory.
+/// 
+/// Returns `Ok(true)` if database was found.
 pub fn find_database(database_name: &str) -> io::Result<bool> {
     create_databases_dir();
 
@@ -253,7 +269,27 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
     Ok(false)
 }
 
-/// Writes a new collection to database file
+/// Finds a collection in a database file.
+/// 
+/// Returns `Ok(true)` if collection was found.
+pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result<bool> {
+    let file_path = database_file_path(database_name);
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+
+        for collection in database.collections() {
+            if collection.name() == collection_name {
+                return Ok(true)
+            }
+        }
+    }
+
+    Ok(false)
+}
+
+/// Writes a new collection to a database file
 pub fn create_collection_to_database_file(collection_name: &str, database_name: &str) -> io::Result<bool> {
     let file_path = database_file_path(database_name);
 
@@ -275,5 +311,10 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
         return Ok(true);
     }
 
+    Ok(false)
+}
+
+/// Deletes a collection from a database file
+pub fn delete_collection_from_database_file(collection_name: &str, database_name: &str) -> io::Result<bool> {
     Ok(false)
 }

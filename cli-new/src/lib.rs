@@ -329,7 +329,7 @@ fn show_create_collection_menu(
             if result {
                 println!("Created collection");
             } else {
-                println!("Failed to create collection. Database might not exist.");
+                println!("Failed to create collection. Database might not exist or collection name already exists.");
             }
         },
         Err(e) => return eprintln!("Error occurred while trying to create a collection: {e}"),
