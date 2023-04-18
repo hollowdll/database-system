@@ -64,6 +64,7 @@ impl DatabaseManager {
 
     /// Creates a new collection in a database
     pub fn create_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+        // Cancel if collection with this name already exists
         match db::find_collection(collection_name, database_name) {
             Ok(result) => {
                 if result {
@@ -94,6 +95,28 @@ impl DatabaseManager {
         Ok(true)
     }
 
+    pub fn delete_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+        match db::delete_collection_from_database_file(collection_name, database_name) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        let log_content = format!("Deleted collection '{}' in database '{}'", collection_name, database_name);
+        if let Err(e) = logs::log_database_event(
+            logs::DatabaseEventSource::Collection,
+            logs::DatabaseEventType::Deleted,
+            log_content.as_str()
+        ) {
+            eprintln!("Error occurred while trying to log database event: {e}");
+        }
+
+        Ok(true)
+    }
+
     /// Finds all databases
     pub fn find_all_databases(&self) -> Result<Vec<db::FormattedDatabase>, io::Error> {
         let databases = match db::find_all_databases() {
@@ -104,7 +127,7 @@ impl DatabaseManager {
         Ok(databases)
     }
 
-    // Tries to find a database by name
+    /// Check if a database exists
     pub fn find_database(&self, database_name: &str) -> Result<bool, io::Error> {
         match db::find_database(database_name) {
             Ok(result) => {

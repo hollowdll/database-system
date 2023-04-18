@@ -316,5 +316,33 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
 
 /// Deletes a collection from a database file
 pub fn delete_collection_from_database_file(collection_name: &str, database_name: &str) -> io::Result<bool> {
+    let file_path = database_file_path(database_name);
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+        let mut found = false;
+
+        for collection in database.collections() {
+            if collection.name() == collection_name {
+                found = true;
+                break;
+            }
+        }
+
+        if found {
+            database.collections_mut().retain(|x| x.name() != collection_name);
+
+            let json = serde_json::to_string_pretty(&database)?;
+            let mut file = OpenOptions::new()
+                .write(true)
+                .open(&file_path)?;
+
+            file.write(json.as_bytes())?;
+
+            return Ok(true);
+        }
+    }
+
     Ok(false)
 }
