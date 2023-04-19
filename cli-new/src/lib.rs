@@ -89,9 +89,9 @@ pub fn run(config: Config) {
 
   ** THESE COMMANDS ARE NOT FINAL **
 
-  (DISABLED) /collections              List all collection of a connected database
+  (DISABLED) /collections              List all collections of a connected database
   /create collection                   Create a new collection in a connected database
-  (DISABLED) /delete collection        Delete a collection in a connected database
+  /delete collection                   Delete a collection in a connected database
   
   (DISABLED) /documents                List documents of a collection
   (DISABLED) /create document          Create a new document in a collection
@@ -124,6 +124,9 @@ pub fn run(config: Config) {
             "/create collection" => {
                 show_create_collection_menu(engine.database_manager(), &connected_database);
             },
+            "/delete collection" => {
+                show_delete_collection_menu(engine.database_manager(), &connected_database);
+            }
             "/create test log" => {
                 use engine_core::logs;
                 for _ in 0..5 {
@@ -333,5 +336,45 @@ fn show_create_collection_menu(
             }
         },
         Err(e) => return eprintln!("Error occurred while trying to create a collection: {e}"),
+    }
+}
+
+fn show_delete_collection_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>
+) {
+    let mut collection_name = String::new();
+
+    println!("\n{}", "Collection name:");
+    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
+
+    let collection_name = collection_name.trim();
+
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database. Connect to a database to delete a collection"),
+    };
+
+    // Check if connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+    }
+
+    match database_manager.delete_collection(collection_name, connected_database_name) {
+        Ok(result) => {
+            if result {
+                println!("Deleted collection");
+            } else {
+                println!("Failed to delete collection. Database or collection might not exist.");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
     }
 }
