@@ -140,6 +140,19 @@ impl DatabaseManager {
 
         Ok(true)
     }
+
+    /// Finds all collections of a database
+    pub fn find_all_collections_of_database(
+        &self, database_name: &str
+    ) -> Result<Vec<db::FormattedDocumentCollection>, io::Error>
+    {
+        let collections = match db::find_all_collections_of_database(database_name) {
+            Ok(collections) => collections,
+            Err(e) => return Err(e),
+        };
+
+        Ok(collections)
+    }
 }
 
 impl DatabaseManager {

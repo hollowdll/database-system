@@ -82,16 +82,20 @@ pub fn run(config: Config) {
   /q                                   Quit program
   /connection status                   Display currently connected database
 
+  ** DATABASE COMMANDS **
+
   /databases                           List all databases
   /create database                     Create a new database
   /delete database                     Delete a database
   /connect database                    Connect to a database
 
-  ** THESE COMMANDS ARE NOT FINAL **
+  ** COLLECTION COMMANDS **
 
-  (DISABLED) /collections              List all collections of a connected database
+  /collections                         List all collections of a connected database
   /create collection                   Create a new collection in a connected database
   /delete collection                   Delete a collection in a connected database
+
+  ** THESE COMMANDS ARE NOT FINAL **
   
   (DISABLED) /documents                List documents of a collection
   (DISABLED) /create document          Create a new document in a collection
@@ -121,6 +125,9 @@ pub fn run(config: Config) {
             "/connect database" => {
                 show_connect_database_menu(engine.database_manager(), &mut connected_database);
             },
+            "/collections" => {
+                list_collections_of_connected_database(engine.database_manager(), &mut connected_database);
+            }
             "/create collection" => {
                 show_create_collection_menu(engine.database_manager(), &connected_database);
             },
@@ -376,5 +383,41 @@ fn show_delete_collection_menu(
             }
         },
         Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+    }
+}
+
+fn list_collections_of_connected_database(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database."),
+    };
+
+    // Check if connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+    }
+
+    // find all collections and list them
+    let collections = match database_manager.find_all_collections_of_database(connected_database_name) {
+        Ok(collections) => collections,
+        Err(e) => return eprintln!("Error occurred while trying to find collections: {e}"),
+    };
+
+    println!("\nNumber of collections: {}", collections.len());
+
+    for collection in collections {
+        println!(
+"
+  Name: {}",
+        collection.name(),
+        );
     }
 }

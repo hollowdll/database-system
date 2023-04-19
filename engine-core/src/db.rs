@@ -70,7 +70,7 @@ impl From<(&str, &str)> for Database {
     }
 }
 
-/// Formatted database that can be listed in database clients.
+/// Formatted database that can be listed in clients.
 /// 
 /// Size = database file size in bytes.
 pub struct FormattedDatabase {
@@ -122,6 +122,25 @@ impl DocumentCollection {
 
     fn documents_mut(&mut self) -> &mut Vec<Document> {
         &mut self.documents
+    }
+}
+
+/// Formatted document collection that can be listed in clients
+pub struct FormattedDocumentCollection {
+    name: String,
+}
+
+impl FormattedDocumentCollection {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+impl FormattedDocumentCollection {
+    fn from(name: String) -> Self {
+        Self {
+            name
+        }
     }
 }
 
@@ -347,4 +366,25 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
     }
 
     Ok(false)
+}
+
+/// Finds all collections of a database
+pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<FormattedDocumentCollection>> {
+    let file_path = database_file_path(database_name);
+    let mut databases = Vec::new();
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+
+        for collection in database.collections() {
+            let formatted_collection = FormattedDocumentCollection::from(
+                String::from(collection.name())
+            );
+
+            databases.push(formatted_collection);
+        }
+    }
+
+    Ok(databases)
 }
