@@ -15,7 +15,7 @@ const DATABASES_DIR_PATH: &str = "./databases";
 const DATABASE_FILE_EXTENSION: &str = "json";
 
 /// Database structure for database files
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Database {
     name: String,
     description: String,
@@ -105,7 +105,7 @@ impl FormattedDatabase {
 
 /// Database document collection
 /// that holds database documents.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct DocumentCollection {
     name: String,
     documents: Vec<Document>,
@@ -136,7 +136,7 @@ impl DocumentCollection {
 
 /// Database document that holds
 /// data in key-value pairs
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Document {
     id: u64,
     data: HashMap<String, serde_json::Value>,
@@ -304,6 +304,7 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
         
         let mut file = OpenOptions::new()
             .write(true)
+            .truncate(true)
             .open(&file_path)?;
 
         file.write(json.as_bytes())?;
@@ -336,6 +337,7 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
             let json = serde_json::to_string_pretty(&database)?;
             let mut file = OpenOptions::new()
                 .write(true)
+                .truncate(true)
                 .open(&file_path)?;
 
             file.write(json.as_bytes())?;
