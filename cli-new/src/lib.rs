@@ -221,7 +221,7 @@ fn show_delete_database_menu(
     let database_name = database_name.trim();
 
     println!("Are you sure you want to delete database '{}'?", database_name);
-    print!("Press 'Y' to confirm: ");
+    print!("'Y' to confirm: ");
     io::stdout().flush().unwrap();
 
     if let Err(e) = io::stdin().read_line(&mut confirm) {
@@ -402,7 +402,7 @@ fn list_collections_of_connected_database(
                 return println!("Cannot find database '{connected_database_name}'");
             }
         },
-        Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+        Err(e) => return eprintln!("Error occurred while trying to list collections: {e}"),
     }
 
     // find all collections and list them
@@ -411,13 +411,9 @@ fn list_collections_of_connected_database(
         Err(e) => return eprintln!("Error occurred while trying to find collections: {e}"),
     };
 
-    println!("\nNumber of collections: {}", collections.len());
+    println!("\nNumber of collections: {}\n", collections.len());
 
     for collection in collections {
-        println!(
-"
-  Name: {}",
-        collection.name(),
-        );
+        println!("{}", collection.name());
     }
 }
