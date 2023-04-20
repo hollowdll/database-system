@@ -118,13 +118,13 @@ pub fn run(config: Config) {
                 list_all_databases(engine.database_manager());
             },
             "/create db" => {
-                show_create_database_menu(engine.database_manager());
+                create_database_menu(engine.database_manager());
             },
             "/delete db" => {
-                show_delete_database_menu(engine.database_manager(), &mut connected_database);
+                delete_database_menu(engine.database_manager(), &mut connected_database);
             },
             "/connect db" => {
-                show_connect_database_menu(engine.database_manager(), &mut connected_database);
+                connect_database_menu(engine.database_manager(), &mut connected_database);
             },
             "/change db desc" => {
                 // change db description menu
@@ -133,10 +133,10 @@ pub fn run(config: Config) {
                 list_collections_of_connected_database(engine.database_manager(), &mut connected_database);
             }
             "/create collection" => {
-                show_create_collection_menu(engine.database_manager(), &connected_database);
+                create_collection_menu(engine.database_manager(), &connected_database);
             },
             "/delete collection" => {
-                show_delete_collection_menu(engine.database_manager(), &connected_database);
+                delete_collection_menu(engine.database_manager(), &connected_database);
             }
             "/create test log" => {
                 use engine_core::logs;
@@ -188,7 +188,7 @@ fn display_connection_status(connected_database: &Option<String>) {
 }
 
 /// Show menu to create a new database.
-fn show_create_database_menu(database_manager: &DatabaseManager) {
+fn create_database_menu(database_manager: &DatabaseManager) {
     let mut database_name = String::new();
 
     println!("\n{}", "Database name:");
@@ -211,7 +211,7 @@ fn show_create_database_menu(database_manager: &DatabaseManager) {
 }
 
 /// Show menu to delete a database.
-fn show_delete_database_menu(
+fn delete_database_menu(
     database_manager: &DatabaseManager,
     connected_database: &mut Option<String>
 ) {
@@ -260,7 +260,7 @@ fn show_delete_database_menu(
 }
 
 /// Show menu to connect to a database.
-fn show_connect_database_menu(
+fn connect_database_menu(
     database_manager: &DatabaseManager,
     connected_database: &mut Option<String>
 ) {
@@ -310,7 +310,7 @@ fn list_all_databases(database_manager: &DatabaseManager) {
 
 /// Show menu to create a new collection
 /// in the connected database
-fn show_create_collection_menu(
+fn create_collection_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>
 ) {
@@ -335,7 +335,7 @@ fn show_create_collection_menu(
                 return println!("Cannot find database '{connected_database_name}'");
             }
         },
-        Err(e) => return eprintln!("Error occurred while trying to create a collection: {e}"),
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
     }
 
     // Create collection
@@ -351,7 +351,7 @@ fn show_create_collection_menu(
     }
 }
 
-fn show_delete_collection_menu(
+fn delete_collection_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>
 ) {
@@ -376,7 +376,7 @@ fn show_delete_collection_menu(
                 return println!("Cannot find database '{connected_database_name}'");
             }
         },
-        Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
     }
 
     match database_manager.delete_collection(collection_name, connected_database_name) {
@@ -407,7 +407,7 @@ fn list_collections_of_connected_database(
                 return println!("Cannot find database '{connected_database_name}'");
             }
         },
-        Err(e) => return eprintln!("Error occurred while trying to list collections: {e}"),
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
     }
 
     // find all collections and list them
@@ -421,4 +421,34 @@ fn list_collections_of_connected_database(
     for collection in collections {
         println!("{}", collection.name());
     }
+}
+
+fn change_database_description_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database."),
+    };
+
+    let mut description = String::new();
+    println!("\n{}", "Description:");
+    if let Err(e) = io::stdin().read_line(&mut description) {
+        return eprintln!("Failed to read line: {e}");
+    }
+    let description = description.trim();
+
+    // Check if connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    }
+
+    // Change description of connected database
+
 }
