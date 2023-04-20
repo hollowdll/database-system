@@ -57,7 +57,6 @@ pub fn run(config: Config) {
     loop {
         let mut input_command = String::new();
 
-        // If connected database doesn't exists anymore, reset it to None
         refresh_connected_database(engine.database_manager(), &mut connected_database);
 
         println!();
@@ -80,22 +79,24 @@ pub fn run(config: Config) {
 "
   /help                                List all available commands
   /q                                   Quit program
-  /connection status                   Display currently connected database
+  /status                              Display currently connected database
 
   ** DATABASE COMMANDS **
 
   /databases                           List all databases
-  /create database                     Create a new database
-  /delete database                     Delete a database
-  /connect database                    Connect to a database
+  /create db                           Create a new database
+  /delete db                           Delete a database
+  /connect db                          Connect to a database
+  /change db desc                      Change description of connected database
 
   ** COLLECTION COMMANDS **
 
-  /collections                         List all collections of a connected database
-  /create collection                   Create a new collection in a connected database
-  /delete collection                   Delete a collection in a connected database
+  /collections                         List all collections of connected database
+  /create collection                   Create a new collection in connected database
+  /delete collection                   Delete a collection in connected database
 
   ** THESE COMMANDS ARE NOT FINAL **
+  ** DOCUMENT COMMANDS **
   
   (DISABLED) /documents                List documents of a collection
   (DISABLED) /create document          Create a new document in a collection
@@ -110,20 +111,23 @@ pub fn run(config: Config) {
             "/q" => {
                 exit_program()
             },
-            "/connection status" => {
+            "/status" => {
                 display_connection_status(&connected_database);
             },
             "/databases" => {
                 list_all_databases(engine.database_manager());
             },
-            "/create database" => {
+            "/create db" => {
                 show_create_database_menu(engine.database_manager());
             },
-            "/delete database" => {
+            "/delete db" => {
                 show_delete_database_menu(engine.database_manager(), &mut connected_database);
             },
-            "/connect database" => {
+            "/connect db" => {
                 show_connect_database_menu(engine.database_manager(), &mut connected_database);
+            },
+            "/change db desc" => {
+                // change db description menu
             },
             "/collections" => {
                 list_collections_of_connected_database(engine.database_manager(), &mut connected_database);
@@ -155,6 +159,7 @@ fn exit_program() {
     process::exit(0);
 }
 
+/// If connected database doesn't exists anymore, reset it to `None`
 fn refresh_connected_database(
     database_manager: &DatabaseManager,
     connected_database: &mut Option<String>
