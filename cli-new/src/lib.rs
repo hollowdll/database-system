@@ -127,10 +127,10 @@ pub fn run(config: Config) {
                 connect_database_menu(engine.database_manager(), &mut connected_database);
             },
             "/change db desc" => {
-                // change db description menu
+                change_database_description_menu(engine.database_manager(), &connected_database)
             },
             "/collections" => {
-                list_collections_of_connected_database(engine.database_manager(), &mut connected_database);
+                list_collections_of_connected_database(engine.database_manager(), &connected_database);
             }
             "/create collection" => {
                 create_collection_menu(engine.database_manager(), &connected_database);
@@ -450,5 +450,14 @@ fn change_database_description_menu(
     }
 
     // Change description of connected database
-
+    match database_manager.change_database_description(connected_database_name, description) {
+        Ok(result) => {
+            if result {
+                println!("Changed database description");
+            } else {
+                println!("Failed to change database description. Database might not exist.");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to change database description: {e}"),
+    }
 }

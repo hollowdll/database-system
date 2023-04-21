@@ -27,6 +27,10 @@ impl Database {
         &self.name
     }
 
+    fn name_mut(&mut self) -> &mut str {
+        &mut self.name
+    }
+
     fn description(&self) -> &str {
         &self.description
     }
@@ -225,7 +229,7 @@ pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
     Ok(true)
 }
 
-// Finds all database files in databases directory
+/// Finds all database files in databases directory
 pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
     create_databases_dir();
 
@@ -288,21 +292,26 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
     Ok(false)
 }
 
-/// Finds a collection in a database file.
+/// Changes description of a database.
 /// 
-/// Returns `Ok(true)` if collection was found.
-pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result<bool> {
+/// Modifies `description` field in a database file.
+pub fn change_database_description(database_name: &str, description: &str) -> io::Result<bool> {
     let file_path = database_file_path(database_name);
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
+        database.description = String::from(description);
+        let json = serde_json::to_string_pretty(&database)?;
 
-        for collection in database.collections() {
-            if collection.name() == collection_name {
-                return Ok(true)
-            }
-        }
+        let mut file = OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&file_path)?;
+
+        file.write(json.as_bytes())?;
+
+        return Ok(true);
     }
 
     Ok(false)
@@ -381,10 +390,30 @@ pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<F
             let formatted_collection = FormattedDocumentCollection::from(
                 String::from(collection.name())
             );
-
+            
             databases.push(formatted_collection);
         }
     }
-
+    
     Ok(databases)
+}
+
+/// Finds a collection in a database file.
+/// 
+/// Returns `Ok(true)` if collection was found.
+pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result<bool> {
+    let file_path = database_file_path(database_name);
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+
+        for collection in database.collections() {
+            if collection.name() == collection_name {
+                return Ok(true)
+            }
+        }
+    }
+
+    Ok(false)
 }
