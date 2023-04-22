@@ -92,15 +92,15 @@ pub fn run(config: Config) {
   ** COLLECTION COMMANDS **
 
   /collections                         List all collections of connected database
-  /create collection                   Create a new collection in connected database
-  /delete collection                   Delete a collection in connected database
+  /create collection                   Create a new collection to the connected database
+  /delete collection                   Delete a collection from the connected database
 
   ** THESE COMMANDS ARE NOT FINAL **
   ** DOCUMENT COMMANDS **
   
   (DISABLED) /documents                List documents of a collection
-  (DISABLED) /create document          Create a new document in a collection
-  (DISABLED) /delete document          Delete a document in a collection
+  /create document                     Create a new document to a collection
+  (DISABLED) /delete document          Delete a document from a collection
 
   ** COMMANDS FOR TESTING **
 
@@ -138,6 +138,9 @@ pub fn run(config: Config) {
             "/delete collection" => {
                 delete_collection_menu(engine.database_manager(), &connected_database);
             }
+            "/create document" => {
+                create_document_menu(engine.database_manager(), &connected_database);
+            },
             "/create test log" => {
                 use engine_core::logs;
                 for _ in 0..5 {
@@ -309,7 +312,7 @@ fn list_all_databases(database_manager: &DatabaseManager) {
 }
 
 /// Show menu to create a new collection
-/// in the connected database
+/// to the connected database
 fn create_collection_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>
@@ -351,6 +354,8 @@ fn create_collection_menu(
     }
 }
 
+/// Show menu to delete a collection
+/// from the connected database
 fn delete_collection_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>
@@ -391,6 +396,7 @@ fn delete_collection_menu(
     }
 }
 
+/// List all collections of the connected database
 fn list_collections_of_connected_database(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
@@ -423,6 +429,7 @@ fn list_collections_of_connected_database(
     }
 }
 
+/// Show menu to change database description
 fn change_database_description_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
@@ -460,4 +467,13 @@ fn change_database_description_menu(
         },
         Err(e) => return eprintln!("Error occurred while trying to change database description: {e}"),
     }
+}
+
+/// Show menu to create a new document
+/// to a collection
+fn create_document_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+
 }
