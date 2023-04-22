@@ -44,6 +44,7 @@ No query language. Instead make API for different queries.
 
 ## Example database file structure
 
+Simple (previous)
 ```json
 {
     "database_name": "testdb",
@@ -77,5 +78,39 @@ No query language. Instead make API for different queries.
             }
         ],
     ]
+}
+```
+
+Currently planned
+```json
+{
+    "database_name": "testdb",
+    "description": "Example database description.",
+    "collections": [
+        {
+            "name": "test_collection_1",
+            "id_count": 0,
+            "documents": []
+        },
+        {
+            "name": "test_collection_2",
+            "id_count": 0,
+            "documents": []
+        },
+    ]
+}
+```
+
+## Example document structure
+
+Currently planned
+```json
+{
+    "id": 1,
+    "data": {
+        "key_1": "test_data",
+        "key_2": "test_data",
+        "key_3": "test_data",
+    }
 }
 ```
