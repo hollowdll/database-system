@@ -113,6 +113,7 @@ impl FormattedDatabase {
 struct DocumentCollection {
     name: String,
     documents: Vec<Document>,
+    id_count: u64,
 }
 
 impl DocumentCollection {
@@ -126,6 +127,20 @@ impl DocumentCollection {
 
     fn documents_mut(&mut self) -> &mut Vec<Document> {
         &mut self.documents
+    }
+
+    fn id_count(&self) -> &u64 {
+        &self.id_count
+    }
+}
+
+impl DocumentCollection {
+    fn from(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+            documents: Vec::new(),
+            id_count: 0,
+        }
     }
 }
 
@@ -148,21 +163,31 @@ impl FormattedDocumentCollection {
     }
 }
 
-impl DocumentCollection {
-    fn from(name: &str) -> Self {
-        Self {
-            name: String::from(name),
-            documents: Vec::new(),
-        }
-    }
-}
-
 /// Database document that holds
 /// data in key-value pairs
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
     id: u64,
     data: HashMap<String, serde_json::Value>,
+}
+
+impl Document {
+    fn id(&self) -> &u64 {
+        &self.id
+    }
+
+    fn data(&self) -> &HashMap<String, serde_json::Value> {
+        &self.data
+    }
+}
+
+impl Document {
+    fn from(id_count: u64) -> Self {
+        Self {
+            id: id_count + 1,
+            data: HashMap::new(),
+        }
+    }
 }
 
 
