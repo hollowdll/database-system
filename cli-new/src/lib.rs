@@ -4,7 +4,7 @@
 
 use std::{
     process,
-    io::{self, Write},
+    io::{self, Write, Read},
 };
 use engine_core::{
     self,
@@ -475,5 +475,41 @@ fn create_document_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
 ) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database."),
+    };
+
+    let mut collection_name = String::new();
+    println!("\n{}", "Collection name:");
+    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
+    let collection_name = collection_name.trim();
+
+    // If collection exists
+    match database_manager.find_collection(collection_name, connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find collection '{collection_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find collection: {e}"),
+    }
+
+    // data input
+    
+
+
+    // If connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    }
+
 
 }

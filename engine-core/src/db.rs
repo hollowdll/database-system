@@ -4,7 +4,8 @@
 use std::{
     fs::{self, OpenOptions, DirEntry},
     io::{self, Write},
-    path::Path, collections::HashMap,
+    path::Path,
+    collections::HashMap
 };
 use serde::{Serialize, Deserialize};
 
@@ -168,7 +169,7 @@ impl FormattedDocumentCollection {
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
     id: u64,
-    data: HashMap<String, serde_json::Value>,
+    data: HashMap<String, DocumentDataType>,
 }
 
 impl Document {
@@ -176,7 +177,7 @@ impl Document {
         &self.id
     }
 
-    fn data(&self) -> &HashMap<String, serde_json::Value> {
+    fn data(&self) -> &HashMap<String, DocumentDataType> {
         &self.data
     }
 }
@@ -188,6 +189,16 @@ impl Document {
             data: HashMap::new(),
         }
     }
+}
+
+/// Data type for document fields
+#[derive(Debug, Serialize, Deserialize)]
+enum DocumentDataType {
+    Integer(i64),
+    Decimal(f64),
+    Bool(bool),
+    Text(String),
+    // Possibly more in the future
 }
 
 
@@ -441,4 +452,13 @@ pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result
     }
 
     Ok(false)
+}
+
+/// Creates a document to a collection
+pub fn create_document_to_collection(
+    database_name: &str,
+    collection_name: &str, 
+    document_data: HashMap<String, String>
+) {
+
 }

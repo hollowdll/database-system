@@ -176,6 +176,20 @@ impl DatabaseManager {
 
         Ok(collections)
     }
+
+    /// Check if a collection exists
+    pub fn find_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+        match db::find_collection(collection_name, database_name) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        Ok(true)
+    }
 }
 
 impl DatabaseManager {
