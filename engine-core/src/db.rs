@@ -187,7 +187,7 @@ impl Document {
 impl Document {
     fn from(id_count: u64) -> Self {
         Self {
-            id: id_count + 1,
+            id: id_count,
             data: HashMap::new(),
         }
     }
@@ -461,6 +461,42 @@ pub fn create_document_to_collection(
     database_name: &str,
     collection_name: &str, 
     document_data: HashMap<String, String>
-) {
+) -> io::Result<bool>
+{
+    let file_path = database_file_path(database_name);
 
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+        let mut collection_index = None;
+
+        // Find collection
+        for (index, collection) in database.collections().iter().enumerate() {
+            if collection.name() == collection_name {
+                collection_index = Some(index);
+            }
+        }
+
+        if let Some(collection_index) = collection_index {
+            // Increment database id_count by one
+            database.id_count += 1;
+            let document = Document::from(database.id_count);
+
+            if let Some(collection) = database.collections_mut().get_mut(collection_index) {
+                collection.documents_mut().push(document);
+                let json = serde_json::to_string_pretty(&database)?;
+
+                let mut file = OpenOptions::new()
+                    .write(true)
+                    .truncate(true)
+                    .open(&file_path)?;
+
+                file.write(json.as_bytes())?;
+
+                return Ok(true)
+            }
+        }
+    }
+
+    Ok(false)
 }
