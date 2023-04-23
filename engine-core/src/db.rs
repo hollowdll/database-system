@@ -169,7 +169,7 @@ impl FormattedDocumentCollection {
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
     id: u64,
-    data: HashMap<String, DocumentDataType>,
+    data: HashMap<String, DataType>,
 }
 
 impl Document {
@@ -177,7 +177,7 @@ impl Document {
         &self.id
     }
 
-    fn data(&self) -> &HashMap<String, DocumentDataType> {
+    fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
 }
@@ -193,7 +193,7 @@ impl Document {
 
 /// Data type for document fields
 #[derive(Debug, Serialize, Deserialize)]
-enum DocumentDataType {
+pub enum DataType {
     Integer(i64),
     Decimal(f64),
     Bool(bool),

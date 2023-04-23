@@ -5,10 +5,12 @@
 use std::{
     process,
     io::{self, Write, Read},
+    collections::HashMap,
 };
 use engine_core::{
     self,
     DatabaseManager,
+    DataType,
 };
 
 /// Configures program data
@@ -498,8 +500,64 @@ fn create_document_menu(
     }
 
     // data input
-    
+    println!("\n{}\n", "Insert data");
+    let mut data: HashMap<String, DataType> = HashMap::new();
 
+    /*
+    let mut input_data = String::new();
+    loop {
+        let mut line = String::new();
+        if let Err(e) = io::stdin().read_line(&mut line) {
+            return eprintln!("Failed to read line: {e}");
+        }
+        let line = line.trim();
+
+        if line == "end" {
+            break;
+        }
+
+        input_data += line;
+    }
+    println!("{input_data}");*/
+
+    loop {
+        print!("Field name: ");
+        io::stdout().flush().unwrap();
+        let mut field = String::new();
+        if let Err(e) = io::stdin().read_line(&mut field) {
+            return eprintln!("Failed to read line: {e}");
+        }
+        let field = field.trim();
+
+        print!("Data type: ");
+        io::stdout().flush().unwrap();
+        let mut data_type = String::new();
+        if let Err(e) = io::stdin().read_line(&mut data_type) {
+            return eprintln!("Failed to read line: {e}");
+        }
+        let data_type = data_type.trim();
+
+        print!("Value: ");
+        io::stdout().flush().unwrap();
+        let mut value = String::new();
+        if let Err(e) = io::stdin().read_line(&mut value) {
+            return eprintln!("Failed to read line: {e}");
+        }
+        let value = value.trim();
+        
+        println!("{field} {data_type} {value}");
+        println!("Type 'end' without quotes to stop inserting data and save this document");
+
+        let mut end = String::new();
+        if let Err(e) = io::stdin().read_line(&mut end) {
+            return eprintln!("Failed to read line: {e}");
+        }
+        let end = end.trim();
+
+        if end == "end" {
+            break;
+        }
+    }
 
     // If connected database exists
     match database_manager.find_database(connected_database_name) {
@@ -511,5 +569,6 @@ fn create_document_menu(
         Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
     }
 
+    // create document
 
 }

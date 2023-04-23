@@ -9,6 +9,7 @@ mod db;
 mod db_manager;
 
 pub use db_manager::DatabaseManager;
+pub use db::DataType;
 
 /// Configure engine data.
 #[derive(PartialEq, Debug)]
