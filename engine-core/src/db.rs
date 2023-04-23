@@ -21,6 +21,7 @@ struct Database {
     name: String,
     description: String,
     collections: Vec<DocumentCollection>,
+    id_count: u64,
 }
 
 impl Database {
@@ -44,11 +45,16 @@ impl Database {
         &mut self.collections
     }
 
+    fn id_count(&self) -> &u64 {
+        &self.id_count
+    }
+
     fn to_json(&self) -> serde_json::Value {
         serde_json::json!({
             "name": &self.name,
             "description": &self.description,
             "collections": [],
+            "id_count": &self.id_count,
         })
     }
 }
@@ -61,6 +67,7 @@ impl From<&str> for Database {
             name: String::from(name),
             description: String::new(),
             collections: Vec::new(),
+            id_count: 0,
         }
     }
 }
@@ -71,6 +78,7 @@ impl From<(&str, &str)> for Database {
             name: String::from(name),
             description: String::from(description),
             collections: Vec::new(),
+            id_count: 0,
         }
     }
 }
@@ -114,7 +122,6 @@ impl FormattedDatabase {
 struct DocumentCollection {
     name: String,
     documents: Vec<Document>,
-    id_count: u64,
 }
 
 impl DocumentCollection {
@@ -129,10 +136,6 @@ impl DocumentCollection {
     fn documents_mut(&mut self) -> &mut Vec<Document> {
         &mut self.documents
     }
-
-    fn id_count(&self) -> &u64 {
-        &self.id_count
-    }
 }
 
 impl DocumentCollection {
@@ -140,7 +143,6 @@ impl DocumentCollection {
         Self {
             name: String::from(name),
             documents: Vec::new(),
-            id_count: 0,
         }
     }
 }
