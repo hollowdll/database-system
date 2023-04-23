@@ -171,7 +171,7 @@ impl FormattedDocumentCollection {
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
     id: u64,
-    data: HashMap<String, DataType>,
+    data: serde_json::Value,
 }
 
 impl Document {
@@ -179,7 +179,7 @@ impl Document {
         &self.id
     }
 
-    fn data(&self) -> &HashMap<String, DataType> {
+    fn data(&self) -> &serde_json::Value {
         &self.data
     }
 }
@@ -188,7 +188,7 @@ impl Document {
     fn from(id_count: u64) -> Self {
         Self {
             id: id_count,
-            data: HashMap::new(),
+            data: serde_json::json!({}),
         }
     }
 }
@@ -460,7 +460,7 @@ pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result
 pub fn create_document_to_collection(
     database_name: &str,
     collection_name: &str, 
-    document_data: HashMap<String, String>
+    data: serde_json::Value,
 ) -> io::Result<bool>
 {
     let file_path = database_file_path(database_name);
@@ -480,7 +480,8 @@ pub fn create_document_to_collection(
         if let Some(collection_index) = collection_index {
             // Increment database id_count by one
             database.id_count += 1;
-            let document = Document::from(database.id_count);
+            let mut document = Document::from(database.id_count);
+            document.data = data;
 
             if let Some(collection) = database.collections_mut().get_mut(collection_index) {
                 collection.documents_mut().push(document);

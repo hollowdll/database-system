@@ -85,7 +85,7 @@ impl DatabaseManager {
         Ok(true)
     }
 
-    /// Creates a new collection in a database
+    /// Creates a new collection to a database
     pub fn create_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
         // Cancel if collection with this name already exists
         match db::find_collection(collection_name, database_name) {
@@ -118,6 +118,7 @@ impl DatabaseManager {
         Ok(true)
     }
 
+    /// Deletes a collection from a database
     pub fn delete_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
         match db::delete_collection_from_database_file(collection_name, database_name) {
             Ok(result) => {
@@ -186,6 +187,35 @@ impl DatabaseManager {
                 }
             },
             Err(e) => return Err(e),
+        }
+
+        Ok(true)
+    }
+
+    /// Creates a new document to a collection
+    pub fn create_document(
+        &self,
+        database_name: &str,
+        collection_name: &str,
+        data: serde_json::Value
+    ) -> Result<bool, io::Error>
+    {
+        match db::create_document_to_collection(database_name, collection_name, data) {
+            Ok(result) => {
+                if !result {
+                    return Ok(false);
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        let log_content = format!("Created document to collection '{}' in database '{}'", collection_name, database_name);
+        if let Err(e) = logs::log_database_event(
+            logs::DatabaseEventSource::Document,
+            logs::DatabaseEventType::Created,
+            log_content.as_str()
+        ) {
+            eprintln!("Error occurred while trying to log database event: {e}");
         }
 
         Ok(true)

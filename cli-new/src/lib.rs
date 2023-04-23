@@ -11,6 +11,7 @@ use engine_core::{
     self,
     DatabaseManager,
     DataType,
+    serde_json,
 };
 
 /// Configures program data
@@ -570,5 +571,22 @@ fn create_document_menu(
     }
 
     // create document
+
+    // create test document
+    let data = serde_json::json!({
+        "test_field": "test_data",
+        "name": "John"
+    });
+
+    match database_manager.create_document(connected_database_name, collection_name, data) {
+        Ok(result) => {
+            if result {
+                println!("Created document");
+            } else {
+                println!("Failed to create document. Database or collection might not exist.");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
+    }
 
 }

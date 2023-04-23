@@ -10,6 +10,7 @@ mod db_manager;
 
 pub use db_manager::DatabaseManager;
 pub use db::DataType;
+pub use serde_json;
 
 /// Configure engine data.
 #[derive(PartialEq, Debug)]
