@@ -196,7 +196,8 @@ impl Document {
 /// Data type for document fields
 #[derive(Debug, Serialize, Deserialize)]
 pub enum DataType {
-    Integer(i64),
+    Int(i32),
+    BigInt(i64),
     Decimal(f64),
     Bool(bool),
     Text(String),

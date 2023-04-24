@@ -14,6 +14,8 @@ use engine_core::{
     serde_json,
 };
 
+mod input;
+
 /// Configures program data
 pub struct Config {
     engine_core_config: engine_core::Config,
@@ -502,7 +504,7 @@ fn create_document_menu(
 
     // data input
     println!("\n{}\n", "Insert data");
-    let mut data: HashMap<String, String> = HashMap::new();
+    let mut data: HashMap<String, DataType> = HashMap::new();
 
     loop {
         print!("Field name: ");
@@ -513,7 +515,6 @@ fn create_document_menu(
         }
         let field = field.trim();
 
-        /* DISABLED
         print!("Data type: ");
         io::stdout().flush().unwrap();
         let mut data_type = String::new();
@@ -521,7 +522,6 @@ fn create_document_menu(
             return eprintln!("Failed to read line: {e}");
         }
         let data_type = data_type.trim();
-        */
 
         print!("Value: ");
         io::stdout().flush().unwrap();
@@ -531,8 +531,14 @@ fn create_document_menu(
         }
         let value = value.trim();
 
+        // convert input data to correct data type
+        let converted_value = match input::convert_input_data(value, data_type) {
+            Some(converted_value) => converted_value,
+            None => return eprintln!("Data type is not valid"),
+        };
+
         // Insert field to data
-        data.insert(field.to_string(), value.to_string());
+        data.insert(field.to_string(), converted_value);
 
         println!("Type 'end' without quotes to stop inserting data and save this document");
 
@@ -565,6 +571,7 @@ fn create_document_menu(
     });
     */
 
+    // Convert data to json
     let data_json = match serde_json::to_value(data) {
         Ok(data_json) => data_json,
         Err(e) => return eprintln!("Failed to convert input data: {e}"),
