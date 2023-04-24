@@ -502,24 +502,7 @@ fn create_document_menu(
 
     // data input
     println!("\n{}\n", "Insert data");
-    let mut data: HashMap<String, DataType> = HashMap::new();
-
-    /*
-    let mut input_data = String::new();
-    loop {
-        let mut line = String::new();
-        if let Err(e) = io::stdin().read_line(&mut line) {
-            return eprintln!("Failed to read line: {e}");
-        }
-        let line = line.trim();
-
-        if line == "end" {
-            break;
-        }
-
-        input_data += line;
-    }
-    println!("{input_data}");*/
+    let mut data: HashMap<String, String> = HashMap::new();
 
     loop {
         print!("Field name: ");
@@ -530,6 +513,7 @@ fn create_document_menu(
         }
         let field = field.trim();
 
+        /* DISABLED
         print!("Data type: ");
         io::stdout().flush().unwrap();
         let mut data_type = String::new();
@@ -537,6 +521,7 @@ fn create_document_menu(
             return eprintln!("Failed to read line: {e}");
         }
         let data_type = data_type.trim();
+        */
 
         print!("Value: ");
         io::stdout().flush().unwrap();
@@ -545,8 +530,10 @@ fn create_document_menu(
             return eprintln!("Failed to read line: {e}");
         }
         let value = value.trim();
-        
-        println!("{field} {data_type} {value}");
+
+        // Insert field to data
+        data.insert(field.to_string(), value.to_string());
+
         println!("Type 'end' without quotes to stop inserting data and save this document");
 
         let mut end = String::new();
@@ -569,16 +556,22 @@ fn create_document_menu(
         },
         Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
     }
-
-    // create document
-
+    
+    /*
     // create test document
     let data = serde_json::json!({
         "test_field": "test_data",
         "name": "John"
     });
+    */
 
-    match database_manager.create_document(connected_database_name, collection_name, data) {
+    let data_json = match serde_json::to_value(data) {
+        Ok(data_json) => data_json,
+        Err(e) => return eprintln!("Failed to convert input data: {e}"),
+    };
+
+    // create document
+    match database_manager.create_document(connected_database_name, collection_name, data_json) {
         Ok(result) => {
             if result {
                 println!("Created document");
