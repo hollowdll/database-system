@@ -171,7 +171,7 @@ impl FormattedDocumentCollection {
 #[derive(Debug, Serialize, Deserialize)]
 struct Document {
     id: u64,
-    data: serde_json::Value,
+    data: HashMap<String, DataType>,
 }
 
 impl Document {
@@ -179,7 +179,7 @@ impl Document {
         &self.id
     }
 
-    fn data(&self) -> &serde_json::Value {
+    fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
 }
@@ -188,7 +188,7 @@ impl Document {
     fn from(id_count: u64) -> Self {
         Self {
             id: id_count,
-            data: serde_json::json!({}),
+            data: HashMap::new(),
         }
     }
 }
@@ -202,6 +202,37 @@ pub enum DataType {
     Bool(bool),
     Text(String),
     // Possibly more in the future
+}
+
+/// Input data field which is used to create fields to documents
+pub struct InputDataField {
+    field: String,
+    data_type: String,
+    value: String,
+}
+
+impl InputDataField {
+    pub fn field(&self) -> &str {
+        &self.field
+    }
+
+    pub fn data_type(&self) -> &str {
+        &self.data_type
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+impl InputDataField {
+    pub fn from(field: &str, data_type: &str, value: &str) -> Self {
+        Self {
+            field: field.to_string(),
+            data_type: data_type.to_string(),
+            value: value.to_string(),
+        }
+    }
 }
 
 
@@ -461,7 +492,7 @@ pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result
 pub fn create_document_to_collection(
     database_name: &str,
     collection_name: &str, 
-    data: serde_json::Value,
+    data: HashMap<String, DataType>,
 ) -> io::Result<bool>
 {
     let file_path = database_file_path(database_name);

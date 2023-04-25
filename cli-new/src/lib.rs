@@ -14,7 +14,7 @@ use engine_core::{
     serde_json,
 };
 
-mod input;
+use engine_core::InputDataField;
 
 /// Configures program data
 pub struct Config {
@@ -504,7 +504,8 @@ fn create_document_menu(
 
     // data input
     println!("\n{}\n", "Insert data");
-    let mut data: HashMap<String, DataType> = HashMap::new();
+    // let mut data: HashMap<String, DataType> = HashMap::new();
+    let mut data: Vec<InputDataField> = Vec::new();
 
     loop {
         print!("Field name: ");
@@ -532,13 +533,16 @@ fn create_document_menu(
         let value = value.trim();
 
         // convert input data to correct data type
+        /*
         let converted_value = match input::convert_input_data(value, data_type) {
             Some(converted_value) => converted_value,
             None => return eprintln!("Data type is not valid"),
         };
+        */
 
         // Insert field to data
-        data.insert(field.to_string(), converted_value);
+        // data.insert(field.to_string(), converted_value);
+        data.push(InputDataField::from(field, data_type, value));
 
         println!("Type 'end' without quotes to stop inserting data and save this document");
 
@@ -572,16 +576,18 @@ fn create_document_menu(
     */
 
     // Convert data to json
+    /*
     let data_json = match serde_json::to_value(data) {
         Ok(data_json) => data_json,
         Err(e) => return eprintln!("Failed to convert input data: {e}"),
     };
+    */
 
     // create document
-    match database_manager.create_document(connected_database_name, collection_name, data_json) {
-        Ok(result) => {
+    match database_manager.create_document(connected_database_name, collection_name, data) {
+        Ok((result, message)) => {
             if result {
-                println!("Created document");
+                println!("{message}");
             } else {
                 println!("Failed to create document. Database or collection might not exist.");
             }

@@ -2,9 +2,11 @@
 
 use std::{
     io,
+    collections::HashMap,
 };
 use crate::logs;
 use crate::db;
+use crate::input_data;
 
 /// Database manager that manages all databases
 /// and database related operations
@@ -197,13 +199,25 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         collection_name: &str,
-        data: serde_json::Value
-    ) -> Result<bool, io::Error>
+        data: Vec<db::InputDataField>,
+    ) -> Result<(bool, String), io::Error>
     {
-        match db::create_document_to_collection(database_name, collection_name, data) {
+        let mut document_data: HashMap<String, db::DataType> = HashMap::new();
+
+        // convert input data to correct data type
+        for data_field in data {
+            let converted_value = match input_data::convert_input_data(data_field.value(), data_field.data_type()) {
+                Some(converted_value) => converted_value,
+                None => return Ok((false, String::from("Data type is not valid"))),
+            };
+
+            document_data.insert(data_field.field().to_string(), converted_value);
+        }
+
+        match db::create_document_to_collection(database_name, collection_name, document_data) {
             Ok(result) => {
                 if !result {
-                    return Ok(false);
+                    return Ok((false, String::from("Failed to create document")));
                 }
             },
             Err(e) => return Err(e),
@@ -218,7 +232,7 @@ impl DatabaseManager {
             eprintln!("Error occurred while trying to log database event: {e}");
         }
 
-        Ok(true)
+        Ok((true, String::from("Created document")))
     }
 }
 

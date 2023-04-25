@@ -7,9 +7,11 @@
 pub mod logs;
 mod db;
 mod db_manager;
+mod input_data;
 
 pub use db_manager::DatabaseManager;
 pub use db::DataType;
+pub use db::InputDataField;
 pub use serde_json;
 
 /// Configure engine data.
