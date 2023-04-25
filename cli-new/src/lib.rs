@@ -585,13 +585,7 @@ fn create_document_menu(
 
     // create document
     match database_manager.create_document(connected_database_name, collection_name, data) {
-        Ok((result, message)) => {
-            if result {
-                println!("{message}");
-            } else {
-                println!("Failed to create document. Database or collection might not exist.");
-            }
-        },
+        Ok((result, message)) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
     }
 

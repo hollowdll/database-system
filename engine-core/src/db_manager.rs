@@ -208,7 +208,7 @@ impl DatabaseManager {
         for data_field in data {
             let converted_value = match input_data::convert_input_data(data_field.value(), data_field.data_type()) {
                 Some(converted_value) => converted_value,
-                None => return Ok((false, String::from("Data type is not valid"))),
+                None => return Ok((false, String::from("Failed to create document. Data type is not valid"))),
             };
 
             document_data.insert(data_field.field().to_string(), converted_value);
@@ -217,7 +217,7 @@ impl DatabaseManager {
         match db::create_document_to_collection(database_name, collection_name, document_data) {
             Ok(result) => {
                 if !result {
-                    return Ok((false, String::from("Failed to create document")));
+                    return Ok((false, String::from("Failed to create document. Database or collection might not exist")));
                 }
             },
             Err(e) => return Err(e),
