@@ -103,7 +103,7 @@ pub fn run(config: Config) {
   ** THESE COMMANDS ARE NOT FINAL **
   ** DOCUMENT COMMANDS **
   
-  (DISABLED) /documents                List documents of a collection
+  /documents                           List documents of a collection
   /create document                     Create a new document to a collection
   (DISABLED) /delete document          Delete a document from a collection
 
@@ -142,6 +142,9 @@ pub fn run(config: Config) {
             },
             "/delete collection" => {
                 delete_collection_menu(engine.database_manager(), &connected_database);
+            },
+            "/documents" => {
+                list_documents_of_collection(engine.database_manager(), &connected_database);
             }
             "/create document" => {
                 create_document_menu(engine.database_manager(), &connected_database);
@@ -516,8 +519,7 @@ fn create_document_menu(
     }
 
     // data input
-    println!("\n{}\n", "Insert data");
-    // let mut data: HashMap<String, DataType> = HashMap::new();
+    println!("\n{}", "Insert data");
     let mut data: Vec<InputDataField> = Vec::new();
 
     loop {
@@ -545,16 +547,7 @@ fn create_document_menu(
         }
         let value = value.trim();
 
-        // convert input data to correct data type
-        /*
-        let converted_value = match input::convert_input_data(value, data_type) {
-            Some(converted_value) => converted_value,
-            None => return eprintln!("Data type is not valid"),
-        };
-        */
-
         // Insert field to data
-        // data.insert(field.to_string(), converted_value);
         data.push(InputDataField::from(field, data_type, value));
 
         println!("Type 'end' without quotes to stop inserting data and save this document");
@@ -579,22 +572,6 @@ fn create_document_menu(
         },
         Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
     }
-    
-    /*
-    // create test document
-    let data = serde_json::json!({
-        "test_field": "test_data",
-        "name": "John"
-    });
-    */
-
-    // Convert data to json
-    /*
-    let data_json = match serde_json::to_value(data) {
-        Ok(data_json) => data_json,
-        Err(e) => return eprintln!("Failed to convert input data: {e}"),
-    };
-    */
 
     // create document
     match database_manager.create_document(connected_database_name, collection_name, data) {
@@ -602,4 +579,56 @@ fn create_document_menu(
         Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
     }
 
+}
+
+fn list_documents_of_collection(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database."),
+    };
+
+    let mut collection_name = String::new();
+    println!("\n{}", "Collection name:");
+    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
+    let collection_name = collection_name.trim();
+
+    // If collection exists
+    match database_manager.find_collection(collection_name, connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find collection '{collection_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find collection: {e}"),
+    }
+
+    // If connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    }
+
+    // find all documents and list them
+    let documents = match database_manager.find_all_documents_of_collection(
+        connected_database_name,
+        collection_name
+    ) {
+        Ok(documents) => documents,
+        Err(e) => return eprintln!("Error occurred while trying to find documents: {e}"),
+    };
+
+    println!("\nNumber of documents: {}", documents.len());
+
+    for document in documents {
+        println!("{:?}", document);
+    }
 }

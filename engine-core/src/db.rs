@@ -194,6 +194,7 @@ impl Document {
 }
 
 /// Formatted document that can be listed in clients
+#[derive(Debug)]
 pub struct FormattedDocument {
     id: u64,
     data: HashMap<String, DataType>,

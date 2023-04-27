@@ -234,6 +234,21 @@ impl DatabaseManager {
 
         Ok((true, String::from("Created document")))
     }
+
+    /// Finds all documents of collection
+    pub fn find_all_documents_of_collection(
+        &self,
+        database_name: &str,
+        collection_name: &str,
+    ) -> io::Result<Vec<db::FormattedDocument>>
+    {
+        let documents = match db::find_all_documents_of_collection(database_name, collection_name) {
+            Ok(documents) => documents,
+            Err(e) => return Err(e),
+        };
+
+        Ok(documents)
+    }
 }
 
 impl DatabaseManager {
