@@ -193,6 +193,23 @@ impl Document {
     }
 }
 
+/// Formatted document that can be listed in clients
+pub struct FormattedDocument {
+    id: u64,
+    data: HashMap<String, DataType>,
+}
+
+impl FormattedDocument {
+    fn from(id: u64, data: HashMap<String, DataType>) -> Self {
+        Self {
+            id,
+            data,
+        }
+    }
+}
+
+
+
 /// Data type for document fields
 #[derive(Debug, Serialize, Deserialize)]
 pub enum DataType {
@@ -450,7 +467,7 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
 /// Finds all collections of a database
 pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<FormattedDocumentCollection>> {
     let file_path = database_file_path(database_name);
-    let mut databases = Vec::new();
+    let mut collections = Vec::new();
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -461,11 +478,11 @@ pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<F
                 String::from(collection.name())
             );
             
-            databases.push(formatted_collection);
+            collections.push(formatted_collection);
         }
     }
     
-    Ok(databases)
+    Ok(collections)
 }
 
 /// Finds a collection in a database file.
@@ -532,4 +549,34 @@ pub fn create_document_to_collection(
     }
 
     Ok(false)
+}
+
+/// Finds all collections of a database
+pub fn find_all_documents_of_collection(
+    database_name: &str,
+    collection_name: &str
+) -> io::Result<Vec<FormattedDocument>>
+{
+    let file_path = database_file_path(database_name);
+    let mut documents = Vec::new();
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+
+        for collection in database.collections.into_iter() {
+            if collection.name() == collection_name {
+                for document in collection.documents.into_iter() {
+                    let formatted_document = FormattedDocument::from(
+                        document.id,
+                        document.data,
+                    );
+
+                    documents.push(formatted_document)
+                }
+            }
+        }
+    }
+    
+    Ok(documents)
 }
