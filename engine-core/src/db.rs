@@ -201,6 +201,16 @@ pub struct FormattedDocument {
 }
 
 impl FormattedDocument {
+    pub fn id(&self) -> &u64 {
+        &self.id
+    }
+
+    pub fn data(&self) -> &HashMap<String, DataType> {
+        &self.data
+    }
+}
+
+impl FormattedDocument {
     fn from(id: u64, data: HashMap<String, DataType>) -> Self {
         Self {
             id,

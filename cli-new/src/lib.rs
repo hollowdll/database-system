@@ -629,6 +629,19 @@ fn list_documents_of_collection(
     println!("\nNumber of documents: {}", documents.len());
 
     for document in documents {
-        println!("{:?}", document);
+        println!("{}\n  id: {}", "{", document.id());
+        for (key, value) in document.data().iter() {
+            // Get data type and value
+            let (data_type, field_value) = match value {
+                DataType::Int32(value) => ("Int32", value.to_string()),
+                DataType::Int64(value) => ("Int64", value.to_string()),
+                DataType::Decimal(value) => ("Decimal", value.to_string()),
+                DataType::Bool(value) => ("Bool", value.to_string()),
+                DataType::Text(value) => ("Text", value.to_string()),
+            };
+
+            println!("  [{data_type}] {key}: {field_value}");
+        }
+        println!("{}", "}");
     }
 }
