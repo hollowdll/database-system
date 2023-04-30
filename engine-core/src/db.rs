@@ -591,3 +591,52 @@ pub fn find_all_documents_of_collection(
     
     Ok(documents)
 }
+
+/// Deletes a document from a collection by document id.
+pub fn delete_document_from_collection(
+    database_name: &str,
+    collection_name: &str,
+    document_id: &u64,
+) -> io::Result<bool>
+{
+    let file_path = database_file_path(database_name);
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+        let mut found = false;
+
+        for collection in database.collections_mut() {
+            if collection.name() == collection_name {
+                if let Some(document) = collection.documents().iter().find(|document| document.id() == document_id) {
+                    collection.documents_mut().retain(|document| document.id() != document_id);
+
+                    let json = serde_json::to_string_pretty(&database)?;
+                    let mut file = OpenOptions::new()
+                        .write(true)
+                        .truncate(true)
+                        .open(&file_path)?;
+            
+                    file.write(json.as_bytes())?;
+            
+                    return Ok(true);
+                };
+            }
+        }
+    }
+
+    Ok(false)
+}
+
+/// Deletes a document from database by document id.
+/// 
+/// Goes through all collections until id is found.
+pub fn delete_document(
+    database_name: &str,
+    document_id: &u64
+) -> io::Result<bool>
+{
+
+
+    Ok(false)
+}

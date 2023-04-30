@@ -4,6 +4,8 @@ use std::{
     io,
     collections::HashMap,
 };
+use serde::__private::doc;
+
 use crate::logs;
 use crate::db;
 use crate::input_data;
@@ -233,6 +235,38 @@ impl DatabaseManager {
         }
 
         Ok((true, String::from("Created document")))
+    }
+
+    /// Deletes a document from a collection
+    pub fn delete_document_from_collection(
+        &self,
+        database_name: &str,
+        collection_name: &str,
+        document_id: &u64,
+    ) -> io::Result<(bool, String)>
+    {
+        match db::delete_document_from_collection(database_name, collection_name, document_id) {
+            Ok(result) => {
+                if !result {
+                    return Ok((false, String::from("Failed to delete document")));
+                }
+            },
+            Err(e) => return Err(e),
+        }
+
+        let log_content = format!(
+            "Deleted document with ID '{}' from collection '{}' in database '{}'",
+            document_id, collection_name, database_name
+        );
+        if let Err(e) = logs::log_database_event(
+            logs::DatabaseEventSource::Document,
+            logs::DatabaseEventType::Deleted,
+            log_content.as_str()
+        ) {
+            eprintln!("Error occurred while trying to log database event: {e}");
+        }
+
+        Ok((true, String::from("Deleted document")))
     }
 
     /// Finds all documents of collection

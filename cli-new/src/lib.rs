@@ -53,7 +53,7 @@ pub fn run(config: Config) {
     let mut connected_database = config.connected_database;
     let help_message = "Write /help for all available commands";
 
-    println!("\n{}", "NOTE: You are using the newer version of this program - 'cli-new' is the crate name");
+    println!("{}", "NOTE: You are using the newer version of this program - 'cli-new' is the crate name");
     println!("Version: {}", config.version);
     println!("\n{}\n", "Database Engine Project ");
     println!("{}", help_message);
