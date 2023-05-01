@@ -247,7 +247,7 @@ impl DatabaseManager {
         match db::delete_document_from_collection(database_name, collection_name, document_id) {
             Ok(result) => {
                 if !result {
-                    return Ok((false, String::from("Failed to delete document")));
+                    return Ok((false, String::from("Failed to delete document. It might not exist.")));
                 }
             },
             Err(e) => return Err(e),
@@ -278,7 +278,7 @@ impl DatabaseManager {
         match db::delete_document(database_name, document_id) {
             Ok(result) => {
                 if !result {
-                    return Ok((false, String::from("Failed to delete document")));
+                    return Ok((false, String::from("Failed to delete document. It might not exist.")));
                 }
             },
             Err(e) => return Err(e),

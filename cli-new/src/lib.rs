@@ -105,7 +105,8 @@ pub fn run(config: Config) {
   
   /documents                           List documents of a collection
   /create document                     Create a new document to a collection
-  (DISABLED) /delete document          Delete a document from a collection
+  /delete document                     Delete a document from a database
+  (DISABLED) /delete doc col           Delete a document from a collection. This is faster if the collection is known.
 
   ** COMMANDS FOR TESTING **
 
@@ -148,6 +149,9 @@ pub fn run(config: Config) {
             }
             "/create document" => {
                 create_document_menu(engine.database_manager(), &connected_database);
+            },
+            "/delete document" => {
+                // delete document
             },
             "/create test log" => {
                 use engine_core::logs;
@@ -581,6 +585,7 @@ fn create_document_menu(
 
 }
 
+/// List all documents of a collection
 fn list_documents_of_collection(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
@@ -643,5 +648,56 @@ fn list_documents_of_collection(
             println!("  [{data_type}] {key}: {field_value}");
         }
         println!("{}", "}");
+    }
+}
+
+/// Show menu to delete a document
+fn delete_document_menu(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database."),
+    };
+
+    let mut document_id = String::new();
+    print!("Document ID: ");
+    io::stdout().flush().expect("Unexpected I/O error");
+    if let Err(e) = io::stdin().read_line(&mut document_id) {
+        return eprintln!("Failed to read line: {e}");
+    }
+    let document_id: u64 = match document_id.trim().parse() {
+        Ok(id) => id,
+        Err(e) => return eprintln!("Failed to parse document ID into integer: {e}"),
+    };
+
+    let mut confirm = String::new();
+    println!("Are you sure you want to delete document with ID '{}'?", document_id);
+    print!("'Y' to confirm: ");
+    io::stdout().flush().expect("Unexpected I/O error");
+    if let Err(e) = io::stdin().read_line(&mut confirm) {
+        return eprintln!("Failed to read line: {e}");
+    }
+    let confirm = confirm.trim();
+
+    match confirm {
+        "Y" => {
+            // Check if connected database exists
+            match database_manager.find_database(connected_database_name) {
+                Ok(result) => {
+                    if !result {
+                        return println!("Cannot find database '{connected_database_name}'");
+                    }
+                },
+                Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+            }
+        
+            match database_manager.delete_document(connected_database_name, &document_id) {
+                Ok((result, message)) => println!("{message}"),
+                Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+            }
+        },
+        _ => return println!("Canceled document deletion"),
     }
 }
