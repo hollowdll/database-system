@@ -327,6 +327,19 @@ pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
     Ok(true)
 }
 
+/// Writes database as JSON to database file
+fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
+    let json = serde_json::to_string_pretty(&database)?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(&file_path)?;
+
+    file.write(json.as_bytes())?;
+
+    Ok(())
+}
+
 /// Finds all database files in databases directory
 pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
     create_databases_dir();
@@ -604,7 +617,6 @@ pub fn delete_document_from_collection(
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
-        let mut found = false;
 
         for collection in database.collections_mut() {
             if collection.name() == collection_name {
@@ -616,7 +628,7 @@ pub fn delete_document_from_collection(
                         .write(true)
                         .truncate(true)
                         .open(&file_path)?;
-            
+
                     file.write(json.as_bytes())?;
             
                     return Ok(true);
@@ -636,7 +648,27 @@ pub fn delete_document(
     document_id: &u64
 ) -> io::Result<bool>
 {
+    let file_path = database_file_path(database_name);
 
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+        let mut found = false;
+
+        for collection in database.collections_mut() {
+            if let Some(document) = collection.documents().iter().find(|document| document.id() == document_id) {
+                collection.documents_mut().retain(|document| document.id() != document_id);
+                found = true;
+            };
+        }
+
+        if found {
+            match write_database_json(&database, &file_path) {
+                Ok(()) => return Ok(true),
+                Err(e) => return Err(e),
+            }
+        }
+    }
 
     Ok(false)
 }
