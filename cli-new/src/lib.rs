@@ -198,6 +198,42 @@ fn refresh_connected_database(
     }
 }
 
+/// Checks if connected database exists
+fn database_exists(
+    database_manager: &DatabaseManager,
+    connected_database_name: &str,
+) -> io::Result<bool>
+{
+    // code
+
+    Ok(false)
+}
+
+/// Checks if collection exists
+fn collection_exists(
+    database_manager: &DatabaseManager,
+    collection_name: &str,
+    connected_database_name: &str,
+) -> io::Result<bool>
+{
+    // code
+
+    Ok(false)
+}
+
+/// Asks user for collection name input
+fn ask_collection_name() -> io::Result<String> {
+    let mut collection_name = String::new();
+
+    println!("\n{}", "Collection name:");
+    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+        eprintln!("Failed to read line: {e}");
+    }
+    let collection_name = collection_name.trim().to_string();
+
+    Ok(collection_name)
+}
+
 /// Display connected database.
 fn display_connection_status(connected_database: &Option<String>) {
     match connected_database {
@@ -705,6 +741,7 @@ fn delete_document_menu(
     }
 }
 
+/// Creates test documents to a collection
 fn create_test_documents(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
