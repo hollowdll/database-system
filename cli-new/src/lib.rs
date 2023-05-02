@@ -111,6 +111,7 @@ pub fn run(config: Config) {
   ** COMMANDS FOR TESTING **
 
   /create test log                     Creates test log
+  /create test documents               Creates test documents to a collection
   
   More commands in the future...");
             },
@@ -151,13 +152,16 @@ pub fn run(config: Config) {
                 create_document_menu(engine.database_manager(), &connected_database);
             },
             "/delete document" => {
-                // delete document
+                delete_document_menu(engine.database_manager(), &connected_database);
             },
             "/create test log" => {
                 use engine_core::logs;
                 for _ in 0..5 {
                     logs::create_test_log();
                 }
+            },
+            "/create test documents" => {
+                create_test_documents(engine.database_manager(), &connected_database);
             },
             _ => {
                 println!("No such command found!");
@@ -669,7 +673,7 @@ fn delete_document_menu(
     }
     let document_id: u64 = match document_id.trim().parse() {
         Ok(id) => id,
-        Err(e) => return eprintln!("Failed to parse document ID into integer: {e}"),
+        Err(e) => return eprintln!("Failed to parse input data into positive integer: {e}"),
     };
 
     let mut confirm = String::new();
@@ -683,7 +687,6 @@ fn delete_document_menu(
 
     match confirm {
         "Y" => {
-            // Check if connected database exists
             match database_manager.find_database(connected_database_name) {
                 Ok(result) => {
                     if !result {
@@ -699,5 +702,56 @@ fn delete_document_menu(
             }
         },
         _ => return println!("Canceled document deletion"),
+    }
+}
+
+fn create_test_documents(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("No connected database."),
+    };
+
+    let mut collection_name = String::new();
+    println!("\n{}", "Collection name:");
+    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+        return eprintln!("Failed to read line: {e}");
+    }
+    let collection_name = collection_name.trim();
+
+    // If collection exists
+    match database_manager.find_collection(collection_name, connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find collection '{collection_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find collection: {e}"),
+    }
+
+    // If connected database exists
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                return println!("Cannot find database '{connected_database_name}'");
+            }
+        },
+        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    }
+    
+    for i in 1..=10 {
+        let mut data: Vec<InputDataField> = Vec::new();
+        let field = format!("field_{i}");
+        let data_type = "Text";
+        let value = format!("value_{i}");
+
+        data.push(InputDataField::from(field.as_str(), data_type, value.as_str()));
+
+        match database_manager.create_document(connected_database_name, collection_name, data) {
+            Ok((result, message)) => println!("{message}"),
+            Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
+        }
     }
 }

@@ -109,7 +109,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Created collection '{}' in database '{}'", collection_name, database_name);
+        let log_content = format!("Created collection '{}' to database '{}'", collection_name, database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Collection,
             logs::DatabaseEventType::Created,
