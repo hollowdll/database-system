@@ -2,6 +2,8 @@
 
 // #![allow(unused)]
 
+mod constants;
+
 use std::{
     process,
     io::{self, Write},
@@ -10,9 +12,9 @@ use engine_core::{
     self,
     DatabaseManager,
     DataType,
+    InputDataField,
 };
-
-use engine_core::InputDataField;
+use constants::NO_CONNECTED_DATABASE_TEXT;
 
 /// Configures program data
 pub struct Config {
@@ -260,7 +262,7 @@ fn ask_user_input(input_name: &str) -> io::Result<String> {
 fn display_connection_status(connected_database: &Option<String>) {
     match connected_database {
         Some(database_name) => println!("Connected database: {database_name}"),
-        None => println!("No connected database"),
+        None => println!("{}", NO_CONNECTED_DATABASE_TEXT),
     }
 }
 
@@ -402,7 +404,7 @@ fn create_collection_menu(
 
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database. Connect to a database to create a collection"),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     // Check if connected database exists
@@ -443,7 +445,7 @@ fn delete_collection_menu(
 
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database. Connect to a database to delete a collection"),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let mut confirm = String::new();
@@ -490,7 +492,7 @@ fn list_collections_of_connected_database(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database."),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     // Check if connected database exists
@@ -523,7 +525,7 @@ fn change_database_description_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database."),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let mut description = String::new();
@@ -564,7 +566,7 @@ fn create_document_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database."),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let mut collection_name = String::new();
@@ -654,7 +656,7 @@ fn list_documents_of_collection(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database."),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let mut collection_name = String::new();
@@ -720,7 +722,7 @@ fn delete_document_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database."),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let mut document_id = String::new();
@@ -770,7 +772,7 @@ fn create_test_documents(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("No connected database."),
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let mut collection_name = String::new();
