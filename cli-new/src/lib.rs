@@ -1,17 +1,15 @@
 // CLI management system library
 
-#![allow(unused)]
+// #![allow(unused)]
 
 use std::{
     process,
-    io::{self, Write, Read},
-    collections::HashMap,
+    io::{self, Write},
 };
 use engine_core::{
     self,
     DatabaseManager,
     DataType,
-    serde_json,
 };
 
 use engine_core::InputDataField;
@@ -47,9 +45,9 @@ impl ConnectedDatabase {
 }
 */
 
-/// Runs the program
+/// Runs the program.
 pub fn run(config: Config) {
-    let mut engine = config.engine_core_config;
+    let engine = config.engine_core_config;
     let mut connected_database = config.connected_database;
     let help_message = "Write /help for all available commands";
 
@@ -157,7 +155,9 @@ pub fn run(config: Config) {
             "/create test log" => {
                 use engine_core::logs;
                 for _ in 0..5 {
-                    logs::create_test_log();
+                    if let Err(e) = logs::create_test_log() {
+                        eprintln!("Error: Failed to create test log. {e}");
+                    }
                 }
             },
             "/create test documents" => {
@@ -178,7 +178,7 @@ fn exit_program() {
     process::exit(0);
 }
 
-/// If connected database doesn't exists anymore, reset it to `None`
+/// If connected database doesn't exists anymore, reset it to `None`.
 fn refresh_connected_database(
     database_manager: &DatabaseManager,
     connected_database: &mut Option<String>
@@ -198,40 +198,62 @@ fn refresh_connected_database(
     }
 }
 
-/// Checks if connected database exists
+/// Checks if connected database exists.
 fn database_exists(
     database_manager: &DatabaseManager,
     connected_database_name: &str,
 ) -> io::Result<bool>
 {
-    // code
+    match database_manager.find_database(connected_database_name) {
+        Ok(result) => {
+            if !result {
+                println!("Cannot find database '{connected_database_name}'");
+                return Ok(false);
+            }
+        },
+        Err(e) => {
+            eprintln!("Error occurred while trying to find connected database: {e}");
+            return Err(e);
+        },
+    }
 
-    Ok(false)
+    Ok(true)
 }
 
-/// Checks if collection exists
+/// Checks if collection exists.
 fn collection_exists(
     database_manager: &DatabaseManager,
     collection_name: &str,
     connected_database_name: &str,
 ) -> io::Result<bool>
 {
-    // code
+    match database_manager.find_collection(collection_name, connected_database_name) {
+        Ok(result) => {
+            if !result {
+                println!("Cannot find collection '{collection_name}'");
+                return Ok(false);
+            }
+        },
+        Err(e) => {
+            eprintln!("Error occurred while trying to find collection: {e}");
+            return Err(e);
+        },
+    }
 
-    Ok(false)
+    Ok(true)
 }
 
-/// Asks user for collection name input
-fn ask_collection_name() -> io::Result<String> {
-    let mut collection_name = String::new();
+/// Asks for user input and returns it trimmed.
+fn ask_user_input(input_name: &str) -> io::Result<String> {
+    let mut input = String::new();
 
-    println!("\n{}", "Collection name:");
-    if let Err(e) = io::stdin().read_line(&mut collection_name) {
+    println!("\n{}:", input_name);
+    if let Err(e) = io::stdin().read_line(&mut input) {
         eprintln!("Failed to read line: {e}");
     }
-    let collection_name = collection_name.trim().to_string();
+    let input = input.trim().to_string();
 
-    Ok(collection_name)
+    Ok(input)
 }
 
 /// Display connected database.
@@ -619,7 +641,7 @@ fn create_document_menu(
 
     // create document
     match database_manager.create_document(connected_database_name, collection_name, data) {
-        Ok((result, message)) => println!("{message}"),
+        Ok((_result, message)) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
     }
 
@@ -733,7 +755,7 @@ fn delete_document_menu(
             }
         
             match database_manager.delete_document(connected_database_name, &document_id) {
-                Ok((result, message)) => println!("{message}"),
+                Ok((_result, message)) => println!("{message}"),
                 Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
             }
         },
@@ -787,7 +809,7 @@ fn create_test_documents(
         data.push(InputDataField::from(field.as_str(), data_type, value.as_str()));
 
         match database_manager.create_document(connected_database_name, collection_name, data) {
-            Ok((result, message)) => println!("{message}"),
+            Ok((_result, message)) => println!("{message}"),
             Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
         }
     }
