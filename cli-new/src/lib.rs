@@ -204,22 +204,22 @@ fn refresh_connected_database(
 fn database_exists(
     database_manager: &DatabaseManager,
     connected_database_name: &str,
-) -> io::Result<bool>
+) -> bool
 {
     match database_manager.find_database(connected_database_name) {
         Ok(result) => {
             if !result {
                 println!("Cannot find database '{connected_database_name}'");
-                return Ok(false);
+                return false;
             }
         },
         Err(e) => {
             eprintln!("Error occurred while trying to find connected database: {e}");
-            return Err(e);
+            return false;
         },
     }
 
-    Ok(true)
+    return true;
 }
 
 /// Checks if collection exists.
@@ -227,31 +227,32 @@ fn collection_exists(
     database_manager: &DatabaseManager,
     collection_name: &str,
     connected_database_name: &str,
-) -> io::Result<bool>
+) -> bool
 {
     match database_manager.find_collection(collection_name, connected_database_name) {
         Ok(result) => {
             if !result {
                 println!("Cannot find collection '{collection_name}'");
-                return Ok(false);
+                return false;
             }
         },
         Err(e) => {
             eprintln!("Error occurred while trying to find collection: {e}");
-            return Err(e);
+            return false;
         },
     }
 
-    Ok(true)
+    return true;
 }
 
 /// Asks for user input and returns it trimmed.
 fn ask_user_input(input_name: &str) -> io::Result<String> {
     let mut input = String::new();
 
-    println!("\n{}:", input_name);
+    println!("\n{}", input_name);
     if let Err(e) = io::stdin().read_line(&mut input) {
         eprintln!("Failed to read line: {e}");
+        return Err(e);
     }
     let input = input.trim().to_string();
 
@@ -769,37 +770,28 @@ fn delete_document_menu(
 fn create_test_documents(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
-) {
+) -> bool
+{
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => {
+            println!("{}", NO_CONNECTED_DATABASE_TEXT);
+            return false;
+        },
     };
 
-    let mut collection_name = String::new();
-    println!("\n{}", "Collection name:");
-    if let Err(e) = io::stdin().read_line(&mut collection_name) {
-        return eprintln!("Failed to read line: {e}");
-    }
-    let collection_name = collection_name.trim();
+    let collection_name = match ask_user_input("Collection name:") {
+        Ok(collection_name) => collection_name,
+        Err(_e) => return false,
+    };
+    let collection_name = collection_name.as_str();
 
-    // If collection exists
-    match database_manager.find_collection(collection_name, connected_database_name) {
-        Ok(result) => {
-            if !result {
-                return println!("Cannot find collection '{collection_name}'");
-            }
-        },
-        Err(e) => return eprintln!("Error occurred while trying to find collection: {e}"),
+    if !collection_exists(database_manager, collection_name, connected_database_name) {
+        return false;
     }
-
-    // If connected database exists
-    match database_manager.find_database(connected_database_name) {
-        Ok(result) => {
-            if !result {
-                return println!("Cannot find database '{connected_database_name}'");
-            }
-        },
-        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    
+    if !database_exists(database_manager, connected_database_name) {
+        return false;
     }
     
     for i in 1..=10 {
@@ -812,7 +804,9 @@ fn create_test_documents(
 
         match database_manager.create_document(connected_database_name, collection_name, data) {
             Ok((_result, message)) => println!("{message}"),
-            Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
+            Err(e) => eprintln!("Error occurred while trying to create a document: {e}"),
         }
     }
+
+    return true;
 }
