@@ -246,10 +246,10 @@ fn collection_exists(
 }
 
 /// Asks for user input and returns it trimmed.
-fn ask_user_input(input_name: &str) -> io::Result<String> {
+fn ask_user_input(text_to_ask: &str) -> io::Result<String> {
     let mut input = String::new();
 
-    println!("\n{}", input_name);
+    println!("\n{}", text_to_ask);
     if let Err(e) = io::stdin().read_line(&mut input) {
         eprintln!("Failed to read line: {e}");
         return Err(e);
@@ -257,6 +257,39 @@ fn ask_user_input(input_name: &str) -> io::Result<String> {
     let input = input.trim().to_string();
 
     Ok(input)
+}
+
+/// Asks for user input and returns it trimmed.
+/// 
+/// This is inline version meaning that `text_to_ask`
+/// and input are in the same line.
+fn ask_user_input_inline(text_to_ask: &str) -> io::Result<String> {
+    let mut input = String::new();
+
+    print!("{text_to_ask}");
+    io::stdout().flush().expect("Unexpected I/O error");
+    if let Err(e) = io::stdin().read_line(&mut input) {
+        eprintln!("Failed to read line: {e}");
+    }
+    let input = input.trim().to_string();
+
+    Ok(input)
+}
+
+/// Asks user to confirm an action, such as delete action.
+fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
+    let mut confirm = String::new();
+
+    println!("{text_to_ask}");
+    print!("'Y' to confirm: ");
+    io::stdout().flush().expect("Unexpected I/O error");
+    if let Err(e) = io::stdin().read_line(&mut confirm) {
+        eprintln!("Failed to read line: {e}");
+        return Err(e);
+    }
+    let confirm = confirm.trim().to_string();
+
+    Ok(confirm)
 }
 
 /// Display connected database.
@@ -770,28 +803,24 @@ fn delete_document_menu(
 fn create_test_documents(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>,
-) -> bool
-{
+) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => {
-            println!("{}", NO_CONNECTED_DATABASE_TEXT);
-            return false;
-        },
+        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
     let collection_name = match ask_user_input("Collection name:") {
         Ok(collection_name) => collection_name,
-        Err(_e) => return false,
+        Err(_e) => return,
     };
     let collection_name = collection_name.as_str();
 
     if !collection_exists(database_manager, collection_name, connected_database_name) {
-        return false;
+        return;
     }
     
     if !database_exists(database_manager, connected_database_name) {
-        return false;
+        return;
     }
     
     for i in 1..=10 {
@@ -807,6 +836,4 @@ fn create_test_documents(
             Err(e) => eprintln!("Error occurred while trying to create a document: {e}"),
         }
     }
-
-    return true;
 }
