@@ -270,6 +270,7 @@ fn ask_user_input_inline(text_to_ask: &str) -> io::Result<String> {
     io::stdout().flush().expect("Unexpected I/O error");
     if let Err(e) = io::stdin().read_line(&mut input) {
         eprintln!("Failed to read line: {e}");
+        return Err(e);
     }
     let input = input.trim().to_string();
 
@@ -759,40 +760,30 @@ fn delete_document_menu(
         None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
-    let mut document_id = String::new();
-    print!("Document ID: ");
-    io::stdout().flush().expect("Unexpected I/O error");
-    if let Err(e) = io::stdin().read_line(&mut document_id) {
-        return eprintln!("Failed to read line: {e}");
-    }
-    let document_id: u64 = match document_id.trim().parse() {
+    let document_id = match ask_user_input_inline("Document ID: ") {
+        Ok(document_id) => document_id,
+        Err(_e) => return,
+    };
+    let document_id: u64 = match document_id.parse() {
         Ok(id) => id,
         Err(e) => return eprintln!("Failed to parse input data into positive integer: {e}"),
     };
 
-    let mut confirm = String::new();
-    println!("Are you sure you want to delete document with ID '{}'?", document_id);
-    print!("'Y' to confirm: ");
-    io::stdout().flush().expect("Unexpected I/O error");
-    if let Err(e) = io::stdin().read_line(&mut confirm) {
-        return eprintln!("Failed to read line: {e}");
-    }
-    let confirm = confirm.trim();
+    let confirm = match ask_action_confirm(
+        format!("Are you sure you want to delete document with ID '{}'?", document_id).as_str()
+    ) {
+        Ok(confirm) => confirm,
+        Err(_e) => return,
+    };
 
-    match confirm {
+    match confirm.as_str() {
         "Y" => {
-            match database_manager.find_database(connected_database_name) {
-                Ok(result) => {
-                    if !result {
-                        return println!("Cannot find database '{connected_database_name}'");
-                    }
-                },
-                Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+            if !database_exists(database_manager, connected_database_name) {
+                return;
             }
-        
             match database_manager.delete_document(connected_database_name, &document_id) {
                 Ok((_result, message)) => println!("{message}"),
-                Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+                Err(e) => return eprintln!("Error occurred: {e}"),
             }
         },
         _ => return println!("Canceled document deletion"),
@@ -833,7 +824,7 @@ fn create_test_documents(
 
         match database_manager.create_document(connected_database_name, collection_name, data) {
             Ok((_result, message)) => println!("{message}"),
-            Err(e) => eprintln!("Error occurred while trying to create a document: {e}"),
+            Err(e) => eprintln!("Error occurred: {e}"),
         }
     }
 }
