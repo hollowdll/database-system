@@ -473,40 +473,29 @@ fn delete_collection_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>
 ) {
-    let mut collection_name = String::new();
-    println!("\n{}", "Collection name:");
-    if let Err(e) = io::stdin().read_line(&mut collection_name) {
-        return eprintln!("Failed to read line: {e}");
-    }
-    let collection_name = collection_name.trim();
-
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
-    let mut confirm = String::new();
-    println!("Are you sure you want to delete collection '{}'?", collection_name);
-    print!("'Y' to confirm: ");
-    io::stdout().flush().unwrap();
-    if let Err(e) = io::stdin().read_line(&mut confirm) {
-        return eprintln!("Failed to read line: {e}");
-    }
-    let confirm = confirm.trim();
+    let collection_name = match ask_user_input("Collection name:") {
+        Ok(collection_name) => collection_name,
+        Err(_) => return,
+    };
 
-    match confirm {
+    let confirm = match ask_action_confirm(
+        &format!("Are you sure you want to delete collection '{}'?", collection_name)
+    ) {
+        Ok(confirm) => confirm,
+        Err(_) => return,
+    };
+
+    match confirm.as_str() {
         "Y" => {
-            // Check if connected database exists
-            match database_manager.find_database(connected_database_name) {
-                Ok(result) => {
-                    if !result {
-                        return println!("Cannot find database '{connected_database_name}'");
-                    }
-                },
-                Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+            if !database_exists(database_manager, connected_database_name) {
+                return;
             }
-        
-            match database_manager.delete_collection(collection_name, connected_database_name) {
+            match database_manager.delete_collection(&collection_name, connected_database_name) {
                 Ok(result) => {
                     if result {
                         println!("Deleted collection");
@@ -514,7 +503,7 @@ fn delete_collection_menu(
                         println!("Failed to delete collection. Database or collection might not exist.");
                     }
                 },
-                Err(e) => return eprintln!("Error occurred while trying to delete a collection: {e}"),
+                Err(e) => return eprintln!("Error occurred: {e}"),
             }
         },
         _ => return println!("Canceled collection deletion"),
@@ -532,20 +521,14 @@ fn list_collections_of_connected_database(
         None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
-    // Check if connected database exists
-    match database_manager.find_database(connected_database_name) {
-        Ok(result) => {
-            if !result {
-                return println!("Cannot find database '{connected_database_name}'");
-            }
-        },
-        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    if !database_exists(database_manager, connected_database_name) {
+        return;
     }
 
     // find all collections and list them
     let collections = match database_manager.find_all_collections_of_database(connected_database_name) {
         Ok(collections) => collections,
-        Err(e) => return eprintln!("Error occurred while trying to find collections: {e}"),
+        Err(e) => return eprintln!("Error occurred: {e}"),
     };
 
     println!("\nNumber of collections: {}", collections.len());
@@ -565,25 +548,17 @@ fn change_database_description_menu(
         None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
 
-    let mut description = String::new();
-    println!("\n{}", "Description:");
-    if let Err(e) = io::stdin().read_line(&mut description) {
-        return eprintln!("Failed to read line: {e}");
-    }
-    let description = description.trim();
+    let description = match ask_user_input("Description:") {
+        Ok(description) => description,
+        Err(_) => return,
+    };
 
-    // Check if connected database exists
-    match database_manager.find_database(connected_database_name) {
-        Ok(result) => {
-            if !result {
-                return println!("Cannot find database '{connected_database_name}'");
-            }
-        },
-        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    if !database_exists(database_manager, connected_database_name) {
+        return;
     }
 
     // Change description of connected database
-    match database_manager.change_database_description(connected_database_name, description) {
+    match database_manager.change_database_description(connected_database_name, &description) {
         Ok(result) => {
             if result {
                 println!("Changed database description");
@@ -591,7 +566,7 @@ fn change_database_description_menu(
                 println!("Failed to change database description. Database might not exist.");
             }
         },
-        Err(e) => return eprintln!("Error occurred while trying to change database description: {e}"),
+        Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
 
@@ -610,7 +585,7 @@ fn create_document_menu(
         Err(_) => return,
     };
 
-    if !collection_exists(database_manager, collection_name.as_str(), connected_database_name) {
+    if !collection_exists(database_manager, &collection_name, connected_database_name) {
         return;
     }
 
@@ -633,7 +608,7 @@ fn create_document_menu(
             Err(_) => return,
         };
 
-        data.push(InputDataField::from(field.as_str(), data_type.as_str(), value.as_str()));
+        data.push(InputDataField::from(&field, &data_type, &value));
 
         let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
             Ok(confirm) => confirm,
@@ -648,9 +623,9 @@ fn create_document_menu(
         return;
     }
 
-    match database_manager.create_document(connected_database_name, collection_name.as_str(), data) {
+    match database_manager.create_document(connected_database_name, &collection_name, data) {
         Ok((_result, message)) => println!("{message}"),
-        Err(e) => return eprintln!("Error occurred while trying to create a document: {e}"),
+        Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
 
@@ -669,7 +644,7 @@ fn list_documents_of_collection(
         Err(_) => return,
     };
 
-    if !collection_exists(database_manager, collection_name.as_str(), connected_database_name) {
+    if !collection_exists(database_manager, &collection_name, connected_database_name) {
         return;
     }
     
@@ -679,7 +654,7 @@ fn list_documents_of_collection(
 
     let documents = match database_manager.find_all_documents_of_collection(
         connected_database_name,
-        collection_name.as_str(),
+        &collection_name,
     ) {
         Ok(documents) => documents,
         Err(e) => return eprintln!("Error occurred: {e}"),
@@ -725,7 +700,7 @@ fn delete_document_menu(
     };
 
     let confirm = match ask_action_confirm(
-        format!("Are you sure you want to delete document with ID '{}'?", document_id).as_str()
+        &format!("Are you sure you want to delete document with ID '{}'?", document_id)
     ) {
         Ok(confirm) => confirm,
         Err(_) => return,
@@ -760,7 +735,7 @@ fn create_test_documents(
         Err(_) => return,
     };
 
-    if !collection_exists(database_manager, collection_name.as_str(), connected_database_name) {
+    if !collection_exists(database_manager, &collection_name, connected_database_name) {
         return;
     }
     
@@ -774,9 +749,9 @@ fn create_test_documents(
         let data_type = "Text";
         let value = format!("value_{i}");
 
-        data.push(InputDataField::from(field.as_str(), data_type, value.as_str()));
+        data.push(InputDataField::from(&field, data_type, &value));
 
-        match database_manager.create_document(connected_database_name, collection_name.as_str(), data) {
+        match database_manager.create_document(connected_database_name, &collection_name, data) {
             Ok((_result, message)) => println!("{message}"),
             Err(e) => eprintln!("Error occurred: {e}"),
         }
