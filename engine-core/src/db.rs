@@ -291,8 +291,9 @@ pub fn create_databases_dir() -> io::Result<()> {
 
 /// Creates a database file in databases directory
 /// with initial data
-pub fn create_database_file(database_name: &str) -> io::Result<bool> {
+pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if !Path::new(&file_path).is_file() {
         let mut file = fs::File::create(&file_path)?;
@@ -307,11 +308,12 @@ pub fn create_database_file(database_name: &str) -> io::Result<bool> {
 
         file.write(serde_json::to_string_pretty(&json)?.as_bytes())?;
 
+        return Ok((true, message.to_string()));
     } else {
-        return Ok(false);
+        message = "Database does not exist.";
     }
 
-    Ok(true)
+    Ok((false, message.to_string()))
 }
 
 /// Deletes a database file in databases directory

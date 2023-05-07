@@ -8,6 +8,7 @@ use std::{
 use crate::logs;
 use crate::db;
 use crate::input_data;
+use crate::constants::DB_EVENT_LOG_ERROR_TEXT;
 
 /// Database manager that manages all databases
 /// and database related operations
@@ -16,30 +17,29 @@ pub struct DatabaseManager {}
 
 impl DatabaseManager {
     /// Creates a new database 
-    pub fn create_database(&self, database_name: &str) -> io::Result<bool> {
+    pub fn create_database(&self, database_name: &str) -> io::Result<(bool, String)> {
         if let Err(e) = db::create_databases_dir() {
             return Err(e);
         }
             
         match db::create_database_file(database_name) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok(false);
+                    return Ok((false, format!("Failed to create database: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Created database '{}'", database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
             logs::DatabaseEventType::Created,
-            log_content.as_str()
+            &format!("Created database '{}'", database_name),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR_TEXT);
         }
 
-        Ok(true)
+        Ok((true, "Created database".to_string()))
     }
 
     /// Deletes a database
@@ -59,7 +59,7 @@ impl DatabaseManager {
             logs::DatabaseEventType::Deleted,
             log_content.as_str()
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR_TEXT);
         }
         
         Ok(true)

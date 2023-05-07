@@ -6,6 +6,7 @@ pub mod logs;
 mod db;
 mod db_manager;
 mod input_data;
+mod constants;
 
 pub use db_manager::DatabaseManager;
 pub use db::DataType;

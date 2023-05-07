@@ -307,13 +307,7 @@ fn create_database_menu(database_manager: &DatabaseManager) {
     };
 
     match database_manager.create_database(&database_name) {
-        Ok(result) => {
-            if result {
-                println!("Created database");
-            } else {
-                println!("Failed to create database. It might already exist.");
-            }
-        },
+        Ok((_result, message)) => println!("{message}"),
         Err(e) => eprintln!("Error occurred: {e}"),
     }
 }
