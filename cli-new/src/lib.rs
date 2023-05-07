@@ -60,24 +60,18 @@ pub fn run(config: Config) {
 
     // Program main loop
     loop {
-        let mut input_command = String::new();
-
         refresh_connected_database(engine.database_manager(), &mut connected_database);
 
-        println!();
         if let Some(database_name) = &connected_database {
-            println!("Connected database: {database_name}");
-        }
-        println!("{}", "Enter a command:");
-
-        if let Err(e) = io::stdin().read_line(&mut input_command) {
-            eprintln!("Failed to read line: {e}");
-            continue
+            println!("\nConnected database: {database_name}");
         }
 
-        let input_command = input_command.trim();
+        let input_command = match ask_user_input("Enter a command:") {
+            Ok(input_command) => input_command,
+            Err(_) => continue,
+        };
 
-        match input_command {
+        match input_command.as_str() {
             "/help" => {
                 println!("\n{}", "All available commands:");
                 println!(
@@ -106,7 +100,7 @@ pub fn run(config: Config) {
   /documents                           List documents of a collection
   /create document                     Create a new document to a collection
   /delete document                     Delete a document from a database
-  (DISABLED) /delete doc col           Delete a document from a collection. This is faster if the collection is known.
+  (DISABLED) /delete doc col           Delete a document from a collection. This is faster if the collection is known beforehand.
 
   ** COMMANDS FOR TESTING **
 
@@ -196,7 +190,7 @@ fn refresh_connected_database(
                 connected_database.take();   
             }
         },
-        Err(e) => eprintln!("Error occurred while trying to find database: {e}"),
+        Err(e) => eprintln!("Error occurred while trying to find connected database: {e}"),
     }
 }
 
@@ -305,16 +299,12 @@ fn display_connection_status(connected_database: &Option<String>) {
 
 /// Show menu to create a new database.
 fn create_database_menu(database_manager: &DatabaseManager) {
-    let mut database_name = String::new();
-
-    println!("\n{}", "Database name:");
-    if let Err(e) = io::stdin().read_line(&mut database_name) {
-        return eprintln!("Failed to read line: {e}");
+    let database_name = match ask_user_input("Database name:") {
+        Ok(database_name) => database_name,
+        Err(_) => return,
     };
 
-    let database_name = database_name.trim();
-
-    match database_manager.create_database(database_name) {
+    match database_manager.create_database(&database_name) {
         Ok(result) => {
             if result {
                 println!("Created database");
@@ -322,7 +312,7 @@ fn create_database_menu(database_manager: &DatabaseManager) {
                 println!("Failed to create database. It might already exist.");
             }
         },
-        Err(e) => eprintln!("Error occurred while trying to create a database: {e}"),
+        Err(e) => eprintln!("Error occurred: {e}"),
     }
 }
 
@@ -331,35 +321,27 @@ fn delete_database_menu(
     database_manager: &DatabaseManager,
     connected_database: &mut Option<String>
 ) {
-    let mut database_name = String::new();
-    let mut confirm = String::new();
+    let database_name = match ask_user_input("Database name:") {
+        Ok(database_name) => database_name,
+        Err(_) => return,
+    };
 
-    println!("\n{}", "Database name:");
-    if let Err(e) = io::stdin().read_line(&mut database_name) {
-        return eprintln!("Failed to read line: {e}");
-    }
+    let confirm = match ask_action_confirm(
+        &format!("Are you sure you want to delete database '{}'?", database_name)
+    ) {
+        Ok(confirm) => confirm,
+        Err(_) => return,
+    };
 
-    let database_name = database_name.trim();
-
-    println!("Are you sure you want to delete database '{}'?", database_name);
-    print!("'Y' to confirm: ");
-    io::stdout().flush().unwrap();
-
-    if let Err(e) = io::stdin().read_line(&mut confirm) {
-        return eprintln!("Failed to read line: {e}");
-    }
-
-    let confirm = confirm.trim();
-
-    match confirm {
+    match confirm.as_str() {
         // Delete database
         "Y" => {
-            match database_manager.delete_database(database_name) {
+            match database_manager.delete_database(&database_name) {
                 Ok(result) => {
                     if result {
                         // Disconnect database if it is connected
                         if let Some(connected_database_name) = connected_database {
-                            if connected_database_name == database_name {
+                            if connected_database_name == &database_name {
                                 connected_database.take();
                             }
                         }
@@ -368,7 +350,7 @@ fn delete_database_menu(
                         println!("Failed to delete database. It might not exist.");
                     }
                 },
-                Err(e) => eprintln!("Error occurred while trying to delete database: {e}"),
+                Err(e) => eprintln!("Error occurred: {e}"),
             }
         },
         _ => return println!("Canceled database deletion"),
@@ -380,25 +362,21 @@ fn connect_database_menu(
     database_manager: &DatabaseManager,
     connected_database: &mut Option<String>
 ) {
-    let mut database_name = String::new();
+    let database_name = match ask_user_input("Database name:") {
+        Ok(database_name) => database_name,
+        Err(_) => return,
+    };
 
-    println!("\n{}", "Database name:");
-    if let Err(e) = io::stdin().read_line(&mut database_name) {
-        return eprintln!("Failed to read line: {e}");
-    }
-
-    let database_name = database_name.trim();
-
-    match database_manager.find_database(database_name) {
+    match database_manager.find_database(&database_name) {
         Ok(result) => {
             if result {
-                connected_database.replace(database_name.to_string());
+                connected_database.replace(database_name);
                 println!("Connected to database");
             } else {
                 println!("Failed to connect to database. It might not exist.");
             }
         },
-        Err(e) => eprintln!("Error occurred while trying to connect to database: {e}"),
+        Err(e) => eprintln!("Error occurred: {e}"),
     }
 }
 
@@ -430,32 +408,21 @@ fn create_collection_menu(
     database_manager: &DatabaseManager,
     connected_database: &Option<String>
 ) {
-    let mut collection_name = String::new();
-
-    println!("\n{}", "Collection name:");
-    if let Err(e) = io::stdin().read_line(&mut collection_name) {
-        return eprintln!("Failed to read line: {e}");
-    }
-
-    let collection_name = collection_name.trim();
-
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
     };
+    
+    let collection_name = match ask_user_input("Collection name:") {
+        Ok(collection_name) => collection_name,
+        Err(_) => return,
+    };
 
-    // Check if connected database exists
-    match database_manager.find_database(connected_database_name) {
-        Ok(result) => {
-            if !result {
-                return println!("Cannot find database '{connected_database_name}'");
-            }
-        },
-        Err(e) => return eprintln!("Error occurred while trying to find connected database: {e}"),
+    if !database_exists(database_manager, connected_database_name) {
+        return;
     }
 
-    // Create collection
-    match database_manager.create_collection(collection_name, connected_database_name) {
+    match database_manager.create_collection(&collection_name, connected_database_name) {
         Ok(result) => {
             if result {
                 println!("Created collection");
@@ -463,7 +430,7 @@ fn create_collection_menu(
                 println!("Failed to create collection. Database might not exist or collection name already exists.");
             }
         },
-        Err(e) => return eprintln!("Error occurred while trying to create a collection: {e}"),
+        Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
 
