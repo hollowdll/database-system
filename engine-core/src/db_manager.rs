@@ -1,4 +1,4 @@
-// Restructured Database manager
+// This file contains database manager related code
 
 use std::{
     io,
@@ -16,7 +16,7 @@ pub struct DatabaseManager {}
 
 impl DatabaseManager {
     /// Creates a new database 
-    pub fn create_database(&self, database_name: &str) -> Result<bool, io::Error> {
+    pub fn create_database(&self, database_name: &str) -> io::Result<bool> {
         if let Err(e) = db::create_databases_dir() {
             return Err(e);
         }
@@ -43,7 +43,7 @@ impl DatabaseManager {
     }
 
     /// Deletes a database
-    pub fn delete_database(&self, database_name: &str) -> Result<bool, io::Error> {
+    pub fn delete_database(&self, database_name: &str) -> io::Result<bool> {
         match db::delete_database_file(database_name) {
             Ok(result) => {
                 if !result {
@@ -66,7 +66,7 @@ impl DatabaseManager {
     }
 
     /// Changes description of a database
-    pub fn change_database_description(&self, database_name: &str, description: &str) -> Result<bool, io::Error> {
+    pub fn change_database_description(&self, database_name: &str, description: &str) -> io::Result<bool> {
         match db::change_database_description(database_name, description) {
             Ok(result) => {
                 if !result {
@@ -89,7 +89,7 @@ impl DatabaseManager {
     }
 
     /// Creates a new collection to a database
-    pub fn create_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+    pub fn create_collection(&self, collection_name: &str, database_name: &str) -> io::Result<bool> {
         // Cancel if collection with this name already exists
         match db::find_collection(collection_name, database_name) {
             Ok(result) => {
@@ -122,7 +122,7 @@ impl DatabaseManager {
     }
 
     /// Deletes a collection from a database
-    pub fn delete_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+    pub fn delete_collection(&self, collection_name: &str, database_name: &str) -> io::Result<bool> {
         match db::delete_collection_from_database_file(collection_name, database_name) {
             Ok(result) => {
                 if !result {
@@ -145,7 +145,7 @@ impl DatabaseManager {
     }
 
     /// Finds all databases
-    pub fn find_all_databases(&self) -> Result<Vec<db::FormattedDatabase>, io::Error> {
+    pub fn find_all_databases(&self) -> io::Result<Vec<db::FormattedDatabase>> {
         let databases = match db::find_all_databases() {
             Ok(databases) => databases,
             Err(e) => return Err(e),
@@ -155,7 +155,7 @@ impl DatabaseManager {
     }
 
     /// Check if a database exists
-    pub fn find_database(&self, database_name: &str) -> Result<bool, io::Error> {
+    pub fn find_database(&self, database_name: &str) -> io::Result<bool> {
         match db::find_database(database_name) {
             Ok(result) => {
                 if !result {
@@ -171,7 +171,7 @@ impl DatabaseManager {
     /// Finds all collections of a database
     pub fn find_all_collections_of_database(
         &self, database_name: &str
-    ) -> Result<Vec<db::FormattedDocumentCollection>, io::Error>
+    ) -> io::Result<Vec<db::FormattedDocumentCollection>>
     {
         let collections = match db::find_all_collections_of_database(database_name) {
             Ok(collections) => collections,
@@ -182,7 +182,7 @@ impl DatabaseManager {
     }
 
     /// Check if a collection exists
-    pub fn find_collection(&self, collection_name: &str, database_name: &str) -> Result<bool, io::Error> {
+    pub fn find_collection(&self, collection_name: &str, database_name: &str) -> io::Result<bool> {
         match db::find_collection(collection_name, database_name) {
             Ok(result) => {
                 if !result {
@@ -201,7 +201,7 @@ impl DatabaseManager {
         database_name: &str,
         collection_name: &str,
         data: Vec<db::InputDataField>,
-    ) -> Result<(bool, String), io::Error>
+    ) -> io::Result<(bool, String)>
     {
         let mut document_data: HashMap<String, db::DataType> = HashMap::new();
 

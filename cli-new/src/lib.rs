@@ -62,8 +62,10 @@ pub fn run(config: Config) {
     loop {
         refresh_connected_database(engine.database_manager(), &mut connected_database);
 
-        if let Some(database_name) = &connected_database {
-            println!("\nConnected database: {database_name}");
+        if let Some(connected_database_name) = &connected_database {
+            println!("\nConnected database: {connected_database_name}");
+        } else {
+            println!("{}", NO_CONNECTED_DATABASE_TEXT);
         }
 
         let input_command = match ask_user_input("Enter a command:") {

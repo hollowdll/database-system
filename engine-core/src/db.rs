@@ -1,8 +1,8 @@
-// Restructured version of database
-// Not final
+// This file contains lower level code to do operations to database files.
+// Contains file system access, and database file reading and writing.
 
 use std::{
-    fs::{self, OpenOptions, DirEntry},
+    fs::{self, OpenOptions},
     io::{self, Write},
     path::Path,
     collections::HashMap

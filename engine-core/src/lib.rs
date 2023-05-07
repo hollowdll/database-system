@@ -1,6 +1,4 @@
 // Engine core library
-// Prototype phase
-// Will be organized and structured better later
 
 #![allow(unused)]
 
