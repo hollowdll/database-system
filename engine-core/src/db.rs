@@ -8,6 +8,7 @@ use std::{
     collections::HashMap
 };
 use serde::{Serialize, Deserialize};
+use crate::constants::DB_NOT_FOUND;
 
 // Path to databases directory in filesystem
 const DATABASES_DIR_PATH: &str = "./databases";
@@ -310,23 +311,26 @@ pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
 
         return Ok((true, message.to_string()));
     } else {
-        message = "Database does not exist.";
+        message = DB_NOT_FOUND;
     }
 
     Ok((false, message.to_string()))
 }
 
 /// Deletes a database file in databases directory
-pub fn delete_database_file(database_name: &str) -> io::Result<bool> {
+pub fn delete_database_file(database_name: &str) -> io::Result<(bool, String)> {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         fs::remove_file(&file_path)?;
+
+        return Ok((true, message.to_string()));
     } else {
-        return Ok(false);
+        message = DB_NOT_FOUND;
     }
     
-    Ok(true)
+    Ok((false, message.to_string()))
 }
 
 /// Writes database as JSON to database file

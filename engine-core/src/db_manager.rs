@@ -8,7 +8,7 @@ use std::{
 use crate::logs;
 use crate::db;
 use crate::input_data;
-use crate::constants::DB_EVENT_LOG_ERROR_TEXT;
+use crate::constants::DB_EVENT_LOG_ERROR;
 
 /// Database manager that manages all databases
 /// and database related operations
@@ -36,33 +36,32 @@ impl DatabaseManager {
             logs::DatabaseEventType::Created,
             &format!("Created database '{}'", database_name),
         ) {
-            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR_TEXT);
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
         Ok((true, "Created database".to_string()))
     }
 
     /// Deletes a database
-    pub fn delete_database(&self, database_name: &str) -> io::Result<bool> {
+    pub fn delete_database(&self, database_name: &str) -> io::Result<(bool, String)> {
         match db::delete_database_file(database_name) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok(false);
+                    return Ok((false, format!("Failed to delete database: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Deleted database '{}'", database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
             logs::DatabaseEventType::Deleted,
-            log_content.as_str()
+            &format!("Deleted database '{}'", database_name)
         ) {
-            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR_TEXT);
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
         
-        Ok(true)
+        Ok((true, "Deleted database".to_string()))
     }
 
     /// Changes description of a database

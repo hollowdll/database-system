@@ -14,7 +14,10 @@ use engine_core::{
     DataType,
     InputDataField,
 };
-use constants::NO_CONNECTED_DATABASE_TEXT;
+use constants::{
+    NO_CONNECTED_DATABASE_TEXT,
+    CONFIRM_OPTION_YES,
+};
 
 /// Configures program data
 pub struct Config {
@@ -330,10 +333,9 @@ fn delete_database_menu(
     };
 
     match confirm.as_str() {
-        // Delete database
-        "Y" => {
+        CONFIRM_OPTION_YES => {
             match database_manager.delete_database(&database_name) {
-                Ok(result) => {
+                Ok((result, message)) => {
                     if result {
                         // Disconnect database if it is connected
                         if let Some(connected_database_name) = connected_database {
@@ -341,10 +343,8 @@ fn delete_database_menu(
                                 connected_database.take();
                             }
                         }
-                        println!("Deleted database");
-                    } else {
-                        println!("Failed to delete database. It might not exist.");
                     }
+                    println!("{message}");
                 },
                 Err(e) => eprintln!("Error occurred: {e}"),
             }
@@ -454,7 +454,7 @@ fn delete_collection_menu(
     };
 
     match confirm.as_str() {
-        "Y" => {
+        CONFIRM_OPTION_YES => {
             if !database_exists(database_manager, connected_database_name) {
                 return;
             }
@@ -577,7 +577,7 @@ fn create_document_menu(
             Ok(confirm) => confirm,
             Err(_) => return,
         };
-        if confirm.as_str() == "Y" {
+        if confirm.as_str() == CONFIRM_OPTION_YES {
             break;
         }
     }
@@ -670,7 +670,7 @@ fn delete_document_menu(
     };
 
     match confirm.as_str() {
-        "Y" => {
+        CONFIRM_OPTION_YES => {
             if !database_exists(database_manager, connected_database_name) {
                 return;
             }
