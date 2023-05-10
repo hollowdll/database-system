@@ -1,6 +1,8 @@
 // This file contains lower level code to do operations to database files.
 // Contains file system access, and database file reading and writing.
 
+#![allow(unused)]
+
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
@@ -273,7 +275,7 @@ fn database_file_path(database_name: &str) -> String {
 
 /// Check if a database file exists in databases directory
 fn database_file_exists(database_name: &str) -> bool {
-    return Path::new(database_file_path(database_name).as_str()).is_file();
+    return Path::new(&database_file_path(database_name)).is_file();
 }
 
 /// Check if databases directory exists in project root
@@ -348,7 +350,7 @@ fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
 
 /// Finds all database files in databases directory
 pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
-    create_databases_dir();
+    create_databases_dir()?;
 
     let mut databases = Vec::new();
 
@@ -384,10 +386,8 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 }
 
 /// Finds a database file in databases directory.
-/// 
-/// Returns `Ok(true)` if database was found.
 pub fn find_database(database_name: &str) -> io::Result<bool> {
-    create_databases_dir();
+    create_databases_dir()?;
 
     for entry in fs::read_dir(DATABASES_DIR_PATH)? {
         let entry = entry?;

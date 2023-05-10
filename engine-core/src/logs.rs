@@ -10,10 +10,7 @@ use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
     path::Path,
-    time::{
-        Duration,
-        SystemTime,
-    },
+    time::SystemTime,
 };
 
 #[derive(Debug)]
@@ -91,7 +88,7 @@ fn create_logs_dir() -> io::Result<()> {
 
 fn create_log_file(name: &str) -> io::Result<()> {
     if !Path::new(format!("./logs/{name}").as_str()).is_file() {
-        let file = fs::File::create(format!("./logs/{name}"))?;
+        fs::File::create(format!("./logs/{name}"))?;
     }
 
     Ok(())

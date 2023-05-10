@@ -1,6 +1,6 @@
 // Engine core library
 
-#![allow(unused)]
+// #![allow(unused)]
 
 pub mod logs;
 mod db;
