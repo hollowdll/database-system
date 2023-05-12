@@ -17,7 +17,11 @@ pub struct DatabaseManager {}
 
 impl DatabaseManager {
     /// Creates a new database 
-    pub fn create_database(&self, database_name: &str) -> io::Result<(bool, String)> {
+    pub fn create_database(
+        &self,
+        database_name: &str,
+    ) -> io::Result<(bool, String)>
+    {
         if let Err(e) = db::create_databases_dir() {
             return Err(e);
         }
@@ -43,7 +47,11 @@ impl DatabaseManager {
     }
 
     /// Deletes a database
-    pub fn delete_database(&self, database_name: &str) -> io::Result<(bool, String)> {
+    pub fn delete_database(
+        &self,
+        database_name: &str,
+    ) -> io::Result<(bool, String)>
+    {
         match db::delete_database_file(database_name) {
             Ok((result, message)) => {
                 if !result {
@@ -56,7 +64,7 @@ impl DatabaseManager {
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
             logs::DatabaseEventType::Deleted,
-            &format!("Deleted database '{}'", database_name)
+            &format!("Deleted database '{}'", database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -65,7 +73,12 @@ impl DatabaseManager {
     }
 
     /// Changes description of a database
-    pub fn change_database_description(&self, database_name: &str, description: &str) -> io::Result<(bool, String)> {
+    pub fn change_database_description(
+        &self,
+        database_name: &str,
+        description: &str,
+    ) -> io::Result<(bool, String)>
+    {
         match db::change_database_description(database_name, description) {
             Ok((result, message)) => {
                 if !result {
@@ -87,69 +100,75 @@ impl DatabaseManager {
     }
 
     /// Creates a new collection to a database
-    pub fn create_collection(&self, collection_name: &str, database_name: &str) -> io::Result<bool> {
+    pub fn create_collection(
+        &self,
+        collection_name: &str,
+        database_name: &str,
+    ) -> io::Result<(bool, String)>
+    {
         // Cancel if collection with this name already exists
         match db::find_collection(collection_name, database_name) {
             Ok(result) => {
                 if result {
-                    return Ok(false);
+                    return Ok((false, "Failed to create collection: Collection already exists".to_string()));
                 }
             },
             Err(e) => return Err(e),
         }
 
         match db::create_collection_to_database_file(collection_name, database_name) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok(false);
+                    return Ok((false, format!("Failed to create collection: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Created collection '{}' to database '{}'", collection_name, database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Collection,
             logs::DatabaseEventType::Created,
-            log_content.as_str()
+            &format!("Created collection '{}' to database '{}'", collection_name, database_name),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok(true)
+        Ok((true, "Created collection".to_string()))
     }
 
     /// Deletes a collection from a database
-    pub fn delete_collection(&self, collection_name: &str, database_name: &str) -> io::Result<bool> {
+    pub fn delete_collection(
+        &self,
+        collection_name: &str,
+        database_name: &str,
+    ) -> io::Result<(bool, String)>
+    {
         match db::delete_collection_from_database_file(collection_name, database_name) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok(false);
+                    return Ok((false, format!("Failed to delete collection: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Deleted collection '{}' in database '{}'", collection_name, database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Collection,
             logs::DatabaseEventType::Deleted,
-            log_content.as_str()
+            &format!("Deleted collection '{}' from database '{}'", collection_name, database_name),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok(true)
+        Ok((true, "Deleted collection".to_string()))
     }
 
     /// Finds all databases
     pub fn find_all_databases(&self) -> io::Result<Vec<db::FormattedDatabase>> {
-        let databases = match db::find_all_databases() {
-            Ok(databases) => databases,
+        match db::find_all_databases() {
+            Ok(databases) => return Ok(databases),
             Err(e) => return Err(e),
         };
-
-        Ok(databases)
     }
 
     /// Check if a database exists
@@ -168,19 +187,23 @@ impl DatabaseManager {
 
     /// Finds all collections of a database
     pub fn find_all_collections_of_database(
-        &self, database_name: &str
+        &self,
+        database_name: &str,
     ) -> io::Result<Vec<db::FormattedDocumentCollection>>
     {
-        let collections = match db::find_all_collections_of_database(database_name) {
-            Ok(collections) => collections,
+        match db::find_all_collections_of_database(database_name) {
+            Ok(collections) => return Ok(collections),
             Err(e) => return Err(e),
         };
-
-        Ok(collections)
     }
 
     /// Check if a collection exists
-    pub fn find_collection(&self, collection_name: &str, database_name: &str) -> io::Result<bool> {
+    pub fn find_collection(
+        &self,
+        collection_name: &str,
+        database_name: &str,
+    ) -> io::Result<bool>
+    {
         match db::find_collection(collection_name, database_name) {
             Ok(result) => {
                 if !result {
@@ -203,7 +226,7 @@ impl DatabaseManager {
     {
         let mut document_data: HashMap<String, db::DataType> = HashMap::new();
 
-        // convert input data to correct data type
+        // convert input data to correct data types
         for data_field in data {
             let converted_value = match input_data::convert_input_data(data_field.value(), data_field.data_type()) {
                 Some(converted_value) => converted_value,
@@ -214,24 +237,23 @@ impl DatabaseManager {
         }
 
         match db::create_document_to_collection(database_name, collection_name, document_data) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok((false, String::from("Failed to create document. Database or collection might not exist")));
+                    return Ok((false, format!("Failed to create document: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Created document to collection '{}' in database '{}'", collection_name, database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Document,
             logs::DatabaseEventType::Created,
-            log_content.as_str()
+            &format!("Created document to collection '{}' in database '{}'", collection_name, database_name),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, String::from("Created document")))
+        Ok((true, "Created document".to_string()))
     }
 
     /// Deletes a document from a collection
@@ -243,27 +265,26 @@ impl DatabaseManager {
     ) -> io::Result<(bool, String)>
     {
         match db::delete_document_from_collection(database_name, collection_name, document_id) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok((false, String::from("Failed to delete document. It might not exist.")));
+                    return Ok((false, format!("Failed to delete document: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!(
-            "Deleted document with ID '{}' from collection '{}' in database '{}'",
-            document_id, collection_name, database_name
-        );
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Document,
             logs::DatabaseEventType::Deleted,
-            log_content.as_str()
+            &format!(
+                "Deleted document with ID '{}' from collection '{}' in database '{}'",
+                document_id, collection_name, database_name
+            ),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, String::from("Deleted document")))
+        Ok((true, "Deleted document".to_string()))
     }
 
     /// Deletes a document from database
@@ -274,27 +295,26 @@ impl DatabaseManager {
     ) -> io::Result<(bool, String)>
     {
         match db::delete_document(database_name, document_id) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok((false, String::from("Failed to delete document. It might not exist.")));
+                    return Ok((false, format!("Failed to delete document: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!(
-            "Deleted document with ID '{}' from database '{}'",
-            document_id, database_name
-        );
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Document,
             logs::DatabaseEventType::Deleted,
-            log_content.as_str()
+            &format!(
+                "Deleted document with ID '{}' from database '{}'",
+                document_id, database_name
+            ),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, String::from("Deleted document")))
+        Ok((true, "Deleted document".to_string()))
     }
 
     /// Finds all documents of collection
@@ -304,12 +324,10 @@ impl DatabaseManager {
         collection_name: &str,
     ) -> io::Result<Vec<db::FormattedDocument>>
     {
-        let documents = match db::find_all_documents_of_collection(database_name, collection_name) {
-            Ok(documents) => documents,
+        match db::find_all_documents_of_collection(database_name, collection_name) {
+            Ok(documents) => return Ok(documents),
             Err(e) => return Err(e),
         };
-
-        Ok(documents)
     }
 }
 
