@@ -522,13 +522,7 @@ fn change_database_description_menu(
 
     // Change description of connected database
     match database_manager.change_database_description(connected_database_name, &description) {
-        Ok(result) => {
-            if result {
-                println!("Changed database description");
-            } else {
-                println!("Failed to change database description. Database might not exist.");
-            }
-        },
+        Ok((_result, message)) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }

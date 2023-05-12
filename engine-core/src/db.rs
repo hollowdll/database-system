@@ -412,8 +412,9 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
 /// Changes description of a database.
 /// 
 /// Modifies `description` field in a database file.
-pub fn change_database_description(database_name: &str, description: &str) -> io::Result<bool> {
+pub fn change_database_description(database_name: &str, description: &str) -> io::Result<(bool, String)> {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -428,10 +429,12 @@ pub fn change_database_description(database_name: &str, description: &str) -> io
 
         file.write(json.as_bytes())?;
 
-        return Ok(true);
+        return Ok((true, message.to_string()));
+    } else {
+        message = DB_NOT_FOUND;
     }
 
-    Ok(false)
+    Ok((false, message.to_string()))
 }
 
 /// Writes a new collection to a database file

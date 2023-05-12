@@ -65,26 +65,25 @@ impl DatabaseManager {
     }
 
     /// Changes description of a database
-    pub fn change_database_description(&self, database_name: &str, description: &str) -> io::Result<bool> {
+    pub fn change_database_description(&self, database_name: &str, description: &str) -> io::Result<(bool, String)> {
         match db::change_database_description(database_name, description) {
-            Ok(result) => {
+            Ok((result, message)) => {
                 if !result {
-                    return Ok(false)
+                    return Ok((false, format!("Failed to change database description: {message}")));
                 }
             },
             Err(e) => return Err(e),
         }
 
-        let log_content = format!("Changed description of database '{}'", database_name);
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
             logs::DatabaseEventType::Updated,
-            log_content.as_str()
+            &format!("Changed description of database '{}'", database_name),
         ) {
-            eprintln!("Error occurred while trying to log database event: {e}");
+            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok(true)
+        Ok((true, "Changed database description".to_string()))
     }
 
     /// Creates a new collection to a database
