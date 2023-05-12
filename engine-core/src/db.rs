@@ -10,13 +10,13 @@ use std::{
     collections::HashMap
 };
 use serde::{Serialize, Deserialize};
-use crate::constants::DB_NOT_FOUND;
-
-// Path to databases directory in filesystem
-const DATABASES_DIR_PATH: &str = "./databases";
-
-// Database files have JSON file extension
-const DATABASE_FILE_EXTENSION: &str = "json";
+use crate::constants::{
+    DB_NOT_FOUND,
+    COLLECTION_NOT_FOUND,
+    DOCUMENT_NOT_FOUND,
+    DATABASES_DIR_PATH,
+    DATABASE_FILE_EXTENSION,
+};
 
 /// Database structure for database files
 #[derive(Debug, Serialize, Deserialize)]
@@ -292,6 +292,19 @@ pub fn create_databases_dir() -> io::Result<()> {
     Ok(())
 }
 
+/// Writes database as JSON to database file
+fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
+    let json = serde_json::to_string_pretty(&database)?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(&file_path)?;
+
+    file.write(json.as_bytes())?;
+
+    Ok(())
+}
+
 /// Creates a database file in databases directory
 /// with initial data
 pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
@@ -333,19 +346,6 @@ pub fn delete_database_file(database_name: &str) -> io::Result<(bool, String)> {
     }
     
     Ok((false, message.to_string()))
-}
-
-/// Writes database as JSON to database file
-fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
-    let json = serde_json::to_string_pretty(&database)?;
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(&file_path)?;
-
-    file.write(json.as_bytes())?;
-
-    Ok(())
 }
 
 /// Finds all database files in databases directory
@@ -438,8 +438,9 @@ pub fn change_database_description(database_name: &str, description: &str) -> io
 }
 
 /// Writes a new collection to a database file
-pub fn create_collection_to_database_file(collection_name: &str, database_name: &str) -> io::Result<bool> {
+pub fn create_collection_to_database_file(collection_name: &str, database_name: &str) -> io::Result<(bool, String)> {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -457,15 +458,18 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
 
         file.write(json.as_bytes())?;
 
-        return Ok(true);
+        return Ok((true, message.to_string()));
+    } else {
+        message = DB_NOT_FOUND;
     }
 
-    Ok(false)
+    Ok((false, message.to_string()))
 }
 
 /// Deletes a collection from a database file
-pub fn delete_collection_from_database_file(collection_name: &str, database_name: &str) -> io::Result<bool> {
+pub fn delete_collection_from_database_file(collection_name: &str, database_name: &str) -> io::Result<(bool, String)> {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -480,7 +484,7 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
         }
 
         if found {
-            database.collections_mut().retain(|x| x.name() != collection_name);
+            database.collections_mut().retain(|collection| collection.name() != collection_name);
 
             let json = serde_json::to_string_pretty(&database)?;
             let mut file = OpenOptions::new()
@@ -490,11 +494,15 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
 
             file.write(json.as_bytes())?;
 
-            return Ok(true);
+            return Ok((true, message.to_string()));
+        } else {
+            message = COLLECTION_NOT_FOUND;
         }
+    } else {
+        message = DB_NOT_FOUND;
     }
 
-    Ok(false)
+    Ok((false, message.to_string()))
 }
 
 /// Finds all collections of a database
@@ -519,8 +527,6 @@ pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<F
 }
 
 /// Finds a collection in a database file.
-/// 
-/// Returns `Ok(true)` if collection was found.
 pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result<bool> {
     let file_path = database_file_path(database_name);
 
@@ -543,9 +549,10 @@ pub fn create_document_to_collection(
     database_name: &str,
     collection_name: &str, 
     data: HashMap<String, DataType>,
-) -> io::Result<bool>
+) -> io::Result<(bool, String)>
 {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -576,12 +583,18 @@ pub fn create_document_to_collection(
 
                 file.write(json.as_bytes())?;
 
-                return Ok(true)
+                return Ok((true, message.to_string()))
+            } else {
+                message = COLLECTION_NOT_FOUND;
             }
+        } else {
+            message = COLLECTION_NOT_FOUND;
         }
+    } else {
+        message = DB_NOT_FOUND;
     }
 
-    Ok(false)
+    Ok((false, message.to_string()))
 }
 
 /// Finds all collections of a database
@@ -619,9 +632,10 @@ pub fn delete_document_from_collection(
     database_name: &str,
     collection_name: &str,
     document_id: &u64,
-) -> io::Result<bool>
+) -> io::Result<(bool, String)>
 {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -640,13 +654,19 @@ pub fn delete_document_from_collection(
 
                     file.write(json.as_bytes())?;
             
-                    return Ok(true);
-                };
+                    return Ok((true, message.to_string()));
+                } else {
+                    return Ok((false, DOCUMENT_NOT_FOUND.to_string()));
+                }
             }
         }
+
+        message = COLLECTION_NOT_FOUND;
+    } else {
+        message = DB_NOT_FOUND;
     }
 
-    Ok(false)
+    Ok((false, message.to_string()))
 }
 
 /// Deletes a document from database by document id.
@@ -655,9 +675,10 @@ pub fn delete_document_from_collection(
 pub fn delete_document(
     database_name: &str,
     document_id: &u64
-) -> io::Result<bool>
+) -> io::Result<(bool, String)>
 {
     let file_path = database_file_path(database_name);
+    let mut message = "";
 
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
@@ -673,11 +694,15 @@ pub fn delete_document(
 
         if found {
             match write_database_json(&database, &file_path) {
-                Ok(()) => return Ok(true),
+                Ok(()) => return Ok((true, message.to_string())),
                 Err(e) => return Err(e),
             }
+        } else {
+            message = DOCUMENT_NOT_FOUND;
         }
+    } else {
+        message = DB_NOT_FOUND;
     }
 
-    Ok(false)
+    Ok((false, message.to_string()))
 }
