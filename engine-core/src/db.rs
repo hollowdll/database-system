@@ -51,18 +51,7 @@ impl Database {
     fn id_count(&self) -> &u64 {
         &self.id_count
     }
-
-    fn to_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "name": &self.name,
-            "description": &self.description,
-            "collections": [],
-            "id_count": &self.id_count,
-        })
-    }
 }
-
-impl Database {}
 
 impl From<&str> for Database {
     fn from(name: &str) -> Self {
@@ -316,15 +305,11 @@ pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
 
         // write initial data
         let database = Database::from(database_name);
-        let json = database.to_json();
-
-        let mut file = OpenOptions::new()
-            .write(true)
-            .open(&file_path)?;
-
-        file.write(serde_json::to_string_pretty(&json)?.as_bytes())?;
-
-        return Ok((true, message.to_string()));
+        
+        match write_database_json(&database, &file_path) {
+            Ok(()) => return Ok((true, message.to_string())),
+            Err(e) => return Err(e),
+        }
     } else {
         message = DB_NOT_FOUND;
     }
@@ -420,16 +405,11 @@ pub fn change_database_description(database_name: &str, description: &str) -> io
         let contents = fs::read_to_string(&file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         database.description = String::from(description);
-        let json = serde_json::to_string_pretty(&database)?;
-
-        let mut file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(&file_path)?;
-
-        file.write(json.as_bytes())?;
-
-        return Ok((true, message.to_string()));
+        
+        match write_database_json(&database, &file_path) {
+            Ok(()) => return Ok((true, message.to_string())),
+            Err(e) => return Err(e),
+        }
     } else {
         message = DB_NOT_FOUND;
     }
@@ -449,16 +429,11 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
         // Create new JSON and write to file
         let collection = DocumentCollection::from(collection_name);
         database.collections_mut().push(collection);
-        let json = serde_json::to_string_pretty(&database)?;
         
-        let mut file = OpenOptions::new()
-            .write(true)
-            .truncate(true)
-            .open(&file_path)?;
-
-        file.write(json.as_bytes())?;
-
-        return Ok((true, message.to_string()));
+        match write_database_json(&database, &file_path) {
+            Ok(()) => return Ok((true, message.to_string())),
+            Err(e) => return Err(e),
+        }
     } else {
         message = DB_NOT_FOUND;
     }
@@ -486,15 +461,10 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
         if found {
             database.collections_mut().retain(|collection| collection.name() != collection_name);
 
-            let json = serde_json::to_string_pretty(&database)?;
-            let mut file = OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .open(&file_path)?;
-
-            file.write(json.as_bytes())?;
-
-            return Ok((true, message.to_string()));
+            match write_database_json(&database, &file_path) {
+                Ok(()) => return Ok((true, message.to_string())),
+                Err(e) => return Err(e),
+            }
         } else {
             message = COLLECTION_NOT_FOUND;
         }
@@ -574,16 +544,11 @@ pub fn create_document_to_collection(
 
             if let Some(collection) = database.collections_mut().get_mut(collection_index) {
                 collection.documents_mut().push(document);
-                let json = serde_json::to_string_pretty(&database)?;
 
-                let mut file = OpenOptions::new()
-                    .write(true)
-                    .truncate(true)
-                    .open(&file_path)?;
-
-                file.write(json.as_bytes())?;
-
-                return Ok((true, message.to_string()))
+                match write_database_json(&database, &file_path) {
+                    Ok(()) => return Ok((true, message.to_string())),
+                    Err(e) => return Err(e),
+                }
             } else {
                 message = COLLECTION_NOT_FOUND;
             }
@@ -646,15 +611,10 @@ pub fn delete_document_from_collection(
                 if let Some(document) = collection.documents().iter().find(|document| document.id() == document_id) {
                     collection.documents_mut().retain(|document| document.id() != document_id);
 
-                    let json = serde_json::to_string_pretty(&database)?;
-                    let mut file = OpenOptions::new()
-                        .write(true)
-                        .truncate(true)
-                        .open(&file_path)?;
-
-                    file.write(json.as_bytes())?;
-            
-                    return Ok((true, message.to_string()));
+                    match write_database_json(&database, &file_path) {
+                        Ok(()) => return Ok((true, message.to_string())),
+                        Err(e) => return Err(e),
+                    }
                 } else {
                     return Ok((false, DOCUMENT_NOT_FOUND.to_string()));
                 }
