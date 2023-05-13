@@ -63,15 +63,17 @@ pub fn run(config: Config) {
 
     // Program main loop
     loop {
+        let mut connected_database_name: String = NO_CONNECTED_DATABASE_TEXT.to_string();
+
         refresh_connected_database(engine.database_manager(), &mut connected_database);
 
-        if let Some(connected_database_name) = &connected_database {
-            println!("\nConnected database: {connected_database_name}");
-        } else {
-            println!("{}", NO_CONNECTED_DATABASE_TEXT);
+        if let Some(name) = &connected_database {
+            connected_database_name = format!("Connected database: {}", name);
         }
 
-        let input_command = match ask_user_input("Enter a command:") {
+        let input_command = match ask_user_input(
+            &format!("<{connected_database_name}>\nEnter a command:")
+        ) {
             Ok(input_command) => input_command,
             Err(_) => continue,
         };
@@ -419,13 +421,7 @@ fn create_collection_menu(
     }
 
     match database_manager.create_collection(&collection_name, connected_database_name) {
-        Ok(result) => {
-            if result {
-                println!("Created collection");
-            } else {
-                println!("Failed to create collection. Database might not exist or collection name already exists.");
-            }
-        },
+        Ok((_result, message)) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
@@ -459,13 +455,7 @@ fn delete_collection_menu(
                 return;
             }
             match database_manager.delete_collection(&collection_name, connected_database_name) {
-                Ok(result) => {
-                    if result {
-                        println!("Deleted collection");
-                    } else {
-                        println!("Failed to delete collection. Database or collection might not exist.");
-                    }
-                },
+                Ok((_result, message)) => println!("{message}"),
                 Err(e) => return eprintln!("Error occurred: {e}"),
             }
         },
