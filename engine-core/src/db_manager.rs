@@ -37,7 +37,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
-            logs::DatabaseEventType::Created,
+            logs::DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -63,7 +63,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
-            logs::DatabaseEventType::Deleted,
+            logs::DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -90,7 +90,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Database,
-            logs::DatabaseEventType::Updated,
+            logs::DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -127,7 +127,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Collection,
-            logs::DatabaseEventType::Created,
+            logs::DatabaseEvent::Created,
             &format!("Created collection '{}' to database '{}'", collection_name, database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -154,7 +154,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Collection,
-            logs::DatabaseEventType::Deleted,
+            logs::DatabaseEvent::Deleted,
             &format!("Deleted collection '{}' from database '{}'", collection_name, database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -247,7 +247,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Document,
-            logs::DatabaseEventType::Created,
+            logs::DatabaseEvent::Created,
             &format!("Created document to collection '{}' in database '{}'", collection_name, database_name),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -275,7 +275,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Document,
-            logs::DatabaseEventType::Deleted,
+            logs::DatabaseEvent::Deleted,
             &format!(
                 "Deleted document with ID '{}' from collection '{}' in database '{}'",
                 document_id, collection_name, database_name
@@ -305,7 +305,7 @@ impl DatabaseManager {
 
         if let Err(e) = logs::log_database_event(
             logs::DatabaseEventSource::Document,
-            logs::DatabaseEventType::Deleted,
+            logs::DatabaseEvent::Deleted,
             &format!(
                 "Deleted document with ID '{}' from database '{}'",
                 document_id, database_name

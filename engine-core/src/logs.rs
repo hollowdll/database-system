@@ -23,7 +23,7 @@ pub enum DatabaseEventSource {
 }
 
 #[derive(Debug)]
-pub enum DatabaseEventType {
+pub enum DatabaseEvent {
     Test,
     Connected,
     Disconnected,
@@ -35,7 +35,7 @@ pub enum DatabaseEventType {
 struct DatabaseEventLog {
     created: SystemTime,
     event_source: DatabaseEventSource,
-    event_type: DatabaseEventType,
+    event: DatabaseEvent,
     content: String,
 }
 
@@ -50,18 +50,18 @@ impl DatabaseEventLog {
             "[System time in seconds: {:?}] [{:?}] [{:?}] - {}\n",
             time.as_secs_f64(),
             self.event_source,
-            self.event_type,
+            self.event,
             self.content
         )
     }
 }
 
 impl DatabaseEventLog {
-    fn from(event_source: DatabaseEventSource, event_type: DatabaseEventType, content: &str) -> Self {
+    fn from(event_source: DatabaseEventSource, event: DatabaseEvent, content: &str) -> Self {
         Self {
             created: SystemTime::now(),
             event_source,
-            event_type,
+            event,
             content: String::from(content),
         }
     }
@@ -70,7 +70,7 @@ impl DatabaseEventLog {
         Self {
             created: SystemTime::now(),
             event_source: DatabaseEventSource::System,
-            event_type: DatabaseEventType::Test,
+            event: DatabaseEvent::Test,
             content: String::from("Test log 123"),
         }
     }
@@ -104,7 +104,7 @@ fn write_log_file(name: &str, content: &str) -> io::Result<()> {
     Ok(())
 }
 
-pub fn create_test_log() -> Result<(), io::Error> {
+pub fn create_test_log() -> io::Result<()> {
     let log_name = "testlog.log";
     let log = DatabaseEventLog::create_test_log().format();
 
@@ -125,12 +125,12 @@ pub fn create_test_log() -> Result<(), io::Error> {
 
 pub fn log_database_event(
     event_source: DatabaseEventSource,
-    event_type: DatabaseEventType,
+    event: DatabaseEvent,
     content: &str
-) -> Result<(), io::Error>
+) -> io::Result<()>
 {
     let log_name = "database-events.log";
-    let log = DatabaseEventLog::from(event_source, event_type, content).format();
+    let log = DatabaseEventLog::from(event_source, event, content).format();
 
     if let Err(e) = create_logs_dir() {
         return Err(e);
