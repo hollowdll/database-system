@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "cli-new",
+    "cli",
     "engine-core",
 ]
