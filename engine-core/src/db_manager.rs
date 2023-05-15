@@ -9,6 +9,7 @@ use crate::logs;
 use crate::db;
 use crate::input_data;
 use crate::constants::DB_EVENT_LOG_ERROR;
+use crate::db::database::FormattedDatabase;
 
 /// Database manager that manages all databases
 /// and database related operations
@@ -164,7 +165,7 @@ impl DatabaseManager {
     }
 
     /// Finds all databases
-    pub fn find_all_databases(&self) -> io::Result<Vec<db::FormattedDatabase>> {
+    pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
         match db::find_all_databases() {
             Ok(databases) => return Ok(databases),
             Err(e) => return Err(e),

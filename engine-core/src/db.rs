@@ -3,6 +3,11 @@
 
 #![allow(unused)]
 
+pub mod database;
+mod collection;
+mod document;
+mod data_type;
+
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
@@ -17,101 +22,15 @@ use crate::constants::{
     DATABASES_DIR_PATH,
     DATABASE_FILE_EXTENSION,
 };
-
-/// Database structure for database files
-#[derive(Debug, Serialize, Deserialize)]
-struct Database {
-    name: String,
-    description: String,
-    collections: Vec<DocumentCollection>,
-    id_count: u64,
-}
-
-impl Database {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn name_mut(&mut self) -> &mut str {
-        &mut self.name
-    }
-
-    fn description(&self) -> &str {
-        &self.description
-    }
-
-    fn collections(&self) -> &Vec<DocumentCollection> {
-        &self.collections
-    }
-
-    fn collections_mut(&mut self) -> &mut Vec<DocumentCollection> {
-        &mut self.collections
-    }
-
-    fn id_count(&self) -> &u64 {
-        &self.id_count
-    }
-}
-
-impl From<&str> for Database {
-    fn from(name: &str) -> Self {
-        Self {
-            name: String::from(name),
-            description: String::new(),
-            collections: Vec::new(),
-            id_count: 0,
-        }
-    }
-}
-
-impl From<(&str, &str)> for Database {
-    fn from((name, description): (&str, &str)) -> Self {
-        Self {
-            name: String::from(name),
-            description: String::from(description),
-            collections: Vec::new(),
-            id_count: 0,
-        }
-    }
-}
-
-/// Formatted database that can be listed in clients.
-/// 
-/// Size = database file size in bytes.
-pub struct FormattedDatabase {
-    name: String,
-    description: String,
-    size: u64,
-}
-
-impl FormattedDatabase {
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn description(&self) -> &str {
-        &self.description
-    }
-
-    pub fn size(&self) -> &u64 {
-        &self.size
-    }
-}
-
-impl FormattedDatabase {
-    fn from(name: String, description: String, size: u64) -> Self {
-        Self {
-            name,
-            description,
-            size,
-        }
-    }
-}
+use database::{
+    Database,
+    FormattedDatabase,
+};
 
 /// Database document collection
 /// that holds database documents.
 #[derive(Debug, Serialize, Deserialize)]
-struct DocumentCollection {
+pub struct DocumentCollection {
     name: String,
     documents: Vec<Document>,
 }
@@ -161,7 +80,7 @@ impl FormattedDocumentCollection {
 /// Database document that holds
 /// data in key-value pairs
 #[derive(Debug, Serialize, Deserialize)]
-struct Document {
+pub struct Document {
     id: u64,
     data: HashMap<String, DataType>,
 }
