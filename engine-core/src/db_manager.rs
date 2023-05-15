@@ -221,7 +221,7 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         collection_name: &str,
-        data: Vec<db::InputDataField>,
+        data: Vec<input_data::InputDataField>,
     ) -> io::Result<(bool, String)>
     {
         let mut document_data: HashMap<String, db::DataType> = HashMap::new();

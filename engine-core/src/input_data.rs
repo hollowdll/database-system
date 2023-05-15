@@ -2,6 +2,37 @@
 
 use crate::db::DataType;
 
+/// Input data field which is used to create fields to documents
+pub struct InputDataField {
+    field: String,
+    data_type: String,
+    value: String,
+}
+
+impl InputDataField {
+    pub fn field(&self) -> &str {
+        &self.field
+    }
+
+    pub fn data_type(&self) -> &str {
+        &self.data_type
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+impl InputDataField {
+    pub fn from(field: &str, data_type: &str, value: &str) -> Self {
+        Self {
+            field: field.to_string(),
+            data_type: data_type.to_string(),
+            value: value.to_string(),
+        }
+    }
+}
+
 /// Converts input data from string
 /// to correct database document data type.
 pub fn convert_input_data(input_data: &str, data_type: &str) -> Option<DataType> {

@@ -211,8 +211,6 @@ impl FormattedDocument {
     }
 }
 
-
-
 /// Data type for document fields
 #[derive(Debug, Serialize, Deserialize)]
 pub enum DataType {
@@ -222,37 +220,6 @@ pub enum DataType {
     Bool(bool),
     Text(String),
     // Possibly more in the future
-}
-
-/// Input data field which is used to create fields to documents
-pub struct InputDataField {
-    field: String,
-    data_type: String,
-    value: String,
-}
-
-impl InputDataField {
-    pub fn field(&self) -> &str {
-        &self.field
-    }
-
-    pub fn data_type(&self) -> &str {
-        &self.data_type
-    }
-
-    pub fn value(&self) -> &str {
-        &self.value
-    }
-}
-
-impl InputDataField {
-    pub fn from(field: &str, data_type: &str, value: &str) -> Self {
-        Self {
-            field: field.to_string(),
-            data_type: data_type.to_string(),
-            value: value.to_string(),
-        }
-    }
 }
 
 

@@ -10,7 +10,7 @@ mod constants;
 
 pub use db_manager::DatabaseManager;
 pub use db::DataType;
-pub use db::InputDataField;
+pub use input_data::InputDataField;
 pub use serde_json;
 
 /// Configure engine data.
