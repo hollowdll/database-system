@@ -4,12 +4,19 @@ use std::{
     io,
     collections::HashMap,
 };
-
-use crate::logs;
-use crate::db;
-use crate::input_data;
-use crate::constants::DB_EVENT_LOG_ERROR;
-use crate::db::database::FormattedDatabase;
+use crate::{
+    logs,
+    constants::DB_EVENT_LOG_ERROR,
+    input_data,
+    InputDataField,
+};
+use crate::db::{
+    self,
+    DataType,
+    FormattedDatabase,
+    FormattedDocumentCollection,
+    FormattedDocument,
+};
 
 /// Database manager that manages all databases
 /// and database related operations
@@ -190,7 +197,7 @@ impl DatabaseManager {
     pub fn find_all_collections_of_database(
         &self,
         database_name: &str,
-    ) -> io::Result<Vec<db::FormattedDocumentCollection>>
+    ) -> io::Result<Vec<FormattedDocumentCollection>>
     {
         match db::find_all_collections_of_database(database_name) {
             Ok(collections) => return Ok(collections),
@@ -222,10 +229,10 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         collection_name: &str,
-        data: Vec<input_data::InputDataField>,
+        data: Vec<InputDataField>,
     ) -> io::Result<(bool, String)>
     {
-        let mut document_data: HashMap<String, db::DataType> = HashMap::new();
+        let mut document_data: HashMap<String, DataType> = HashMap::new();
 
         // convert input data to correct data types
         for data_field in data {
@@ -323,7 +330,7 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         collection_name: &str,
-    ) -> io::Result<Vec<db::FormattedDocument>>
+    ) -> io::Result<Vec<FormattedDocument>>
     {
         match db::find_all_documents_of_collection(database_name, collection_name) {
             Ok(documents) => return Ok(documents),

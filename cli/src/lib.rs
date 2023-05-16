@@ -11,7 +11,7 @@ use std::{
 use engine_core::{
     self,
     DatabaseManager,
-    DataType,
+    db::DataType,
     InputDataField,
 };
 use constants::{

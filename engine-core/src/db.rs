@@ -4,9 +4,9 @@
 #![allow(unused)]
 
 pub mod database;
-mod collection;
-mod document;
-mod data_type;
+pub mod collection;
+pub mod document;
+pub mod data_type;
 
 use std::{
     fs::{self, OpenOptions},
@@ -22,126 +22,15 @@ use crate::constants::{
     DATABASES_DIR_PATH,
     DATABASE_FILE_EXTENSION,
 };
-use database::{
-    Database,
-    FormattedDatabase,
+pub use crate::db::{
+    data_type::DataType,
+    collection::DocumentCollection,
+    collection::FormattedDocumentCollection,
+    database::Database,
+    database::FormattedDatabase,
+    document::Document,
+    document::FormattedDocument,
 };
-
-/// Database document collection
-/// that holds database documents.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DocumentCollection {
-    name: String,
-    documents: Vec<Document>,
-}
-
-impl DocumentCollection {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn documents(&self) -> &Vec<Document> {
-        &self.documents
-    }
-
-    fn documents_mut(&mut self) -> &mut Vec<Document> {
-        &mut self.documents
-    }
-}
-
-impl DocumentCollection {
-    fn from(name: &str) -> Self {
-        Self {
-            name: String::from(name),
-            documents: Vec::new(),
-        }
-    }
-}
-
-/// Formatted document collection that can be listed in clients
-pub struct FormattedDocumentCollection {
-    name: String,
-}
-
-impl FormattedDocumentCollection {
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-}
-
-impl FormattedDocumentCollection {
-    fn from(name: String) -> Self {
-        Self {
-            name
-        }
-    }
-}
-
-/// Database document that holds
-/// data in key-value pairs
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Document {
-    id: u64,
-    data: HashMap<String, DataType>,
-}
-
-impl Document {
-    fn id(&self) -> &u64 {
-        &self.id
-    }
-
-    fn data(&self) -> &HashMap<String, DataType> {
-        &self.data
-    }
-}
-
-impl Document {
-    fn from(id_count: u64) -> Self {
-        Self {
-            id: id_count,
-            data: HashMap::new(),
-        }
-    }
-}
-
-/// Formatted document that can be listed in clients
-#[derive(Debug)]
-pub struct FormattedDocument {
-    id: u64,
-    data: HashMap<String, DataType>,
-}
-
-impl FormattedDocument {
-    pub fn id(&self) -> &u64 {
-        &self.id
-    }
-
-    pub fn data(&self) -> &HashMap<String, DataType> {
-        &self.data
-    }
-}
-
-impl FormattedDocument {
-    fn from(id: u64, data: HashMap<String, DataType>) -> Self {
-        Self {
-            id,
-            data,
-        }
-    }
-}
-
-/// Data type for document fields
-#[derive(Debug, Serialize, Deserialize)]
-pub enum DataType {
-    Int32(i32),
-    Int64(i64),
-    Decimal(f64),
-    Bool(bool),
-    Text(String),
-    // Possibly more in the future
-}
-
-
 
 /// Gets database file path. Database files have JSON format.
 fn database_file_path(database_name: &str) -> String {

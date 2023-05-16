@@ -3,15 +3,14 @@
 // #![allow(unused)]
 
 pub mod logs;
-mod db;
+pub mod db;
 mod db_manager;
 mod input_data;
 mod constants;
 
-pub use db_manager::DatabaseManager;
-pub use db::DataType;
-pub use input_data::InputDataField;
 pub use serde_json;
+pub use db_manager::DatabaseManager;
+pub use input_data::InputDataField;
 
 /// Configure engine data.
 #[derive(PartialEq, Debug)]
