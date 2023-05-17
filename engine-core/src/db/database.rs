@@ -1,5 +1,20 @@
-use crate::db::DocumentCollection;
 use serde::{Serialize, Deserialize};
+use std::{
+    io,
+    fs,
+    path::Path,
+};
+use crate::db::{
+    DocumentCollection,
+    database_file_path,
+    write_database_json,
+    create_databases_dir,
+};
+use crate::constants::{
+    DB_NOT_FOUND,
+    DATABASES_DIR_PATH,
+    DATABASE_FILE_EXTENSION,
+};
 
 /// Database structure for database files
 #[derive(Debug, Serialize, Deserialize)]
@@ -89,4 +104,127 @@ impl FormattedDatabase {
             size,
         }
     }
+}
+
+
+
+/// Creates a database file in databases directory
+/// with initial data
+pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
+    let file_path = database_file_path(database_name);
+    let mut message = "";
+
+    if !Path::new(&file_path).is_file() {
+        let file = fs::File::create(&file_path)?;
+        let database = Database::from(database_name);
+        
+        match write_database_json(&database, &file_path) {
+            Ok(()) => return Ok((true, message.to_string())),
+            Err(e) => return Err(e),
+        }
+    } else {
+        message = DB_NOT_FOUND;
+    }
+
+    Ok((false, message.to_string()))
+}
+
+/// Deletes a database file in databases directory
+pub fn delete_database_file(database_name: &str) -> io::Result<(bool, String)> {
+    let file_path = database_file_path(database_name);
+    let mut message = "";
+
+    if Path::new(&file_path).is_file() {
+        fs::remove_file(&file_path)?;
+
+        return Ok((true, message.to_string()));
+    } else {
+        message = DB_NOT_FOUND;
+    }
+    
+    Ok((false, message.to_string()))
+}
+
+/// Finds all database files in databases directory
+pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
+    create_databases_dir()?;
+
+    let mut databases = Vec::new();
+
+    for entry in fs::read_dir(DATABASES_DIR_PATH)? {
+        let entry = entry?;
+        let path = entry.path();
+        
+        if path.is_file() {
+            if let Some(file_extension) = path.extension() {
+                if file_extension == DATABASE_FILE_EXTENSION {
+                    let contents = fs::read_to_string(path)?;
+                    let database: Database = match serde_json::from_str(contents.as_str()) {
+                        Ok(database) => database,
+                        Err(e) => {
+                            eprintln!("Error parsing database: {e} ({:?})", entry.file_name());
+                            continue
+                        },
+                    };
+
+                    let formatted_database = FormattedDatabase::from(
+                        String::from(database.name()),
+                        String::from(database.description()),
+                        entry.metadata()?.len()
+                    );
+                    
+                    databases.push(formatted_database);
+                }
+            }
+        }
+    }
+
+    Ok(databases)
+}
+
+/// Finds a database file in databases directory.
+pub fn find_database(database_name: &str) -> io::Result<bool> {
+    create_databases_dir()?;
+
+    for entry in fs::read_dir(DATABASES_DIR_PATH)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_file() {
+            if entry.file_name() == format!("{database_name}.{DATABASE_FILE_EXTENSION}").as_str() {
+                // Check if json file contains the name
+                let contents = fs::read_to_string(path)?;
+                let database: Database = serde_json::from_str(contents.as_str())?;
+
+                if database.name() == database_name {
+                    return Ok(true);
+                }
+            }
+        }
+    }
+
+    Ok(false)
+}
+
+/// Changes description of a database.
+/// 
+/// Modifies `description` field in a database file.
+pub fn change_database_description(database_name: &str, description: &str) -> io::Result<(bool, String)> {
+    let file_path = database_file_path(database_name);
+    let mut message = "";
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+        database.description = String::from(description);
+        
+        match write_database_json(&database, &file_path) {
+            Ok(()) => return Ok((true, message.to_string())),
+            Err(e) => return Err(e),
+        }
+    } else {
+        message = DB_NOT_FOUND;
+    }
+
+    Ok((false, message.to_string()))
 }
