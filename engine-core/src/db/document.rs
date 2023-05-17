@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
-use crate::db::data_type::DataType;
+use crate::db::DataType;
 
 /// Database document that holds
 /// data in key-value pairs

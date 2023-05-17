@@ -76,9 +76,7 @@ pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
     let mut message = "";
 
     if !Path::new(&file_path).is_file() {
-        let mut file = fs::File::create(&file_path)?;
-
-        // write initial data
+        let file = fs::File::create(&file_path)?;
         let database = Database::from(database_name);
         
         match write_database_json(&database, &file_path) {
@@ -440,4 +438,19 @@ pub fn delete_document(
     }
 
     Ok((false, message.to_string()))
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_database_file_path() {
+        let database_name = "test_db_123";
+        let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
+
+        assert_eq!(file_path, database_file_path(database_name));
+    }
 }

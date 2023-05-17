@@ -1,4 +1,4 @@
-use crate::db::collection::DocumentCollection;
+use crate::db::DocumentCollection;
 use serde::{Serialize, Deserialize};
 
 /// Database structure for database files

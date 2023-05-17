@@ -1,4 +1,4 @@
-use crate::db::document::Document;
+use crate::db::Document;
 use serde::{Serialize, Deserialize};
 
 /// Database document collection
