@@ -14,4 +14,5 @@
 **/*.log
 
 # Database files
-databases/
+**/databases/
+**/temp-databases/

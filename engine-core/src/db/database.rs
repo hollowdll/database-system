@@ -17,7 +17,7 @@ use crate::constants::{
 };
 
 /// Database structure for database files
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Database {
     name: String,
     pub description: String,
@@ -227,4 +227,24 @@ pub fn change_database_description(database_name: &str, description: &str) -> io
     }
 
     Ok((false, message.to_string()))
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_new_database_struct() {
+        let database_name = "test_db_123";
+        let database = Database {
+            name: String::from(database_name),
+            description: String::new(),
+            collections: Vec::new(),
+            id_count: 0,
+        };
+
+        assert_eq!(database, Database::from(database_name));
+    }
 }

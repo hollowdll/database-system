@@ -6,7 +6,7 @@ pub mod logs;
 pub mod db;
 mod db_manager;
 mod input_data;
-mod constants;
+pub mod constants;
 
 pub use serde_json;
 pub use db_manager::DatabaseManager;

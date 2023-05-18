@@ -15,6 +15,7 @@ use std::{
 };
 use crate::constants::{
     DATABASES_DIR_PATH,
+    TEMP_DATABASES_DIR_PATH,
     DATABASE_FILE_EXTENSION,
 };
 pub use crate::db::{
@@ -48,6 +49,15 @@ pub fn create_databases_dir() -> io::Result<()> {
     Ok(())
 }
 
+/// Creates temporary databases directory
+fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
+    if !Path::new(TEMP_DATABASES_DIR_PATH).is_dir() {
+        fs::create_dir(TEMP_DATABASES_DIR_PATH)?;
+    }
+
+    Ok(())
+}
+
 /// Writes database as JSON to database file
 fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
     let json = serde_json::to_string_pretty(&database)?;
@@ -73,5 +83,19 @@ mod tests {
         let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
 
         assert_eq!(file_path, database_file_path(database_name));
+    }
+
+    #[test]
+    fn test_write_database_json() {
+        let database_name = "test_write_database_json";
+        let database = Database::from(database_name);
+        let file_path = format!("{TEMP_DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
+
+        create_temp_databases_dir_if_not_exists().unwrap();
+        let file = fs::File::create(&file_path).unwrap();
+        assert_eq!(write_database_json(&database, &file_path).is_ok(), true);
+
+        fs::remove_file(&file_path).unwrap();
+        assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
     }
 }

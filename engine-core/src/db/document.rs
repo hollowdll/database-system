@@ -23,7 +23,7 @@ use crate::constants::{
 
 /// Database document that holds
 /// data in key-value pairs
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Document {
     pub id: u64,
     pub data: HashMap<String, DataType>,
