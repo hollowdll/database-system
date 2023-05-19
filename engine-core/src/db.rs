@@ -40,7 +40,7 @@ fn database_file_exists(database_name: &str) -> bool {
     return Path::new(&database_file_path(database_name)).is_file();
 }
 
-/// Check if databases directory exists in project root
+/// Check if databases directory exists
 fn databases_dir_exists() -> bool {
     return Path::new(DATABASES_DIR_PATH).is_dir();
 }
@@ -84,10 +84,18 @@ mod tests {
 
     #[test]
     fn test_database_file_path() {
-        let database_name = "test_db_123";
+        let database_name = "test_database_file_path";
         let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
 
         assert_eq!(file_path, database_file_path(database_name));
+    }
+
+    #[test]
+    fn test_temp_database_file_path() {
+        let database_name = "test_temp_database_file_path";
+        let file_path = format!("{TEMP_DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
+
+        assert_eq!(file_path, temp_database_file_path(database_name));
     }
 
     #[test]
