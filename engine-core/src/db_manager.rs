@@ -30,11 +30,11 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(bool, String)>
     {
-        if let Err(e) = db::create_databases_dir() {
+        if let Err(e) = db::create_databases_dir_if_not_exists() {
             return Err(e);
         }
             
-        match db::create_database_file(database_name) {
+        match db::create_database_file(database_name, &db::database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to create database: {message}")));

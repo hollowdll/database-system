@@ -7,13 +7,16 @@ use std::{
 use crate::db::{
     DocumentCollection,
     database_file_path,
+    temp_database_file_path,
     write_database_json,
-    create_databases_dir,
+    create_databases_dir_if_not_exists,
+    create_temp_databases_dir_if_not_exists,
 };
 use crate::constants::{
     DB_NOT_FOUND,
     DATABASES_DIR_PATH,
     DATABASE_FILE_EXTENSION,
+    TEMP_DATABASES_DIR_PATH,
 };
 
 /// Database structure for database files
@@ -110,8 +113,7 @@ impl FormattedDatabase {
 
 /// Creates a database file in databases directory
 /// with initial data
-pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
-    let file_path = database_file_path(database_name);
+pub fn create_database_file(database_name: &str, file_path: &str) -> io::Result<(bool, String)> {
     let mut message = "";
 
     if !Path::new(&file_path).is_file() {
@@ -123,7 +125,7 @@ pub fn create_database_file(database_name: &str) -> io::Result<(bool, String)> {
             Err(e) => return Err(e),
         }
     } else {
-        message = DB_NOT_FOUND;
+        message = "Database already exists";
     }
 
     Ok((false, message.to_string()))
@@ -147,7 +149,7 @@ pub fn delete_database_file(database_name: &str) -> io::Result<(bool, String)> {
 
 /// Finds all database files in databases directory
 pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
-    create_databases_dir()?;
+    create_databases_dir_if_not_exists()?;
 
     let mut databases = Vec::new();
 
@@ -184,7 +186,7 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 
 /// Finds a database file in databases directory.
 pub fn find_database(database_name: &str) -> io::Result<bool> {
-    create_databases_dir()?;
+    create_databases_dir_if_not_exists()?;
 
     for entry in fs::read_dir(DATABASES_DIR_PATH)? {
         let entry = entry?;
@@ -233,10 +235,12 @@ pub fn change_database_description(database_name: &str, description: &str) -> io
 
 #[cfg(test)]
 mod tests {
+    use crate::db::temp_database_file_path;
+
     use super::*;
 
     #[test]
-    fn test_create_new_database_struct() {
+    fn test_database_struct() {
         let database_name = "test_db_123";
         let database = Database {
             name: String::from(database_name),
@@ -246,5 +250,23 @@ mod tests {
         };
 
         assert_eq!(database, Database::from(database_name));
+    }
+
+    #[test]
+    fn test_create_database_file() {
+        let database_name = "test_create_database_file";
+        let file_path = temp_database_file_path(database_name);
+
+        create_temp_databases_dir_if_not_exists().unwrap();
+        let (result, message) = match create_database_file(
+            database_name, &file_path
+        ) {
+            Ok((result, message)) => (result, message),
+            Err(e) => panic!("Failed"),
+        };
+        assert_eq!((result, message), (true, "".to_string()));
+
+        fs::remove_file(&file_path).unwrap();
+        assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
     }
 }

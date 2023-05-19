@@ -25,9 +25,14 @@ pub use crate::db::{
     document::*,
 };
 
-/// Gets database file path. Database files have JSON format.
-fn database_file_path(database_name: &str) -> String {
+/// Gets database file path.
+pub fn database_file_path(database_name: &str) -> String {
     format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}")
+}
+
+/// Gets temporary database file path.
+pub fn temp_database_file_path(database_name: &str) -> String {
+    format!("{TEMP_DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}")
 }
 
 /// Check if a database file exists in databases directory
@@ -41,7 +46,7 @@ fn databases_dir_exists() -> bool {
 }
 
 /// Creates databases directory in project directory
-pub fn create_databases_dir() -> io::Result<()> {
+pub fn create_databases_dir_if_not_exists() -> io::Result<()> {
     if !databases_dir_exists() {
         fs::create_dir(DATABASES_DIR_PATH)?;
     }
@@ -50,7 +55,7 @@ pub fn create_databases_dir() -> io::Result<()> {
 }
 
 /// Creates temporary databases directory
-fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
+pub fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
     if !Path::new(TEMP_DATABASES_DIR_PATH).is_dir() {
         fs::create_dir(TEMP_DATABASES_DIR_PATH)?;
     }
@@ -89,7 +94,7 @@ mod tests {
     fn test_write_database_json() {
         let database_name = "test_write_database_json";
         let database = Database::from(database_name);
-        let file_path = format!("{TEMP_DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
+        let file_path = temp_database_file_path(database_name);
 
         create_temp_databases_dir_if_not_exists().unwrap();
         let file = fs::File::create(&file_path).unwrap();
