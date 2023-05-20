@@ -14,6 +14,7 @@ use crate::db::{
 };
 use crate::constants::{
     DB_NOT_FOUND,
+    DB_EXISTS,
     DATABASES_DIR_PATH,
     DATABASE_FILE_EXTENSION,
     TEMP_DATABASES_DIR_PATH,
@@ -112,7 +113,6 @@ impl FormattedDatabase {
 
 
 /// Creates a database file in databases directory
-/// with initial data
 pub fn create_database_file(database_name: &str, file_path: &str) -> io::Result<(bool, String)> {
     let mut message = "";
 
@@ -125,15 +125,14 @@ pub fn create_database_file(database_name: &str, file_path: &str) -> io::Result<
             Err(e) => return Err(e),
         }
     } else {
-        message = "Database already exists";
+        message = DB_EXISTS;
     }
 
     Ok((false, message.to_string()))
 }
 
 /// Deletes a database file in databases directory
-pub fn delete_database_file(database_name: &str) -> io::Result<(bool, String)> {
-    let file_path = database_file_path(database_name);
+pub fn delete_database_file(database_name: &str, file_path: &str) -> io::Result<(bool, String)> {
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
@@ -241,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_database_struct() {
-        let database_name = "test_db_123";
+        let database_name = "test_database_struct";
         let database = Database {
             name: String::from(database_name),
             description: String::new(),
@@ -258,15 +257,40 @@ mod tests {
         let file_path = temp_database_file_path(database_name);
 
         create_temp_databases_dir_if_not_exists().unwrap();
+        
         let (result, message) = match create_database_file(
-            database_name, &file_path
+            database_name,
+            &file_path,
         ) {
             Ok((result, message)) => (result, message),
-            Err(e) => panic!("Failed"),
+            Err(e) => panic!("function create_database_file failed: {e}"),
         };
         assert_eq!((result, message), (true, "".to_string()));
 
         fs::remove_file(&file_path).unwrap();
+        assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
+    }
+
+    #[test]
+    fn test_delete_database_file() {
+        let database_name = "test_delete_database_file";
+        let file_path = temp_database_file_path(database_name);
+
+        create_temp_databases_dir_if_not_exists().unwrap();
+        let file = fs::File::create(&file_path).unwrap();
+
+        let (result, message) = match delete_database_file(
+            database_name,
+            &file_path,
+        ) {
+            Ok((result, message)) => (result, message),
+            Err(e) => panic!("function delete_database_file failed: {e}"),
+        };
+        assert_eq!((result, message), (true, "".to_string()));
+
+        if Path::new(&file_path).is_file() {
+            fs::remove_file(&file_path).unwrap();
+        }
         assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
     }
 }

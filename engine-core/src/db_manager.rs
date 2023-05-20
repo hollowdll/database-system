@@ -60,7 +60,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_database_file(database_name) {
+        match db::delete_database_file(database_name, &db::database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete database: {message}")));
