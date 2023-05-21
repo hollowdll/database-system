@@ -34,6 +34,7 @@ pub enum DatabaseEvent {
     Updated,
 }
 
+/// Database event log to write to log file
 struct DatabaseEventLog {
     created: SystemTime,
     event_source: DatabaseEventSource,
@@ -80,6 +81,7 @@ impl DatabaseEventLog {
 
 
 
+/// Creates logs directory if it doesn't exist.
 fn create_logs_dir_if_not_exists() -> io::Result<()> {
     if !Path::new(&format!("{LOGS_DIR_PATH}")).is_dir() {
         fs::create_dir(&format!("{LOGS_DIR_PATH}"))?;
@@ -88,6 +90,7 @@ fn create_logs_dir_if_not_exists() -> io::Result<()> {
     Ok(())
 }
 
+/// Creates a log file to logs directory if it doesn't exist.
 fn create_log_file_if_not_exists(file_name: &str) -> io::Result<()> {
     if !Path::new(&format!("{LOGS_DIR_PATH}/{file_name}")).is_file() {
         fs::File::create(format!("{LOGS_DIR_PATH}/{file_name}"))?;
@@ -96,6 +99,7 @@ fn create_log_file_if_not_exists(file_name: &str) -> io::Result<()> {
     Ok(())
 }
 
+/// Writes data to a log file without overwriting it.
 fn write_log_file(file_name: &str, content: &str) -> io::Result<()> {
     let mut file = OpenOptions::new()
         .append(true)
@@ -108,12 +112,12 @@ fn write_log_file(file_name: &str, content: &str) -> io::Result<()> {
 
 /// Creates test log to test log file.
 pub fn create_test_log() -> io::Result<()> {
-    let log_name = TEST_LOG;
+    let file_name = TEST_LOG;
     let log = DatabaseEventLog::create_test_log().format();
 
     create_logs_dir_if_not_exists()?;
-    create_log_file_if_not_exists(log_name)?;
-    write_log_file(log_name, &log)?;
+    create_log_file_if_not_exists(file_name)?;
+    write_log_file(file_name, &log)?;
 
     Ok(())
 }
@@ -133,4 +137,46 @@ pub fn log_database_event(
     write_log_file(file_name, &log)?;
 
     Ok(())
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_logs_dir_if_not_exists() {
+        create_logs_dir_if_not_exists().unwrap();
+
+        assert!(Path::new(&format!("{LOGS_DIR_PATH}")).is_dir());
+    }
+
+    #[test]
+    fn test_create_log_file_if_not_exists() {
+        create_log_file_if_not_exists(TEMP_DB_EVENTS_LOG).unwrap();
+
+        assert!(Path::new(&format!("{LOGS_DIR_PATH}/{TEMP_DB_EVENTS_LOG}")).is_file());
+    }
+
+    #[test]
+    fn test_log_database_event() {
+        let file_name = "test_log_database_event";
+        let log = DatabaseEventLog::from(
+            DatabaseEventSource::System,
+            DatabaseEvent::Test,
+            "Test log",
+        ).format();
+        
+        create_logs_dir_if_not_exists().unwrap();
+        create_log_file_if_not_exists(file_name).unwrap();
+        write_log_file(file_name, &log).unwrap();
+
+        let contents = fs::read_to_string(&format!("{LOGS_DIR_PATH}/{file_name}")).unwrap();
+        let mut log = log.chars();
+        log.next_back();
+        let log = log.as_str();
+
+        assert_eq!(contents.lines().last(), Some(log));
+    }
 }
