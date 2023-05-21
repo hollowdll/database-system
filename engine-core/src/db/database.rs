@@ -13,9 +13,8 @@ use crate::db::{
 use crate::constants::{
     DB_NOT_FOUND,
     DB_EXISTS,
-    DATABASES_DIR_PATH,
-    DATABASE_FILE_EXTENSION,
-    TEMP_DATABASES_DIR_PATH,
+    DB_FILE_EXTENSION,
+    DB_DIR_PATH,
 };
 
 /// Database structure for database files
@@ -150,13 +149,13 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 
     let mut databases = Vec::new();
 
-    for entry in fs::read_dir(DATABASES_DIR_PATH)? {
+    for entry in fs::read_dir(DB_DIR_PATH)? {
         let entry = entry?;
         let path = entry.path();
         
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
-                if file_extension == DATABASE_FILE_EXTENSION {
+                if file_extension == DB_FILE_EXTENSION {
                     let contents = fs::read_to_string(path)?;
                     let database: Database = match serde_json::from_str(contents.as_str()) {
                         Ok(database) => database,
@@ -185,12 +184,12 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 pub fn find_database(database_name: &str) -> io::Result<bool> {
     create_databases_dir_if_not_exists()?;
 
-    for entry in fs::read_dir(DATABASES_DIR_PATH)? {
+    for entry in fs::read_dir(DB_DIR_PATH)? {
         let entry = entry?;
         let path = entry.path();
 
         if path.is_file() {
-            if entry.file_name() == format!("{database_name}.{DATABASE_FILE_EXTENSION}").as_str() {
+            if entry.file_name() == format!("{database_name}.{DB_FILE_EXTENSION}").as_str() {
                 // Check if json file contains the name
                 let contents = fs::read_to_string(path)?;
                 let database: Database = serde_json::from_str(contents.as_str())?;

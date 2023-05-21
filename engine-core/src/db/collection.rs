@@ -14,8 +14,8 @@ use crate::db::{
 use crate::constants::{
     DB_NOT_FOUND,
     COLLECTION_NOT_FOUND,
-    DATABASES_DIR_PATH,
-    DATABASE_FILE_EXTENSION,
+    DB_DIR_PATH,
+    DB_FILE_EXTENSION,
 };
 
 /// Database document collection

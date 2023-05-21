@@ -7,11 +7,11 @@ pub const COLLECTION_NOT_FOUND: &str = "Collection was not found";
 pub const DOCUMENT_NOT_FOUND: &str = "Document was not found";
 
 // Path to databases directory in filesystem
-pub const DATABASES_DIR_PATH: &str = "./databases";
+pub const DB_DIR_PATH: &str = "./databases";
 
 // Path to temporary databases directory.
 // This directory is mainly used in tests.
-pub const TEMP_DATABASES_DIR_PATH: &str = "./temp-databases";
+pub const TEMP_DB_DIR_PATH: &str = "./temp-databases";
 
-// Database files have JSON file extension
-pub const DATABASE_FILE_EXTENSION: &str = "json";
+// Database file extension
+pub const DB_FILE_EXTENSION: &str = "json";

@@ -14,9 +14,9 @@ use std::{
     path::Path,
 };
 use crate::constants::{
-    DATABASES_DIR_PATH,
-    TEMP_DATABASES_DIR_PATH,
-    DATABASE_FILE_EXTENSION,
+    DB_DIR_PATH,
+    TEMP_DB_DIR_PATH,
+    DB_FILE_EXTENSION,
 };
 pub use crate::db::{
     data_type::DataType,
@@ -27,12 +27,12 @@ pub use crate::db::{
 
 /// Gets database file path.
 pub fn database_file_path(database_name: &str) -> String {
-    format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}")
+    format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}")
 }
 
 /// Gets temporary database file path.
 pub fn temp_database_file_path(database_name: &str) -> String {
-    format!("{TEMP_DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}")
+    format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}")
 }
 
 /// Check if a database file exists in databases directory
@@ -42,13 +42,13 @@ fn database_file_exists(database_name: &str) -> bool {
 
 /// Check if databases directory exists
 fn databases_dir_exists() -> bool {
-    return Path::new(DATABASES_DIR_PATH).is_dir();
+    return Path::new(DB_DIR_PATH).is_dir();
 }
 
 /// Creates databases directory in project directory
 pub fn create_databases_dir_if_not_exists() -> io::Result<()> {
     if !databases_dir_exists() {
-        fs::create_dir(DATABASES_DIR_PATH)?;
+        fs::create_dir(DB_DIR_PATH)?;
     }
 
     Ok(())
@@ -56,8 +56,8 @@ pub fn create_databases_dir_if_not_exists() -> io::Result<()> {
 
 /// Creates temporary databases directory
 pub fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
-    if !Path::new(TEMP_DATABASES_DIR_PATH).is_dir() {
-        fs::create_dir(TEMP_DATABASES_DIR_PATH)?;
+    if !Path::new(TEMP_DB_DIR_PATH).is_dir() {
+        fs::create_dir(TEMP_DB_DIR_PATH)?;
     }
 
     Ok(())
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn test_database_file_path() {
         let database_name = "test_database_file_path";
-        let file_path = format!("{DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
+        let file_path = format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}");
 
         assert_eq!(file_path, database_file_path(database_name));
     }
@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn test_temp_database_file_path() {
         let database_name = "test_temp_database_file_path";
-        let file_path = format!("{TEMP_DATABASES_DIR_PATH}/{database_name}.{DATABASE_FILE_EXTENSION}");
+        let file_path = format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}");
 
         assert_eq!(file_path, temp_database_file_path(database_name));
     }
