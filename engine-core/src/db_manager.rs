@@ -48,6 +48,7 @@ impl DatabaseManager {
             logs::DatabaseEventSource::Database,
             logs::DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -74,6 +75,7 @@ impl DatabaseManager {
             logs::DatabaseEventSource::Database,
             logs::DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -101,6 +103,7 @@ impl DatabaseManager {
             logs::DatabaseEventSource::Database,
             logs::DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -138,6 +141,7 @@ impl DatabaseManager {
             logs::DatabaseEventSource::Collection,
             logs::DatabaseEvent::Created,
             &format!("Created collection '{}' to database '{}'", collection_name, database_name),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -165,6 +169,7 @@ impl DatabaseManager {
             logs::DatabaseEventSource::Collection,
             logs::DatabaseEvent::Deleted,
             &format!("Deleted collection '{}' from database '{}'", collection_name, database_name),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -262,6 +267,7 @@ impl DatabaseManager {
             logs::DatabaseEventSource::Document,
             logs::DatabaseEvent::Created,
             &format!("Created document to collection '{}' in database '{}'", collection_name, database_name),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -293,6 +299,7 @@ impl DatabaseManager {
                 "Deleted document with ID '{}' from collection '{}' in database '{}'",
                 document_id, collection_name, database_name
             ),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -323,6 +330,7 @@ impl DatabaseManager {
                 "Deleted document with ID '{}' from database '{}'",
                 document_id, database_name
             ),
+            logs::DB_EVENTS_LOG,
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }

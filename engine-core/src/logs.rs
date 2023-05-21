@@ -1,8 +1,5 @@
-// Library for database logs
+// Database logs
 // All database events are logged to .log files
-
-// TODO
-// Create structs and methods later
 
 //#![allow(unused)]
 
@@ -12,6 +9,11 @@ use std::{
     path::Path,
     time::SystemTime,
 };
+
+pub const DB_EVENTS_LOG: &str = "db_events.log";
+pub const TEMP_DB_EVENTS_LOG: &str = "temp_db_events.log";
+const TEST_LOG: &str = "test_log.log";
+const LOGS_DIR_PATH: &str = "./logs";
 
 #[derive(Debug)]
 pub enum DatabaseEventSource {
@@ -78,71 +80,57 @@ impl DatabaseEventLog {
 
 
 
-fn create_logs_dir() -> io::Result<()> {
-    if !Path::new("./logs").is_dir() {
-        fs::create_dir("./logs")?;
+fn create_logs_dir_if_not_exists() -> io::Result<()> {
+    if !Path::new(&format!("{LOGS_DIR_PATH}")).is_dir() {
+        fs::create_dir(&format!("{LOGS_DIR_PATH}"))?;
     }
 
     Ok(())
 }
 
-fn create_log_file(name: &str) -> io::Result<()> {
-    if !Path::new(format!("./logs/{name}").as_str()).is_file() {
-        fs::File::create(format!("./logs/{name}"))?;
+fn create_log_file_if_not_exists(file_name: &str) -> io::Result<()> {
+    if !Path::new(&format!("{LOGS_DIR_PATH}/{file_name}")).is_file() {
+        fs::File::create(format!("{LOGS_DIR_PATH}/{file_name}"))?;
     }
 
     Ok(())
 }
 
-fn write_log_file(name: &str, content: &str) -> io::Result<()> {
+fn write_log_file(file_name: &str, content: &str) -> io::Result<()> {
     let mut file = OpenOptions::new()
         .append(true)
-        .open(format!("./logs/{name}"))?;
+        .open(&format!("{LOGS_DIR_PATH}/{file_name}"))?;
 
     file.write(content.as_bytes())?;
 
     Ok(())
 }
 
+/// Creates test log to test log file.
 pub fn create_test_log() -> io::Result<()> {
-    let log_name = "testlog.log";
+    let log_name = TEST_LOG;
     let log = DatabaseEventLog::create_test_log().format();
 
-    if let Err(e) = create_logs_dir() {
-        return Err(e);
-    }
-
-    if let Err(e) = create_log_file(log_name) {
-        return Err(e);
-    }
-
-    if let Err(e) = write_log_file(log_name, log.as_str()) {
-        return Err(e);
-    }
+    create_logs_dir_if_not_exists()?;
+    create_log_file_if_not_exists(log_name)?;
+    write_log_file(log_name, &log)?;
 
     Ok(())
 }
 
+/// Logs database event to log file.
 pub fn log_database_event(
     event_source: DatabaseEventSource,
     event: DatabaseEvent,
-    content: &str
+    content: &str,
+    file_name: &str,
 ) -> io::Result<()>
 {
-    let log_name = "database-events.log";
     let log = DatabaseEventLog::from(event_source, event, content).format();
 
-    if let Err(e) = create_logs_dir() {
-        return Err(e);
-    }
-
-    if let Err(e) = create_log_file(log_name) {
-        return Err(e);
-    }
-
-    if let Err(e) = write_log_file(log_name, log.as_str()) {
-        return Err(e);
-    }
+    create_logs_dir_if_not_exists()?;
+    create_log_file_if_not_exists(file_name)?;
+    write_log_file(file_name, &log)?;
 
     Ok(())
 }
