@@ -7,10 +7,8 @@ use std::{
 use crate::db::{
     DocumentCollection,
     database_file_path,
-    temp_database_file_path,
     write_database_json,
     create_databases_dir_if_not_exists,
-    create_temp_databases_dir_if_not_exists,
 };
 use crate::constants::{
     DB_NOT_FOUND,
@@ -234,8 +232,10 @@ pub fn change_database_description(database_name: &str, description: &str) -> io
 
 #[cfg(test)]
 mod tests {
-    use crate::db::temp_database_file_path;
-
+    use crate::db::{
+        temp_database_file_path,
+        create_temp_databases_dir_if_not_exists,
+    };
     use super::*;
 
     #[test]
@@ -256,6 +256,9 @@ mod tests {
         let database_name = "test_create_database_file";
         let file_path = temp_database_file_path(database_name);
 
+        if Path::new(&file_path).is_file() {
+            fs::remove_file(&file_path).unwrap();
+        }
         create_temp_databases_dir_if_not_exists().unwrap();
         
         let (result, message) = match create_database_file(
@@ -265,10 +268,9 @@ mod tests {
             Ok((result, message)) => (result, message),
             Err(e) => panic!("function create_database_file failed: {e}"),
         };
-        assert_eq!((result, message), (true, "".to_string()));
 
-        fs::remove_file(&file_path).unwrap();
-        assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
+        assert_eq!((result, message), (true, "".to_string()));
+        assert_eq!(Path::new(&file_path).is_file(), true);
     }
 
     #[test]
@@ -286,11 +288,8 @@ mod tests {
             Ok((result, message)) => (result, message),
             Err(e) => panic!("function delete_database_file failed: {e}"),
         };
-        assert_eq!((result, message), (true, "".to_string()));
 
-        if Path::new(&file_path).is_file() {
-            fs::remove_file(&file_path).unwrap();
-        }
+        assert_eq!((result, message), (true, "".to_string()));
         assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
     }
 }
