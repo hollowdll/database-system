@@ -235,6 +235,7 @@ mod tests {
         temp_database_file_path,
         create_temp_databases_dir_if_not_exists,
     };
+    use crate::constants::TEMP_DB_DIR_PATH;
     use super::*;
 
     #[test]
@@ -265,11 +266,13 @@ mod tests {
             &file_path,
         ) {
             Ok((result, message)) => (result, message),
-            Err(e) => panic!("function create_database_file failed: {e}"),
+            Err(e) => panic!("create_database_file failed: {e}"),
         };
 
         assert_eq!((result, message), (true, "".to_string()));
         assert_eq!(Path::new(&file_path).is_file(), true);
+
+        fs::remove_file(&file_path).unwrap();
     }
 
     #[test]
@@ -285,10 +288,35 @@ mod tests {
             &file_path,
         ) {
             Ok((result, message)) => (result, message),
-            Err(e) => panic!("function delete_database_file failed: {e}"),
+            Err(e) => panic!("delete_database_file failed: {e}"),
         };
 
         assert_eq!((result, message), (true, "".to_string()));
         assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
+    }
+
+    #[test]
+    fn test_find_all_databases() {
+        create_temp_databases_dir_if_not_exists().unwrap();
+
+        let databases = match find_all_databases(TEMP_DB_DIR_PATH) {
+            Ok(databases) => databases,
+            Err(e) => return panic!("find_all_databases failed: {e}"),
+        };
+
+        assert_eq!(databases.len().ge(&0), true);
+    }
+
+    #[test]
+    fn test_find_database() {
+        let database_name = "test_find_database";
+        create_temp_databases_dir_if_not_exists().unwrap();
+
+        let result = match find_database(database_name, TEMP_DB_DIR_PATH) {
+            Ok(result) => result,
+            Err(e) => panic!("find_database failed: {e}"),
+        };
+
+        assert_eq!(result, false);
     }
 }

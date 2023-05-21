@@ -99,6 +99,20 @@ mod tests {
     }
 
     #[test]
+    fn test_create_databases_dir_if_not_exists() {
+        create_databases_dir_if_not_exists().unwrap();
+
+        assert_eq!(Path::new(&format!("{DB_DIR_PATH}")).is_dir(), true);
+    }
+
+    #[test]
+    fn test_create_temp_databases_dir_if_not_exists() {
+        create_temp_databases_dir_if_not_exists().unwrap();
+
+        assert_eq!(Path::new(&format!("{TEMP_DB_DIR_PATH}")).is_dir(), true);
+    }
+
+    #[test]
     fn test_write_database_json() {
         let database_name = "test_write_database_json";
         let database = Database::from(database_name);
