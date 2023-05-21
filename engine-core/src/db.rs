@@ -45,7 +45,7 @@ fn databases_dir_exists() -> bool {
     return Path::new(DB_DIR_PATH).is_dir();
 }
 
-/// Creates databases directory in project directory
+/// Creates databases directory if it doesn't exist
 pub fn create_databases_dir_if_not_exists() -> io::Result<()> {
     if !databases_dir_exists() {
         fs::create_dir(DB_DIR_PATH)?;
@@ -54,7 +54,7 @@ pub fn create_databases_dir_if_not_exists() -> io::Result<()> {
     Ok(())
 }
 
-/// Creates temporary databases directory
+/// Creates temporary databases directory if it doesn't exist
 pub fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
     if !Path::new(TEMP_DB_DIR_PATH).is_dir() {
         fs::create_dir(TEMP_DB_DIR_PATH)?;

@@ -6,7 +6,10 @@ use std::{
 };
 use crate::{
     logs,
-    constants::DB_EVENT_LOG_ERROR,
+    constants::{
+        DB_EVENT_LOG_ERROR,
+        DB_DIR_PATH,
+    },
     input_data,
     InputDataField,
 };
@@ -30,9 +33,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(bool, String)>
     {
-        if let Err(e) = db::create_databases_dir_if_not_exists() {
-            return Err(e);
-        }
+        db::create_databases_dir_if_not_exists()?;
             
         match db::create_database_file(database_name, &db::database_file_path(database_name)) {
             Ok((result, message)) => {
@@ -87,7 +88,7 @@ impl DatabaseManager {
         description: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::change_database_description(database_name, description) {
+        match db::change_database_description(database_name, description, &db::database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to change database description: {message}")));
@@ -173,7 +174,9 @@ impl DatabaseManager {
 
     /// Finds all databases
     pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
-        match db::find_all_databases() {
+        db::create_databases_dir_if_not_exists()?;
+
+        match db::find_all_databases(DB_DIR_PATH) {
             Ok(databases) => return Ok(databases),
             Err(e) => return Err(e),
         };
@@ -181,7 +184,9 @@ impl DatabaseManager {
 
     /// Check if a database exists
     pub fn find_database(&self, database_name: &str) -> io::Result<bool> {
-        match db::find_database(database_name) {
+        db::create_databases_dir_if_not_exists()?;
+
+        match db::find_database(database_name, DB_DIR_PATH) {
             Ok(result) => {
                 if !result {
                     return Ok(false);

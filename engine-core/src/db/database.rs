@@ -144,12 +144,10 @@ pub fn delete_database_file(database_name: &str, file_path: &str) -> io::Result<
 }
 
 /// Finds all database files in databases directory
-pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
-    create_databases_dir_if_not_exists()?;
-
+pub fn find_all_databases(dir_path: &str) -> io::Result<Vec<FormattedDatabase>> {
     let mut databases = Vec::new();
 
-    for entry in fs::read_dir(DB_DIR_PATH)? {
+    for entry in fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
         
@@ -181,10 +179,8 @@ pub fn find_all_databases() -> io::Result<Vec<FormattedDatabase>> {
 }
 
 /// Finds a database file in databases directory.
-pub fn find_database(database_name: &str) -> io::Result<bool> {
-    create_databases_dir_if_not_exists()?;
-
-    for entry in fs::read_dir(DB_DIR_PATH)? {
+pub fn find_database(database_name: &str, dir_path: &str) -> io::Result<bool> {
+    for entry in fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
 
@@ -207,8 +203,12 @@ pub fn find_database(database_name: &str) -> io::Result<bool> {
 /// Changes description of a database.
 /// 
 /// Modifies `description` field in a database file.
-pub fn change_database_description(database_name: &str, description: &str) -> io::Result<(bool, String)> {
-    let file_path = database_file_path(database_name);
+pub fn change_database_description(
+    database_name: &str,
+    description: &str,
+    file_path: &str,
+) -> io::Result<(bool, String)>
+{
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
