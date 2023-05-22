@@ -178,5 +178,7 @@ mod tests {
         let log = log.as_str();
 
         assert_eq!(contents.lines().last(), Some(log));
+
+        fs::remove_file(&format!("{LOGS_DIR_PATH}/{file_name}")).unwrap();
     }
 }

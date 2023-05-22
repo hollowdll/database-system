@@ -12,10 +12,14 @@ pub use serde_json;
 pub use db_manager::DatabaseManager;
 pub use input_data::InputDataField;
 
+// Engine version
+const VERSION: &str = "0.0.0";
+
 /// Configure engine data.
 #[derive(PartialEq, Debug)]
 pub struct Config {
     database_manager: db_manager::DatabaseManager,
+    version: &'static str,
 }
 
 impl Config {
@@ -28,6 +32,10 @@ impl Config {
     pub fn database_manager_mut(&mut self) -> &mut DatabaseManager {
         &mut self.database_manager
     }
+
+    pub fn version(&self) -> &'static str {
+        &self.version
+    }
 }
 
 impl Config {
@@ -37,6 +45,7 @@ impl Config {
     pub fn build() -> Config {
         Config {
             database_manager: DatabaseManager::build(),
+            version: VERSION,
         }
     }
 }
@@ -51,6 +60,7 @@ mod tests {
     fn engine_config_build_works() {
         let config = Config {
             database_manager: DatabaseManager::build(),
+            version: VERSION,
         };
 
         assert_eq!(config, Config::build());

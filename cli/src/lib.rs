@@ -19,6 +19,9 @@ use constants::{
     CONFIRM_OPTION_YES,
 };
 
+// CLI version
+const VERSION: &str = "0.0.0";
+
 /// Configures program data
 pub struct Config {
     engine_core_config: engine_core::Config,
@@ -31,7 +34,7 @@ impl Config {
     pub fn build() -> Self {
         Self {
             engine_core_config: engine_core::Config::build(),
-            version: "0.0.0",
+            version: VERSION,
             connected_database: None,
         }
     }
@@ -86,6 +89,7 @@ pub fn run(config: Config) {
   /help                                List all available commands
   /q                                   Quit program
   /status                              Display currently connected database
+  /version                             Display software version
 
   ** DATABASE COMMANDS **
 
@@ -120,6 +124,9 @@ pub fn run(config: Config) {
             },
             "/status" => {
                 display_connection_status(&connected_database);
+            },
+            "/version" => {
+                display_program_version(config.version, engine.version());
             },
             "/databases" => {
                 list_all_databases(engine.database_manager());
@@ -178,6 +185,20 @@ pub fn run(config: Config) {
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
+}
+
+/// Displays the program version.
+fn display_program_version(client_version: &str, engine_version: &str) {
+    println!("Client version: {}", client_version);
+    println!("Engine version: {}", engine_version);
+}
+
+/// Display connected database.
+fn display_connection_status(connected_database: &Option<String>) {
+    match connected_database {
+        Some(database_name) => println!("Connected database: {database_name}"),
+        None => println!("{}", NO_CONNECTED_DATABASE_TEXT),
+    }
 }
 
 /// If connected database doesn't exists anymore, reset it to `None`.
@@ -293,14 +314,6 @@ fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
     let confirm = confirm.trim().to_string();
 
     Ok(confirm)
-}
-
-/// Display connected database.
-fn display_connection_status(connected_database: &Option<String>) {
-    match connected_database {
-        Some(database_name) => println!("Connected database: {database_name}"),
-        None => println!("{}", NO_CONNECTED_DATABASE_TEXT),
-    }
 }
 
 /// Show menu to create a new database.
