@@ -20,7 +20,7 @@ use constants::{
 };
 
 // CLI version
-const VERSION: &str = "0.0.0";
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Configures program data
 pub struct Config {
@@ -714,5 +714,18 @@ fn create_test_documents(
             Ok((_result, message)) => println!("{message}"),
             Err(e) => eprintln!("Error occurred: {e}"),
         }
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_program_version() {
+        let config = Config::build();
+        assert_eq!(config.version, env!("CARGO_PKG_VERSION"));
     }
 }

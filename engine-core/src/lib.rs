@@ -13,7 +13,7 @@ pub use db_manager::DatabaseManager;
 pub use input_data::InputDataField;
 
 // Engine version
-const VERSION: &str = "0.0.0";
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Configure engine data.
 #[derive(PartialEq, Debug)]
