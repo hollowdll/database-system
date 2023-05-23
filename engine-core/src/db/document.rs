@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use serde::__private::de::IdentifierDeserializer;
 use serde::{Serialize, Deserialize};
 use crate::db::DataType;
 use std::{
@@ -124,37 +125,10 @@ pub fn create_document_to_collection(
     Ok((false, message.to_string()))
 }
 
-/// Finds all collections of a database
-pub fn find_all_documents_of_collection(
-    database_name: &str,
-    collection_name: &str
-) -> io::Result<Vec<FormattedDocument>>
-{
-    let file_path = database_file_path(database_name);
-    let mut documents = Vec::new();
-
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-
-        for collection in database.collections.into_iter() {
-            if collection.name() == collection_name {
-                for document in collection.documents.into_iter() {
-                    let formatted_document = FormattedDocument::from(
-                        document.id,
-                        document.data,
-                    );
-
-                    documents.push(formatted_document)
-                }
-            }
-        }
-    }
-    
-    Ok(documents)
-}
-
 /// Deletes a document from a collection by document id.
+/// 
+/// This is a faster way to delete a document
+/// if the collection is known beforehand.
 pub fn delete_document_from_collection(
     database_name: &str,
     collection_name: &str,
@@ -182,7 +156,7 @@ pub fn delete_document_from_collection(
                 }
             }
         }
-
+        
         message = COLLECTION_NOT_FOUND;
     } else {
         message = DB_NOT_FOUND;
@@ -227,4 +201,71 @@ pub fn delete_document(
     }
 
     Ok((false, message.to_string()))
+}
+
+/// Finds all documents of a collection
+pub fn find_all_documents_of_collection(
+    database_name: &str,
+    collection_name: &str
+) -> io::Result<Vec<FormattedDocument>>
+{
+    let file_path = database_file_path(database_name);
+    let mut documents = Vec::new();
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(contents.as_str())?;
+
+        for collection in database.collections.into_iter() {
+            if collection.name() == collection_name {
+                for document in collection.documents.into_iter() {
+                    let formatted_document = FormattedDocument::from(
+                        document.id,
+                        document.data,
+                    );
+
+                    documents.push(formatted_document)
+                }
+            }
+        }
+    }
+    
+    Ok(documents)
+}
+
+/// Finds a document from a database by document id.
+/// 
+/// Returns the document if it was found along with a message.
+pub fn find_document_by_id(
+    database_name: &str,
+    file_path: &str,
+    document_id: &u64,
+) -> io::Result<(Option<FormattedDocument>, String)>
+{
+    let mut found_document = None;
+    let mut message = "";
+
+    if Path::new(&file_path).is_file() {
+        let contents = fs::read_to_string(&file_path)?;
+        let mut database: Database = serde_json::from_str(&contents)?;
+
+        for collection in database.collections.into_iter() {
+            for document in collection.documents.into_iter() {
+                if document.id() == document_id {
+                    let formatted_document = FormattedDocument::from(
+                        document.id,
+                        document.data,
+                    );
+
+                    return Ok((Some(formatted_document), message.to_string()))
+                }
+            }
+        }
+
+        message = DOCUMENT_NOT_FOUND;
+    } else {
+        message = DB_NOT_FOUND;
+    }
+
+    Ok((found_document, message.to_string()))
 }
