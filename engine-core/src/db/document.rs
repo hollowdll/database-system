@@ -232,16 +232,18 @@ pub fn find_all_documents_of_collection(
     Ok(documents)
 }
 
-/// Finds a document from a database by document id.
+/// Finds a document from a database by its id.
 /// 
-/// Returns the document if it was found along with a message.
+/// Returns the document if it was found along with a message
+/// and the collection the document belongs to.
 pub fn find_document_by_id(
     document_id: &u64,
     db_file_path: &str,
-) -> io::Result<(Option<FormattedDocument>, String)>
+) -> io::Result<(Option<FormattedDocument>, String, String)>
 {
     let mut found_document = None;
     let mut message = "";
+    let mut collection = "";
 
     if Path::new(&db_file_path).is_file() {
         let contents = fs::read_to_string(&db_file_path)?;
@@ -255,7 +257,11 @@ pub fn find_document_by_id(
                         document.data,
                     );
 
-                    return Ok((Some(formatted_document), message.to_string()))
+                    return Ok((
+                        Some(formatted_document),
+                        message.to_string(),
+                        collection.name,
+                    ))
                 }
             }
         }
@@ -265,7 +271,7 @@ pub fn find_document_by_id(
         message = DB_NOT_FOUND;
     }
 
-    Ok((found_document, message.to_string()))
+    Ok((found_document, message.to_string(), collection.to_string()))
 }
 
 

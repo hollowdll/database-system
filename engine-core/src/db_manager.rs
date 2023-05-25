@@ -356,10 +356,14 @@ impl DatabaseManager {
         &self,
         document_id: &u64,
         database_name: &str,
-    ) -> io::Result<(Option<FormattedDocument>, String)>
+    ) -> io::Result<(Option<FormattedDocument>, String, String)>
     {
         match db::find_document_by_id(document_id, &db::database_file_path(database_name)) {
-            Ok((result, message)) => return Ok((result, message.to_string())),
+            Ok((result, message, collection)) => return Ok((
+                result,
+                message,
+                collection,
+            )),
             Err(e) => return Err(e),
         }
     }

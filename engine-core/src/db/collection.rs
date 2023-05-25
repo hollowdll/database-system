@@ -22,7 +22,7 @@ use crate::constants::{
 /// that holds database documents.
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct DocumentCollection {
-    name: String,
+    pub name: String,
     pub documents: Vec<Document>,
 }
 

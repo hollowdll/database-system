@@ -11,7 +11,10 @@ use std::{
 use engine_core::{
     self,
     DatabaseManager,
-    db::DataType,
+    db::{
+        DataType,
+        FormattedDocument,
+    },
     InputDataField,
 };
 use constants::{
@@ -203,6 +206,24 @@ fn display_connection_status(connected_database: &Option<String>) {
         Some(database_name) => println!("Connected database: {database_name}"),
         None => println!("{}", NO_CONNECTED_DATABASE),
     }
+}
+
+/// Display formatted document in more readable format
+fn display_formatted_document(document: &FormattedDocument) {
+    println!("{}\n  id: {}", "{", document.id());
+    for (key, value) in document.data().iter() {
+        // Get data type and value
+        let (data_type, field_value) = match value {
+            DataType::Int32(value) => ("Int32", value.to_string()),
+            DataType::Int64(value) => ("Int64", value.to_string()),
+            DataType::Decimal(value) => ("Decimal", value.to_string()),
+            DataType::Bool(value) => ("Bool", value.to_string()),
+            DataType::Text(value) => ("Text", value.to_string()),
+        };
+
+        println!("  [{data_type}] {key}: {field_value}");
+    }
+    println!("{}", "}");
 }
 
 /// If connected database doesn't exists anymore, reset it to `None`.
@@ -624,20 +645,7 @@ fn list_documents_of_collection(
     println!("\nNumber of documents: {}", documents.len());
 
     for document in documents {
-        println!("{}\n  id: {}", "{", document.id());
-        for (key, value) in document.data().iter() {
-            // Get data type and value
-            let (data_type, field_value) = match value {
-                DataType::Int32(value) => ("Int32", value.to_string()),
-                DataType::Int64(value) => ("Int64", value.to_string()),
-                DataType::Decimal(value) => ("Decimal", value.to_string()),
-                DataType::Bool(value) => ("Bool", value.to_string()),
-                DataType::Text(value) => ("Text", value.to_string()),
-            };
-
-            println!("  [{data_type}] {key}: {field_value}");
-        }
-        println!("{}", "}");
+        display_formatted_document(&document);
     }
 }
 
@@ -663,30 +671,18 @@ fn list_document(
         return;
     }
 
-    let (result, message) = match database_manager.find_document_by_id(
+    let (result, message, collection) = match database_manager.find_document_by_id(
         &document_id,
         connected_database_name
     ) {
-        Ok((result, message)) => (result, message),
+        Ok((result, message, collection)) => (result, message, collection),
         Err(e) => return eprintln!("Error occurred: {e}"),
     };
 
     match result {
         Some(document) => {
-            println!("{}\n  id: {}", "{", document.id());
-            for (key, value) in document.data().iter() {
-                // Get data type and value
-                let (data_type, field_value) = match value {
-                    DataType::Int32(value) => ("Int32", value.to_string()),
-                    DataType::Int64(value) => ("Int64", value.to_string()),
-                    DataType::Decimal(value) => ("Decimal", value.to_string()),
-                    DataType::Bool(value) => ("Bool", value.to_string()),
-                    DataType::Text(value) => ("Text", value.to_string()),
-                };
-
-                println!("  [{data_type}] {key}: {field_value}");
-            }
-            println!("{}", "}");
+            println!("Collection: {collection}");
+            display_formatted_document(&document);
         },
         None => return println!("{message}"),
     }
