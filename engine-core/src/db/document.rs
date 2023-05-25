@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use serde::__private::de::IdentifierDeserializer;
 use serde::{Serialize, Deserialize};
 use crate::db::DataType;
 use std::{
@@ -237,16 +236,15 @@ pub fn find_all_documents_of_collection(
 /// 
 /// Returns the document if it was found along with a message.
 pub fn find_document_by_id(
-    database_name: &str,
-    file_path: &str,
     document_id: &u64,
+    db_file_path: &str,
 ) -> io::Result<(Option<FormattedDocument>, String)>
 {
     let mut found_document = None;
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if Path::new(&db_file_path).is_file() {
+        let contents = fs::read_to_string(&db_file_path)?;
         let mut database: Database = serde_json::from_str(&contents)?;
 
         for collection in database.collections.into_iter() {
@@ -268,4 +266,17 @@ pub fn find_document_by_id(
     }
 
     Ok((found_document, message.to_string()))
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_find_document_by_id() {
+
+        
+    }
 }

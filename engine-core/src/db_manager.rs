@@ -350,6 +350,19 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         };
     }
+
+    /// Finds a document from a database by its id.
+    pub fn find_document_by_id(
+        &self,
+        document_id: &u64,
+        database_name: &str,
+    ) -> io::Result<(Option<FormattedDocument>, String)>
+    {
+        match db::find_document_by_id(document_id, &db::database_file_path(database_name)) {
+            Ok((result, message)) => return Ok((result, message.to_string())),
+            Err(e) => return Err(e),
+        }
+    }
 }
 
 impl DatabaseManager {

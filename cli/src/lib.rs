@@ -15,7 +15,7 @@ use engine_core::{
     InputDataField,
 };
 use constants::{
-    NO_CONNECTED_DATABASE_TEXT,
+    NO_CONNECTED_DATABASE,
     CONFIRM_OPTION_YES,
 };
 
@@ -66,7 +66,7 @@ pub fn run(config: Config) {
 
     // Program main loop
     loop {
-        let mut connected_database_name: String = NO_CONNECTED_DATABASE_TEXT.to_string();
+        let mut connected_database_name: String = NO_CONNECTED_DATABASE.to_string();
 
         refresh_connected_database(engine.database_manager(), &mut connected_database);
 
@@ -108,6 +108,7 @@ pub fn run(config: Config) {
   ** DOCUMENT COMMANDS **
   
   /documents                           List documents of a collection
+  /get document                        Fetch a document from a database by id and list it
   /create document                     Create a new document to a collection
   /delete document                     Delete a document from a database
   (DISABLED) /delete doc col           Delete a document from a collection. This is faster if the collection is known beforehand.
@@ -145,7 +146,7 @@ pub fn run(config: Config) {
             },
             "/collections" => {
                 list_collections_of_connected_database(engine.database_manager(), &connected_database);
-            }
+            },
             "/create collection" => {
                 create_collection_menu(engine.database_manager(), &connected_database);
             },
@@ -154,7 +155,10 @@ pub fn run(config: Config) {
             },
             "/documents" => {
                 list_documents_of_collection(engine.database_manager(), &connected_database);
-            }
+            },
+            "/get document" => {
+                list_document(engine.database_manager(), &connected_database);
+            },
             "/create document" => {
                 create_document_menu(engine.database_manager(), &connected_database);
             },
@@ -197,7 +201,7 @@ fn display_program_version(client_version: &str, engine_version: &str) {
 fn display_connection_status(connected_database: &Option<String>) {
     match connected_database {
         Some(database_name) => println!("Connected database: {database_name}"),
-        None => println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => println!("{}", NO_CONNECTED_DATABASE),
     }
 }
 
@@ -420,7 +424,7 @@ fn create_collection_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
     
     let collection_name = match ask_user_input("Collection name:") {
@@ -446,7 +450,7 @@ fn delete_collection_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
     let collection_name = match ask_user_input("Collection name:") {
@@ -483,7 +487,7 @@ fn list_collections_of_connected_database(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
     if !database_exists(database_manager, connected_database_name) {
@@ -510,7 +514,7 @@ fn change_database_description_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
     let description = match ask_user_input("Description:") {
@@ -536,7 +540,7 @@ fn create_document_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
     let collection_name = match ask_user_input("Collection name:") {
@@ -595,9 +599,8 @@ fn list_documents_of_collection(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
-
     let collection_name = match ask_user_input("Collection name:") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
@@ -606,7 +609,6 @@ fn list_documents_of_collection(
     if !collection_exists(database_manager, &collection_name, connected_database_name) {
         return;
     }
-    
     if !database_exists(database_manager, connected_database_name) {
         return;
     }
@@ -639,6 +641,57 @@ fn list_documents_of_collection(
     }
 }
 
+/// Lists document of a database
+fn list_document(
+    database_manager: &DatabaseManager,
+    connected_database: &Option<String>,
+) {
+    let connected_database_name = match connected_database {
+        Some(database_name) => database_name,
+        None => return println!("{}", NO_CONNECTED_DATABASE),
+    };
+    let document_id = match ask_user_input_inline("Document ID: ") {
+        Ok(id) => id,
+        Err(_) => return,
+    };
+    let document_id: u64 = match document_id.parse() {
+        Ok(id) => id,
+        Err(e) => return eprintln!("Invalid document ID: {e}"),
+    };
+
+    if !database_exists(database_manager, connected_database_name) {
+        return;
+    }
+
+    let (result, message) = match database_manager.find_document_by_id(
+        &document_id,
+        connected_database_name
+    ) {
+        Ok((result, message)) => (result, message),
+        Err(e) => return eprintln!("Error occurred: {e}"),
+    };
+
+    match result {
+        Some(document) => {
+            println!("{}\n  id: {}", "{", document.id());
+            for (key, value) in document.data().iter() {
+                // Get data type and value
+                let (data_type, field_value) = match value {
+                    DataType::Int32(value) => ("Int32", value.to_string()),
+                    DataType::Int64(value) => ("Int64", value.to_string()),
+                    DataType::Decimal(value) => ("Decimal", value.to_string()),
+                    DataType::Bool(value) => ("Bool", value.to_string()),
+                    DataType::Text(value) => ("Text", value.to_string()),
+                };
+
+                println!("  [{data_type}] {key}: {field_value}");
+            }
+            println!("{}", "}");
+        },
+        None => return println!("{message}"),
+    }
+}
+
 /// Show menu to delete a document
 fn delete_document_menu(
     database_manager: &DatabaseManager,
@@ -646,7 +699,7 @@ fn delete_document_menu(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
     let document_id = match ask_user_input_inline("Document ID: ") {
@@ -655,7 +708,7 @@ fn delete_document_menu(
     };
     let document_id: u64 = match document_id.parse() {
         Ok(id) => id,
-        Err(e) => return eprintln!("Failed to parse input data into positive integer: {e}"),
+        Err(e) => return eprintln!("Invalid document ID: {e}"),
     };
 
     let confirm = match ask_action_confirm(
@@ -686,7 +739,7 @@ fn create_test_documents(
 ) {
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE_TEXT),
+        None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
     let collection_name = match ask_user_input("Collection name:") {
