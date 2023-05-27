@@ -7,7 +7,10 @@ use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
     path::Path,
-    time::SystemTime,
+};
+use chrono::{
+    DateTime,
+    Local,
 };
 
 pub const DB_EVENTS_LOG: &str = "db_events.log";
@@ -36,7 +39,7 @@ pub enum DatabaseEvent {
 
 /// Database event log to write to log file
 struct DatabaseEventLog {
-    created: SystemTime,
+    created: DateTime<Local>,
     event_source: DatabaseEventSource,
     event: DatabaseEvent,
     content: String,
@@ -44,14 +47,9 @@ struct DatabaseEventLog {
 
 impl DatabaseEventLog {
     fn format(&self) -> String {
-        let time = match self.created.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(time) => time,
-            Err(e) => panic!("SystemTime error: {e}"),
-        };
-
         format!(
-            "[System time in seconds: {:?}] [{:?}] [{:?}] - {}\n",
-            time.as_secs_f64(),
+            "[{:?}] [{:?}] [{:?}] - {}\n",
+            self.created,
             self.event_source,
             self.event,
             self.content
@@ -62,7 +60,7 @@ impl DatabaseEventLog {
 impl DatabaseEventLog {
     fn from(event_source: DatabaseEventSource, event: DatabaseEvent, content: &str) -> Self {
         Self {
-            created: SystemTime::now(),
+            created: Local::now(),
             event_source,
             event,
             content: String::from(content),
@@ -71,7 +69,7 @@ impl DatabaseEventLog {
 
     fn create_test_log() -> Self {
         Self {
-            created: SystemTime::now(),
+            created: Local::now(),
             event_source: DatabaseEventSource::System,
             event: DatabaseEvent::Test,
             content: String::from("Test log 123"),
