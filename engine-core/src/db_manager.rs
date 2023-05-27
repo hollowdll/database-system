@@ -257,7 +257,11 @@ impl DatabaseManager {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        match db::create_document_to_collection(database_name, collection_name, document_data) {
+        match db::create_document_to_collection(
+            &db::database_file_path(database_name),
+            collection_name,
+            document_data
+        ) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to create document: {message}")));
@@ -279,6 +283,8 @@ impl DatabaseManager {
     }
 
     /// Deletes a document from a collection
+    /// 
+    /// This is a faster way to delete a document if the collection is known beforehand.
     pub fn delete_document_from_collection(
         &self,
         database_name: &str,
@@ -286,7 +292,11 @@ impl DatabaseManager {
         document_id: &u64,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_document_from_collection(database_name, collection_name, document_id) {
+        match db::delete_document_from_collection(
+            &db::database_file_path(database_name),
+            collection_name,
+            document_id
+        ) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete document: {message}")));
@@ -317,7 +327,7 @@ impl DatabaseManager {
         document_id: &u64,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_document(database_name, document_id) {
+        match db::delete_document(&db::database_file_path(database_name), document_id) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete document: {message}")));
@@ -348,7 +358,10 @@ impl DatabaseManager {
         collection_name: &str,
     ) -> io::Result<Vec<FormattedDocument>>
     {
-        match db::find_all_documents_of_collection(database_name, collection_name) {
+        match db::find_all_documents_of_collection(
+            &db::database_file_path(database_name),
+            collection_name
+        ) {
             Ok(documents) => return Ok(documents),
             Err(e) => return Err(e),
         };

@@ -78,12 +78,11 @@ impl FormattedDocument {
 
 /// Creates a document to a collection
 pub fn create_document_to_collection(
-    database_name: &str,
+    file_path: &str,
     collection_name: &str, 
     data: HashMap<String, DataType>,
 ) -> io::Result<(bool, String)>
 {
-    let file_path = database_file_path(database_name);
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
@@ -129,12 +128,11 @@ pub fn create_document_to_collection(
 /// This is a faster way to delete a document
 /// if the collection is known beforehand.
 pub fn delete_document_from_collection(
-    database_name: &str,
+    file_path: &str,
     collection_name: &str,
     document_id: &u64,
 ) -> io::Result<(bool, String)>
 {
-    let file_path = database_file_path(database_name);
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
@@ -168,11 +166,10 @@ pub fn delete_document_from_collection(
 /// 
 /// Goes through all collections until id is found.
 pub fn delete_document(
-    database_name: &str,
+    file_path: &str,
     document_id: &u64
 ) -> io::Result<(bool, String)>
 {
-    let file_path = database_file_path(database_name);
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
@@ -204,11 +201,10 @@ pub fn delete_document(
 
 /// Finds all documents of a collection
 pub fn find_all_documents_of_collection(
-    database_name: &str,
+    file_path: &str,
     collection_name: &str
 ) -> io::Result<Vec<FormattedDocument>>
 {
-    let file_path = database_file_path(database_name);
     let mut documents = Vec::new();
 
     if Path::new(&file_path).is_file() {
