@@ -119,7 +119,7 @@ impl DatabaseManager {
     ) -> io::Result<(bool, String)>
     {
         // Cancel if collection with this name already exists
-        match db::find_collection(collection_name, database_name) {
+        match db::find_collection(collection_name, &db::database_file_path(database_name)) {
             Ok(result) => {
                 if result {
                     return Ok((false, "Failed to create collection: Collection already exists".to_string()));
@@ -128,7 +128,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        match db::create_collection_to_database_file(collection_name, database_name) {
+        match db::create_collection_to_database_file(collection_name, &db::database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to create collection: {message}")));
@@ -156,7 +156,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_collection_from_database_file(collection_name, database_name) {
+        match db::delete_collection_from_database_file(collection_name, &db::database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete collection: {message}")));
@@ -209,7 +209,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<Vec<FormattedDocumentCollection>>
     {
-        match db::find_all_collections_of_database(database_name) {
+        match db::find_all_collections_of_database(&db::database_file_path(database_name)) {
             Ok(collections) => return Ok(collections),
             Err(e) => return Err(e),
         };
@@ -222,7 +222,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<bool>
     {
-        match db::find_collection(collection_name, database_name) {
+        match db::find_collection(collection_name, &db::database_file_path(database_name)) {
             Ok(result) => {
                 if !result {
                     return Ok(false);
@@ -246,7 +246,10 @@ impl DatabaseManager {
 
         // convert input data to correct data types
         for data_field in data {
-            let converted_value = match input_data::convert_input_data(data_field.value(), data_field.data_type()) {
+            let converted_value = match input_data::convert_input_data(
+                data_field.value(),
+                data_field.data_type()
+            ) {
                 Some(converted_value) => converted_value,
                 None => return Ok((false, String::from("Failed to create document. Data type is not valid"))),
             };

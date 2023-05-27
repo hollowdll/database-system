@@ -71,8 +71,11 @@ impl FormattedDocumentCollection {
 
 
 /// Writes a new collection to a database file
-pub fn create_collection_to_database_file(collection_name: &str, database_name: &str) -> io::Result<(bool, String)> {
-    let file_path = database_file_path(database_name);
+pub fn create_collection_to_database_file(
+    collection_name: &str,
+    file_path: &str
+) -> io::Result<(bool, String)>
+{
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
@@ -95,8 +98,11 @@ pub fn create_collection_to_database_file(collection_name: &str, database_name: 
 }
 
 /// Deletes a collection from a database file
-pub fn delete_collection_from_database_file(collection_name: &str, database_name: &str) -> io::Result<(bool, String)> {
-    let file_path = database_file_path(database_name);
+pub fn delete_collection_from_database_file(
+    collection_name: &str,
+    file_path: &str
+) -> io::Result<(bool, String)>
+{
     let mut message = "";
 
     if Path::new(&file_path).is_file() {
@@ -129,8 +135,10 @@ pub fn delete_collection_from_database_file(collection_name: &str, database_name
 }
 
 /// Finds all collections of a database
-pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<FormattedDocumentCollection>> {
-    let file_path = database_file_path(database_name);
+pub fn find_all_collections_of_database(
+    file_path: &str
+) -> io::Result<Vec<FormattedDocumentCollection>>
+{
     let mut collections = Vec::new();
 
     if Path::new(&file_path).is_file() {
@@ -150,9 +158,11 @@ pub fn find_all_collections_of_database(database_name: &str) -> io::Result<Vec<F
 }
 
 /// Finds a collection in a database file.
-pub fn find_collection(collection_name: &str, database_name: &str) -> io::Result<bool> {
-    let file_path = database_file_path(database_name);
-
+pub fn find_collection(
+    collection_name: &str,
+    file_path: &str
+) -> io::Result<bool>
+{
     if Path::new(&file_path).is_file() {
         let contents = fs::read_to_string(&file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
