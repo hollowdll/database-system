@@ -82,7 +82,6 @@ pub fn create_collection_to_database_file(
         let contents = fs::read_to_string(&file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
 
-        // Create new JSON and write to file
         let collection = DocumentCollection::from(collection_name);
         database.collections_mut().push(collection);
         
@@ -175,4 +174,31 @@ pub fn find_collection(
     }
 
     Ok(false)
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{self, Write, Read, Seek, SeekFrom};
+    use tempfile::tempfile;
+
+    #[test]
+    fn test_create_collection_to_database_file() {
+        let mut database = Database::from("test_create_collection_to_database_file");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+
+        let json = serde_json::to_string_pretty(&database).unwrap();
+        let mut file = tempfile().unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        // Seek to start. This is needed to read the file.
+        assert!(file.seek(SeekFrom::Start(0)).is_ok());
+
+        let mut buf = String::new();
+        assert!(file.read_to_string(&mut buf).is_ok());
+        assert_eq!(buf, json);
+    }
 }

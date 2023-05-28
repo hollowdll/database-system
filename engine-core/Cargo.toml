@@ -9,3 +9,4 @@ serde = { version = "1.0.159", features = ["derive"] }
 # chrono crate depends on vulnerable version of time (https://github.com/time-rs/time)
 # but does not use the vulnerable parts (https://github.com/chronotope/chrono/releases/tag/v0.4.20-rc.1)
 chrono = "0.4.24"
+tempfile = "3.5.0"
