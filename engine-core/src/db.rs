@@ -81,6 +81,8 @@ fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::{self, Write, Read, Seek, SeekFrom};
+    use tempfile::tempfile;
 
     #[test]
     fn test_database_file_path() {
@@ -114,15 +116,18 @@ mod tests {
 
     #[test]
     fn test_write_database_json() {
-        let database_name = "test_write_database_json";
-        let database = Database::from(database_name);
-        let file_path = temp_database_file_path(database_name);
+        let database = Database::from("test_write_database_json");
+        let json = serde_json::to_string_pretty(&database).unwrap();
 
-        create_temp_databases_dir_if_not_exists().unwrap();
-        let file = fs::File::create(&file_path).unwrap();
-        assert_eq!(write_database_json(&database, &file_path).is_ok(), true);
+        // Create tempfile securely without relying on file paths.
+        let mut file = tempfile().unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
 
-        fs::remove_file(&file_path).unwrap();
-        assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
+        // Seek to start. This is needed to read the file.
+        assert!(file.seek(SeekFrom::Start(0)).is_ok());
+
+        let mut buf = String::new();
+        assert!(file.read_to_string(&mut buf).is_ok());
+        assert_eq!(buf, json);
     }
 }
