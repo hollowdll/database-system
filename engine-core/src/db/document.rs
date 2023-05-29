@@ -78,15 +78,15 @@ impl FormattedDocument {
 
 /// Creates a document to a collection
 pub fn create_document_to_collection(
-    file_path: &str,
+    file_path: &Path,
     collection_name: &str, 
     data: HashMap<String, DataType>,
 ) -> io::Result<(bool, String)>
 {
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         let mut collection_index = None;
 
@@ -106,7 +106,7 @@ pub fn create_document_to_collection(
             if let Some(collection) = database.collections_mut().get_mut(collection_index) {
                 collection.documents_mut().push(document);
 
-                match write_database_json(&database, &file_path) {
+                match write_database_json(&database, file_path) {
                     Ok(()) => return Ok((true, message.to_string())),
                     Err(e) => return Err(e),
                 }
@@ -128,15 +128,15 @@ pub fn create_document_to_collection(
 /// This is a faster way to delete a document
 /// if the collection is known beforehand.
 pub fn delete_document_from_collection(
-    file_path: &str,
+    file_path: &Path,
     collection_name: &str,
     document_id: &u64,
 ) -> io::Result<(bool, String)>
 {
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
 
         for collection in database.collections_mut() {
@@ -144,7 +144,7 @@ pub fn delete_document_from_collection(
                 if let Some(document) = collection.documents().iter().find(|document| document.id() == document_id) {
                     collection.documents_mut().retain(|document| document.id() != document_id);
 
-                    match write_database_json(&database, &file_path) {
+                    match write_database_json(&database, file_path) {
                         Ok(()) => return Ok((true, message.to_string())),
                         Err(e) => return Err(e),
                     }
@@ -166,14 +166,14 @@ pub fn delete_document_from_collection(
 /// 
 /// Goes through all collections until id is found.
 pub fn delete_document(
-    file_path: &str,
+    file_path: &Path,
     document_id: &u64
 ) -> io::Result<(bool, String)>
 {
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         let mut found = false;
 
@@ -185,7 +185,7 @@ pub fn delete_document(
         }
 
         if found {
-            match write_database_json(&database, &file_path) {
+            match write_database_json(&database, file_path) {
                 Ok(()) => return Ok((true, message.to_string())),
                 Err(e) => return Err(e),
             }
@@ -201,14 +201,14 @@ pub fn delete_document(
 
 /// Finds all documents of a collection
 pub fn find_all_documents_of_collection(
-    file_path: &str,
+    file_path: &Path,
     collection_name: &str
 ) -> io::Result<Vec<FormattedDocument>>
 {
     let mut documents = Vec::new();
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
 
         for collection in database.collections.into_iter() {
@@ -234,15 +234,15 @@ pub fn find_all_documents_of_collection(
 /// and the collection the document belongs to.
 pub fn find_document_by_id(
     document_id: &u64,
-    db_file_path: &str,
+    file_path: &Path,
 ) -> io::Result<(Option<FormattedDocument>, String, String)>
 {
     let mut found_document = None;
     let mut message = "";
     let mut collection = "";
 
-    if Path::new(&db_file_path).is_file() {
-        let contents = fs::read_to_string(&db_file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(&contents)?;
 
         for collection in database.collections.into_iter() {

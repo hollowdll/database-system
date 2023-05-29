@@ -3,6 +3,7 @@
 use std::{
     io,
     collections::HashMap,
+    path::Path,
 };
 use crate::{
     logs,
@@ -19,6 +20,7 @@ use crate::db::{
     FormattedDatabase,
     FormattedDocumentCollection,
     FormattedDocument,
+    database_file_path,
 };
 
 /// Database manager that manages all databases
@@ -35,7 +37,7 @@ impl DatabaseManager {
     {
         db::create_databases_dir_if_not_exists()?;
             
-        match db::create_database_file(database_name, &db::database_file_path(database_name)) {
+        match db::create_database_file(database_name, &database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to create database: {message}")));
@@ -62,7 +64,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_database_file(database_name, &db::database_file_path(database_name)) {
+        match db::delete_database_file(database_name, &database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete database: {message}")));
@@ -90,7 +92,7 @@ impl DatabaseManager {
         description: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::change_database_description(database_name, description, &db::database_file_path(database_name)) {
+        match db::change_database_description(database_name, description, &database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to change database description: {message}")));
@@ -119,7 +121,7 @@ impl DatabaseManager {
     ) -> io::Result<(bool, String)>
     {
         // Cancel if collection with this name already exists
-        match db::find_collection(collection_name, &db::database_file_path(database_name)) {
+        match db::find_collection(collection_name, &database_file_path(database_name)) {
             Ok(result) => {
                 if result {
                     return Ok((false, "Failed to create collection: Collection already exists".to_string()));
@@ -128,7 +130,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        match db::create_collection_to_database_file(collection_name, &db::database_file_path(database_name)) {
+        match db::create_collection_to_database_file(collection_name, &database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to create collection: {message}")));
@@ -156,7 +158,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_collection_from_database_file(collection_name, &db::database_file_path(database_name)) {
+        match db::delete_collection_from_database_file(collection_name, &database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete collection: {message}")));
@@ -181,7 +183,7 @@ impl DatabaseManager {
     pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
         db::create_databases_dir_if_not_exists()?;
 
-        match db::find_all_databases(DB_DIR_PATH) {
+        match db::find_all_databases(Path::new(DB_DIR_PATH)) {
             Ok(databases) => return Ok(databases),
             Err(e) => return Err(e),
         };
@@ -191,7 +193,7 @@ impl DatabaseManager {
     pub fn find_database(&self, database_name: &str) -> io::Result<bool> {
         db::create_databases_dir_if_not_exists()?;
 
-        match db::find_database(database_name, DB_DIR_PATH) {
+        match db::find_database(database_name, Path::new(DB_DIR_PATH)) {
             Ok(result) => {
                 if !result {
                     return Ok(false);
@@ -209,7 +211,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<Vec<FormattedDocumentCollection>>
     {
-        match db::find_all_collections_of_database(&db::database_file_path(database_name)) {
+        match db::find_all_collections_of_database(&database_file_path(database_name)) {
             Ok(collections) => return Ok(collections),
             Err(e) => return Err(e),
         };
@@ -222,7 +224,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<bool>
     {
-        match db::find_collection(collection_name, &db::database_file_path(database_name)) {
+        match db::find_collection(collection_name, &database_file_path(database_name)) {
             Ok(result) => {
                 if !result {
                     return Ok(false);
@@ -258,7 +260,7 @@ impl DatabaseManager {
         }
 
         match db::create_document_to_collection(
-            &db::database_file_path(database_name),
+            &database_file_path(database_name),
             collection_name,
             document_data
         ) {
@@ -293,7 +295,7 @@ impl DatabaseManager {
     ) -> io::Result<(bool, String)>
     {
         match db::delete_document_from_collection(
-            &db::database_file_path(database_name),
+            &database_file_path(database_name),
             collection_name,
             document_id
         ) {
@@ -327,7 +329,7 @@ impl DatabaseManager {
         document_id: &u64,
     ) -> io::Result<(bool, String)>
     {
-        match db::delete_document(&db::database_file_path(database_name), document_id) {
+        match db::delete_document(&database_file_path(database_name), document_id) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to delete document: {message}")));
@@ -359,7 +361,7 @@ impl DatabaseManager {
     ) -> io::Result<Vec<FormattedDocument>>
     {
         match db::find_all_documents_of_collection(
-            &db::database_file_path(database_name),
+            &database_file_path(database_name),
             collection_name
         ) {
             Ok(documents) => return Ok(documents),
@@ -374,7 +376,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<(Option<FormattedDocument>, String, String)>
     {
-        match db::find_document_by_id(document_id, &db::database_file_path(database_name)) {
+        match db::find_document_by_id(document_id, &database_file_path(database_name)) {
             Ok((result, message, collection)) => return Ok((
                 result,
                 message,

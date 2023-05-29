@@ -73,19 +73,19 @@ impl FormattedDocumentCollection {
 /// Writes a new collection to a database file
 pub fn create_collection_to_database_file(
     collection_name: &str,
-    file_path: &str
+    file_path: &Path,
 ) -> io::Result<(bool, String)>
 {
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
 
         let collection = DocumentCollection::from(collection_name);
         database.collections_mut().push(collection);
         
-        match write_database_json(&database, &file_path) {
+        match write_database_json(&database, file_path) {
             Ok(()) => return Ok((true, message.to_string())),
             Err(e) => return Err(e),
         }
@@ -99,13 +99,13 @@ pub fn create_collection_to_database_file(
 /// Deletes a collection from a database file
 pub fn delete_collection_from_database_file(
     collection_name: &str,
-    file_path: &str
+    file_path: &Path
 ) -> io::Result<(bool, String)>
 {
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         let mut found = false;
 
@@ -117,9 +117,11 @@ pub fn delete_collection_from_database_file(
         }
 
         if found {
-            database.collections_mut().retain(|collection| collection.name() != collection_name);
+            database
+                .collections_mut()
+                .retain(|collection| collection.name() != collection_name);
 
-            match write_database_json(&database, &file_path) {
+            match write_database_json(&database, file_path) {
                 Ok(()) => return Ok((true, message.to_string())),
                 Err(e) => return Err(e),
             }
@@ -135,13 +137,13 @@ pub fn delete_collection_from_database_file(
 
 /// Finds all collections of a database
 pub fn find_all_collections_of_database(
-    file_path: &str
+    file_path: &Path
 ) -> io::Result<Vec<FormattedDocumentCollection>>
 {
     let mut collections = Vec::new();
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
 
         for collection in database.collections() {
@@ -159,11 +161,11 @@ pub fn find_all_collections_of_database(
 /// Finds a collection in a database file.
 pub fn find_collection(
     collection_name: &str,
-    file_path: &str
+    file_path: &Path
 ) -> io::Result<bool>
 {
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
 
         for collection in database.collections() {
@@ -182,23 +184,42 @@ pub fn find_collection(
 mod tests {
     use super::*;
     use std::io::{self, Write, Read, Seek, SeekFrom};
-    use tempfile::tempfile;
+    use tempfile::{
+        tempfile,
+        tempdir,
+    };
+    use std::fs::File;
 
     #[test]
     fn test_create_collection_to_database_file() {
-        let mut database = Database::from("test_create_collection_to_database_file");
+        let mut database = Database::from("test");
         let collection_name = "test_collection";
-        database.collections_mut().push(DocumentCollection::from(collection_name));
-
         let json = serde_json::to_string_pretty(&database).unwrap();
-        let mut file = tempfile().unwrap();
-        assert!(file.write(json.as_bytes()).is_ok());
 
-        // Seek to start. This is needed to read the file.
-        assert!(file.seek(SeekFrom::Start(0)).is_ok());
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write(json.as_bytes()).is_ok());
+        
+        let (result, message) = create_collection_to_database_file(
+            collection_name,
+            file_path.as_path()
+        ).unwrap();
+        assert_eq!((result, message), (true, "".to_string()));
 
         let mut buf = String::new();
-        assert!(file.read_to_string(&mut buf).is_ok());
-        assert_eq!(buf, json);
+        assert!(File::open(file_path)
+            .unwrap()
+            .read_to_string(&mut buf)
+            .is_ok()
+        );
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().unwrap();
     }
 }

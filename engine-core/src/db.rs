@@ -11,7 +11,10 @@ pub mod data_type;
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write},
-    path::Path,
+    path::{
+        Path,
+        PathBuf,
+    },
 };
 use crate::constants::{
     DB_DIR_PATH,
@@ -26,18 +29,18 @@ pub use crate::db::{
 };
 
 /// Gets database file path.
-pub fn database_file_path(database_name: &str) -> String {
-    format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}")
+pub fn database_file_path(database_name: &str) -> PathBuf {
+    PathBuf::from(&format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"))
 }
 
 /// Gets temporary database file path.
-pub fn temp_database_file_path(database_name: &str) -> String {
-    format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}")
+pub fn temp_database_file_path(database_name: &str) -> PathBuf {
+    PathBuf::from(&format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"))
 }
 
 /// Check if a database file exists in databases directory
 fn database_file_exists(database_name: &str) -> bool {
-    return Path::new(&database_file_path(database_name)).is_file();
+    return database_file_path(database_name).is_file();
 }
 
 /// Check if databases directory exists
@@ -64,12 +67,12 @@ pub fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
 }
 
 /// Writes database as JSON to database file
-fn write_database_json(database: &Database, file_path: &str) -> io::Result<()> {
+fn write_database_json(database: &Database, file_path: &Path) -> io::Result<()> {
     let json = serde_json::to_string_pretty(&database)?;
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
-        .open(&file_path)?;
+        .open(file_path)?;
 
     file.write(json.as_bytes())?;
 
@@ -87,7 +90,7 @@ mod tests {
     #[test]
     fn test_database_file_path() {
         let database_name = "test_database_file_path";
-        let file_path = format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}");
+        let file_path = PathBuf::from(&format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"));
 
         assert_eq!(file_path, database_file_path(database_name));
     }
@@ -95,7 +98,7 @@ mod tests {
     #[test]
     fn test_temp_database_file_path() {
         let database_name = "test_temp_database_file_path";
-        let file_path = format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}");
+        let file_path = PathBuf::from(&format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"));
 
         assert_eq!(file_path, temp_database_file_path(database_name));
     }

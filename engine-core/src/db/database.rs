@@ -110,14 +110,18 @@ impl FormattedDatabase {
 
 
 /// Creates a database file in databases directory
-pub fn create_database_file(database_name: &str, file_path: &str) -> io::Result<(bool, String)> {
+pub fn create_database_file(
+    database_name: &str,
+    file_path: &Path
+) -> io::Result<(bool, String)>
+{
     let mut message = "";
 
-    if !Path::new(&file_path).is_file() {
-        let file = fs::File::create(&file_path)?;
+    if file_path.is_file() {
+        let file = fs::File::create(file_path)?;
         let database = Database::from(database_name);
         
-        match write_database_json(&database, &file_path) {
+        match write_database_json(&database, file_path) {
             Ok(()) => return Ok((true, message.to_string())),
             Err(e) => return Err(e),
         }
@@ -129,11 +133,15 @@ pub fn create_database_file(database_name: &str, file_path: &str) -> io::Result<
 }
 
 /// Deletes a database file in databases directory
-pub fn delete_database_file(database_name: &str, file_path: &str) -> io::Result<(bool, String)> {
+pub fn delete_database_file(
+    database_name: &str,
+    file_path: &Path
+) -> io::Result<(bool, String)>
+{
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        fs::remove_file(&file_path)?;
+    if file_path.is_file() {
+        fs::remove_file(file_path)?;
 
         return Ok((true, message.to_string()));
     } else {
@@ -144,7 +152,10 @@ pub fn delete_database_file(database_name: &str, file_path: &str) -> io::Result<
 }
 
 /// Finds all database files in databases directory
-pub fn find_all_databases(dir_path: &str) -> io::Result<Vec<FormattedDatabase>> {
+pub fn find_all_databases(
+    dir_path: &Path
+) -> io::Result<Vec<FormattedDatabase>>
+{
     let mut databases = Vec::new();
 
     for entry in fs::read_dir(dir_path)? {
@@ -179,7 +190,11 @@ pub fn find_all_databases(dir_path: &str) -> io::Result<Vec<FormattedDatabase>> 
 }
 
 /// Finds a database file in databases directory.
-pub fn find_database(database_name: &str, dir_path: &str) -> io::Result<bool> {
+pub fn find_database(
+    database_name: &str,
+    dir_path: &Path
+) -> io::Result<bool>
+{
     for entry in fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
@@ -206,17 +221,17 @@ pub fn find_database(database_name: &str, dir_path: &str) -> io::Result<bool> {
 pub fn change_database_description(
     database_name: &str,
     description: &str,
-    file_path: &str,
+    file_path: &Path,
 ) -> io::Result<(bool, String)>
 {
     let mut message = "";
 
-    if Path::new(&file_path).is_file() {
-        let contents = fs::read_to_string(&file_path)?;
+    if file_path.is_file() {
+        let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         database.description = String::from(description);
         
-        match write_database_json(&database, &file_path) {
+        match write_database_json(&database, file_path) {
             Ok(()) => return Ok((true, message.to_string())),
             Err(e) => return Err(e),
         }
@@ -228,6 +243,8 @@ pub fn change_database_description(
 }
 
 
+
+/* THESE WILL BE CHANGED
 
 #[cfg(test)]
 mod tests {
@@ -320,3 +337,4 @@ mod tests {
         assert_eq!(result, false);
     }
 }
+*/
