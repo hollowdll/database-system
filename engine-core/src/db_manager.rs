@@ -11,7 +11,6 @@ use crate::{
         DB_EVENT_LOG_ERROR,
         DB_DIR_PATH,
     },
-    input_data,
     InputDataField,
 };
 use crate::db::{
@@ -246,9 +245,9 @@ impl DatabaseManager {
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
-        // convert input data to correct data types
+        // convert input data to correct document data types
         for data_field in data {
-            let converted_value = match input_data::convert_input_data(
+            let converted_value = match data_field.convert_to_document_data_type(
                 data_field.value(),
                 data_field.data_type()
             ) {

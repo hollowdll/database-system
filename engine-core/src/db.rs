@@ -6,7 +6,6 @@
 pub mod database;
 pub mod collection;
 pub mod document;
-pub mod data_type;
 
 use std::{
     fs::{self, OpenOptions},
@@ -22,7 +21,6 @@ use crate::constants::{
     DB_FILE_EXTENSION,
 };
 pub use crate::db::{
-    data_type::DataType,
     database::*,
     collection::*,
     document::*,
