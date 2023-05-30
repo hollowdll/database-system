@@ -220,6 +220,6 @@ mod tests {
         assert_eq!(buf, expected_json);
 
         drop(file);
-        dir.close().unwrap();
+        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }

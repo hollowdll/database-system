@@ -82,8 +82,8 @@ fn write_database_json(database: &Database, file_path: &Path) -> io::Result<()> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{self, Write, Read, Seek, SeekFrom};
-    use tempfile::tempfile;
+    use std::{io::{self, Write, Read, Seek, SeekFrom}, fs::File};
+    use tempfile::tempdir;
 
     #[test]
     fn test_database_file_path() {
@@ -117,18 +117,24 @@ mod tests {
 
     #[test]
     fn test_write_database_json() {
-        let database = Database::from("test_write_database_json");
+        let database = Database::from("test");
         let json = serde_json::to_string_pretty(&database).unwrap();
 
-        // Create tempfile securely without relying on file paths.
-        let mut file = tempfile().unwrap();
-        assert!(file.write(json.as_bytes()).is_ok());
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let file = File::create(&file_path).unwrap();
 
-        // Seek to start. This is needed to read the file.
-        assert!(file.seek(SeekFrom::Start(0)).is_ok());
+        assert!(write_database_json(&database, &file_path).is_ok());
 
         let mut buf = String::new();
-        assert!(file.read_to_string(&mut buf).is_ok());
+        assert!(File::open(&file_path)
+            .unwrap()
+            .read_to_string(&mut buf)
+            .is_ok()
+        );
         assert_eq!(buf, json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }
