@@ -244,7 +244,7 @@ pub fn change_database_description(
 
 
 
-/* THESE WILL BE CHANGED
+/* THESE WILL BE CHANGED */
 
 #[cfg(test)]
 mod tests {
@@ -268,7 +268,7 @@ mod tests {
         assert_eq!(database, Database::from(database_name));
     }
 
-    #[test]
+    /*#[test]
     fn test_create_database_file() {
         let database_name = "test_create_database_file";
         let file_path = temp_database_file_path(database_name);
@@ -290,9 +290,9 @@ mod tests {
         assert_eq!(Path::new(&file_path).is_file(), true);
 
         fs::remove_file(&file_path).unwrap();
-    }
+    }*/
 
-    #[test]
+    /*#[test]
     fn test_delete_database_file() {
         let database_name = "test_delete_database_file";
         let file_path = temp_database_file_path(database_name);
@@ -310,9 +310,9 @@ mod tests {
 
         assert_eq!((result, message), (true, "".to_string()));
         assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
-    }
+    }*/
 
-    #[test]
+    /*#[test]
     fn test_find_all_databases() {
         create_temp_databases_dir_if_not_exists().unwrap();
 
@@ -322,9 +322,9 @@ mod tests {
         };
 
         assert_eq!(databases.len().ge(&0), true);
-    }
+    }*/
 
-    #[test]
+    /*#[test]
     fn test_find_database() {
         let database_name = "test_find_database";
         create_temp_databases_dir_if_not_exists().unwrap();
@@ -335,6 +335,6 @@ mod tests {
         };
 
         assert_eq!(result, false);
-    }
+    }*/
 }
-*/
+

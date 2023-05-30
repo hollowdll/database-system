@@ -82,7 +82,16 @@ fn write_database_json(database: &Database, file_path: &Path) -> io::Result<()> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{io::{self, Write, Read, Seek, SeekFrom}, fs::File};
+    use std::{
+        io::{
+            self,
+            Write,
+            Read,
+            Seek,
+            SeekFrom
+        },
+        fs::File,
+    };
     use tempfile::tempdir;
 
     #[test]

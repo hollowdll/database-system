@@ -1,6 +1,9 @@
 // Database logs
 // All database events are logged to .log files
 
+// THIS MODULE KEEPS CHANGING FREQUENTLY
+// Code in this module will likely change a lot
+
 //#![allow(unused)]
 
 use std::{
@@ -98,10 +101,10 @@ fn create_log_file_if_not_exists(file_name: &str) -> io::Result<()> {
 }
 
 /// Writes data to a log file without overwriting it.
-fn write_log_file(file_name: &str, content: &str) -> io::Result<()> {
+fn write_log_file(file_path: &Path, content: &str) -> io::Result<()> {
     let mut file = OpenOptions::new()
         .append(true)
-        .open(&format!("{LOGS_DIR_PATH}/{file_name}"))?;
+        .open(file_path)?;
 
     file.write(content.as_bytes())?;
 
@@ -115,7 +118,7 @@ pub fn create_test_log() -> io::Result<()> {
 
     create_logs_dir_if_not_exists()?;
     create_log_file_if_not_exists(file_name)?;
-    write_log_file(file_name, &log)?;
+    write_log_file(Path::new(&format!("{LOGS_DIR_PATH}/{file_name}")), &log)?;
 
     Ok(())
 }
@@ -132,7 +135,7 @@ pub fn log_database_event(
 
     create_logs_dir_if_not_exists()?;
     create_log_file_if_not_exists(file_name)?;
-    write_log_file(file_name, &log)?;
+    write_log_file(Path::new(&format!("{LOGS_DIR_PATH}/{file_name}")), &log)?;
 
     Ok(())
 }
@@ -142,41 +145,42 @@ pub fn log_database_event(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::tempdir;
+    use std::{
+        fs::File,
+        path::Path,
+    };
 
     #[test]
     fn test_create_logs_dir_if_not_exists() {
-        create_logs_dir_if_not_exists().unwrap();
-
+        assert!(create_logs_dir_if_not_exists().is_ok());
         assert!(Path::new(&format!("{LOGS_DIR_PATH}")).is_dir());
     }
 
     #[test]
     fn test_create_log_file_if_not_exists() {
-        create_log_file_if_not_exists(TEMP_DB_EVENTS_LOG).unwrap();
-
+        assert!(create_log_file_if_not_exists(TEMP_DB_EVENTS_LOG).is_ok());
         assert!(Path::new(&format!("{LOGS_DIR_PATH}/{TEMP_DB_EVENTS_LOG}")).is_file());
     }
 
     #[test]
-    fn test_log_database_event() {
-        let file_name = "test_log_database_event";
+    fn test_write_log_file() {
         let log = DatabaseEventLog::from(
             DatabaseEventSource::System,
             DatabaseEvent::Test,
-            "Test log",
+            "Test log 123",
         ).format();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.log");
+        let file = File::create(&file_path).unwrap();
         
-        create_logs_dir_if_not_exists().unwrap();
-        create_log_file_if_not_exists(file_name).unwrap();
-        write_log_file(file_name, &log).unwrap();
+        assert!(write_log_file(&file_path, &log).is_ok());
 
-        let contents = fs::read_to_string(&format!("{LOGS_DIR_PATH}/{file_name}")).unwrap();
-        let mut log = log.chars();
-        log.next_back();
-        let log = log.as_str();
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, log);
 
-        assert_eq!(contents.lines().last(), Some(log));
-
-        fs::remove_file(&format!("{LOGS_DIR_PATH}/{file_name}")).unwrap();
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }
