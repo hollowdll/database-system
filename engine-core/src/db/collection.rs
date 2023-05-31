@@ -184,10 +184,7 @@ pub fn find_collection(
 mod tests {
     use super::*;
     use std::io::{self, Write, Read, Seek, SeekFrom};
-    use tempfile::{
-        tempfile,
-        tempdir,
-    };
+    use tempfile::tempdir;
     use std::fs::File;
 
     #[test]

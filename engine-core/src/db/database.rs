@@ -117,7 +117,7 @@ pub fn create_database_file(
 {
     let mut message = "";
 
-    if file_path.is_file() {
+    if !file_path.is_file() {
         let file = fs::File::create(file_path)?;
         let database = Database::from(database_name);
         
@@ -253,11 +253,15 @@ mod tests {
         create_temp_databases_dir_if_not_exists,
     };
     use crate::constants::TEMP_DB_DIR_PATH;
+    use tempfile::tempdir;
+    use fs::File;
+    use std::path::Path;
+    use std::io::{self, Write, Read};
     use super::*;
 
     #[test]
     fn test_database_struct() {
-        let database_name = "test_database_struct";
+        let database_name = "test";
         let database = Database {
             name: String::from(database_name),
             description: String::new(),
@@ -268,49 +272,52 @@ mod tests {
         assert_eq!(database, Database::from(database_name));
     }
 
-    /*#[test]
+    #[test]
     fn test_create_database_file() {
-        let database_name = "test_create_database_file";
-        let file_path = temp_database_file_path(database_name);
+        let database_name = "test";
+        let expected_json = serde_json::to_string_pretty(
+            &Database::from(database_name)
+        ).unwrap();
 
-        if Path::new(&file_path).is_file() {
-            fs::remove_file(&file_path).unwrap();
-        }
-        create_temp_databases_dir_if_not_exists().unwrap();
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
         
-        let (result, message) = match create_database_file(
+        let (result, message) = create_database_file(
             database_name,
-            &file_path,
-        ) {
-            Ok((result, message)) => (result, message),
-            Err(e) => panic!("create_database_file failed: {e}"),
-        };
-
+            file_path.as_path(),
+        ).unwrap();
         assert_eq!((result, message), (true, "".to_string()));
-        assert_eq!(Path::new(&file_path).is_file(), true);
 
-        fs::remove_file(&file_path).unwrap();
-    }*/
+        let mut buf = String::new();
+        assert!(File::open(file_path)
+            .unwrap()
+            .read_to_string(&mut buf)
+            .is_ok()
+        );
+        assert_eq!(buf, expected_json);
 
-    /*#[test]
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    #[test]
     fn test_delete_database_file() {
-        let database_name = "test_delete_database_file";
-        let file_path = temp_database_file_path(database_name);
+        let database_name = "";
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let file = File::create(&file_path).unwrap();
+        assert_eq!(file_path.try_exists().unwrap(), true);
 
-        create_temp_databases_dir_if_not_exists().unwrap();
-        let file = fs::File::create(&file_path).unwrap();
-
-        let (result, message) = match delete_database_file(
+        let (result, message) = delete_database_file(
             database_name,
-            &file_path,
-        ) {
-            Ok((result, message)) => (result, message),
-            Err(e) => panic!("delete_database_file failed: {e}"),
-        };
+            file_path.as_path(),
+        ).unwrap();
 
         assert_eq!((result, message), (true, "".to_string()));
-        assert_eq!(Path::new(&file_path).try_exists().unwrap(), false);
-    }*/
+        assert_eq!(file_path.try_exists().unwrap(), false);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
 
     /*#[test]
     fn test_find_all_databases() {
