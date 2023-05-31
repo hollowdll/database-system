@@ -91,7 +91,7 @@ impl DatabaseManager {
         description: &str,
     ) -> io::Result<(bool, String)>
     {
-        match db::change_database_description(database_name, description, &database_file_path(database_name)) {
+        match db::change_database_description(description, &database_file_path(database_name)) {
             Ok((result, message)) => {
                 if !result {
                     return Ok((false, format!("Failed to change database description: {message}")));

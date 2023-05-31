@@ -219,7 +219,6 @@ pub fn find_database(
 /// 
 /// Modifies `description` field in a database file.
 pub fn change_database_description(
-    database_name: &str,
     description: &str,
     file_path: &Path,
 ) -> io::Result<(bool, String)>
@@ -244,20 +243,12 @@ pub fn change_database_description(
 
 
 
-/* THESE WILL BE CHANGED */
-
 #[cfg(test)]
 mod tests {
-    use crate::db::{
-        temp_database_file_path,
-        create_temp_databases_dir_if_not_exists,
-    };
-    use crate::constants::TEMP_DB_DIR_PATH;
+    use super::*;
     use tempfile::tempdir;
     use fs::File;
-    use std::path::Path;
-    use std::io::{self, Write, Read};
-    use super::*;
+    use std::io::{self, Read, Write};
 
     #[test]
     fn test_database_struct() {
@@ -319,29 +310,56 @@ mod tests {
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
-    /*#[test]
+    #[test]
     fn test_find_all_databases() {
-        create_temp_databases_dir_if_not_exists().unwrap();
+        let dir = tempdir().unwrap();
+        let databases = find_all_databases(dir.path()).unwrap();
+        assert_eq!(databases.len() == 0, true);
 
-        let databases = match find_all_databases(TEMP_DB_DIR_PATH) {
-            Ok(databases) => databases,
-            Err(e) => return panic!("find_all_databases failed: {e}"),
-        };
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
 
-        assert_eq!(databases.len().ge(&0), true);
-    }*/
-
-    /*#[test]
+    #[test]
     fn test_find_database() {
-        let database_name = "test_find_database";
-        create_temp_databases_dir_if_not_exists().unwrap();
+        let database_name = "test";
+        let dir = tempdir().unwrap();
 
-        let result = match find_database(database_name, TEMP_DB_DIR_PATH) {
-            Ok(result) => result,
-            Err(e) => panic!("find_database failed: {e}"),
-        };
-
+        let result = find_database(database_name, dir.path()).unwrap();
         assert_eq!(result, false);
-    }*/
+
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    #[test]
+    fn test_change_database_description() {
+        let description = "Test database 123";
+        let mut database = Database::from("test");
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        database.description = String::from(description);
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let (result, message) = change_database_description(
+            description,
+            file_path.as_path(),
+        ).unwrap();
+        assert_eq!((result, message), (true, "".to_string()));
+
+        let mut buf = String::new();
+        assert!(File::open(file_path)
+            .unwrap()
+            .read_to_string(&mut buf)
+            .is_ok()
+        );
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
 }
 
