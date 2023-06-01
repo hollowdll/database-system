@@ -118,7 +118,6 @@ pub fn run(config: Config) {
 
   ** COMMANDS FOR TESTING **
 
-  /create test log                     Creates test log
   /create test documents               Creates test documents to a collection
   
   More commands in the future...");
@@ -167,14 +166,6 @@ pub fn run(config: Config) {
             },
             "/delete document" => {
                 delete_document_menu(engine.database_manager(), &connected_database);
-            },
-            "/create test log" => {
-                use engine_core::logs;
-                for _ in 0..5 {
-                    if let Err(e) = logs::create_test_log() {
-                        eprintln!("Error: Failed to create test log. {e}");
-                    }
-                }
             },
             "/create test documents" => {
                 create_test_documents(engine.database_manager(), &connected_database);
