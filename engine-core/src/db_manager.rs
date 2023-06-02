@@ -45,11 +45,11 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Database,
             DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -72,11 +72,11 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Database,
             DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -100,11 +100,11 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Database,
             DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -138,11 +138,11 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Collection,
             DatabaseEvent::Created,
             &format!("Created collection '{}' to database '{}'", collection_name, database_name),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path(),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -166,11 +166,11 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Collection,
             DatabaseEvent::Deleted,
             &format!("Deleted collection '{}' from database '{}'", collection_name, database_name),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -271,11 +271,11 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Document,
             DatabaseEvent::Created,
             &format!("Created document to collection '{}' in database '{}'", collection_name, database_name),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -306,14 +306,14 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Document,
             DatabaseEvent::Deleted,
             &format!(
                 "Deleted document with ID '{}' from collection '{}' in database '{}'",
                 document_id, collection_name, database_name
             ),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -337,14 +337,14 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log_database_event(
+        if let Err(e) = Logger::log(
             DatabaseEventSource::Document,
             DatabaseEvent::Deleted,
             &format!(
                 "Deleted document with ID '{}' from database '{}'",
                 document_id, database_name
             ),
-            &Logger::get_db_events_log_path(),
+            &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }

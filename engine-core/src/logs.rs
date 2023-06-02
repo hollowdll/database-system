@@ -7,7 +7,7 @@
 //#![allow(unused)]
 
 use std::{
-    fs::{self, OpenOptions},
+    fs::{self, File, OpenOptions},
     io::{self, Write},
     path::{Path, PathBuf},
 };
@@ -16,8 +16,9 @@ use chrono::{
     Local,
 };
 
-pub const DB_EVENTS_LOG: &str = "db_events.log";
 const LOGS_DIR_PATH: &str = "./logs";
+const DB_EVENTS_LOG: &str = "db_events.log";
+const ERRORS_LOG: &str = "errors.log";
 
 #[derive(Debug)]
 pub enum DatabaseEventSource {
@@ -31,6 +32,7 @@ pub enum DatabaseEventSource {
 #[derive(Debug)]
 pub enum DatabaseEvent {
     Test,
+    Error,
     Connected,
     Disconnected,
     Created,
@@ -38,7 +40,7 @@ pub enum DatabaseEvent {
     Updated,
 }
 
-/// Database event log to write to log file
+/// Database event log to write to log file.
 struct DatabaseEventLog {
     created: DateTime<Local>,
     event_source: DatabaseEventSource,
@@ -74,12 +76,12 @@ impl DatabaseEventLog {
     }
 }
 
-/// Logger that logs all events to log files
+/// Logger that logs all events to log files.
 pub struct Logger {}
 
 impl Logger {
-    /// Logs database event to log file.
-    pub fn log_database_event(
+    /// Logs data to log file.
+    pub fn log(
         event_source: DatabaseEventSource,
         event: DatabaseEvent,
         content: &str,
@@ -94,17 +96,22 @@ impl Logger {
 
         Ok(())
     }
+}
 
-    /// Gets database events log file path
-    pub fn get_db_events_log_path() -> PathBuf {
-        PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG))
-    }
+/// Gets database events log file path.
+pub fn get_db_events_log_path() -> PathBuf {
+    PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG))
+}
+
+/// Gets errors log file path.
+pub fn get_errors_log_path() -> PathBuf {
+    PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, ERRORS_LOG))
 }
 
 /// Creates logs directory if it doesn't exist.
 fn create_logs_dir_if_not_exists() -> io::Result<()> {
-    if !Path::new(&format!("{LOGS_DIR_PATH}")).is_dir() {
-        fs::create_dir(&format!("{LOGS_DIR_PATH}"))?;
+    if !Path::new(LOGS_DIR_PATH).is_dir() {
+        fs::create_dir(LOGS_DIR_PATH)?;
     }
 
     Ok(())
@@ -113,7 +120,7 @@ fn create_logs_dir_if_not_exists() -> io::Result<()> {
 /// Creates a log file to logs directory if it doesn't exist.
 fn create_log_file_if_not_exists(file_path: &Path) -> io::Result<()> {
     if !file_path.is_file() {
-        fs::File::create(file_path)?;
+        File::create(file_path)?;
     }
 
     Ok(())
@@ -156,7 +163,34 @@ mod tests {
     }
 
     #[test]
-    fn test_log_database_event() {
+    fn test_write_log_file() {
+        let log = "test";
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.log");
+        let file = File::create(&file_path).unwrap();
+
+        assert!(write_log_file(&file_path, &log).is_ok());
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, log);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    #[test]
+    fn test_get_db_events_log_path() {
+        let path = PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG));
+        assert_eq!(get_db_events_log_path(), path);
+    }
+
+    #[test]
+    fn test_get_errors_log_path() {
+        let path = PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, ERRORS_LOG));
+        assert_eq!(get_errors_log_path(), path);
+    }
+
+    #[test]
+    fn test_log() {
         let log = DatabaseEventLog::from(
             DatabaseEventSource::System,
             DatabaseEvent::Test,
@@ -168,7 +202,6 @@ mod tests {
         let file = File::create(&file_path).unwrap();
         
         assert!(write_log_file(&file_path, &log).is_ok());
-
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, log);
 
