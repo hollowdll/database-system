@@ -6,7 +6,7 @@ use std::{
     path::Path,
 };
 use crate::{
-    logs::*,
+    logging::*,
     constants::{
         DB_EVENT_LOG_ERROR,
         DB_DIR_PATH,
@@ -45,7 +45,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Database,
             DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
@@ -72,7 +72,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Database,
             DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
@@ -100,7 +100,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Database,
             DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
@@ -138,7 +138,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Collection,
             DatabaseEvent::Created,
             &format!("Created collection '{}' to database '{}'", collection_name, database_name),
@@ -166,7 +166,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Collection,
             DatabaseEvent::Deleted,
             &format!("Deleted collection '{}' from database '{}'", collection_name, database_name),
@@ -271,7 +271,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Document,
             DatabaseEvent::Created,
             &format!("Created document to collection '{}' in database '{}'", collection_name, database_name),
@@ -306,7 +306,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Document,
             DatabaseEvent::Deleted,
             &format!(
@@ -337,7 +337,7 @@ impl DatabaseManager {
             Err(e) => return Err(e),
         }
 
-        if let Err(e) = Logger::log(
+        if let Err(e) = Logger::log_event(
             DatabaseEventSource::Document,
             DatabaseEvent::Deleted,
             &format!(

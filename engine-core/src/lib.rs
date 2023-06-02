@@ -2,7 +2,7 @@
 
 // #![allow(unused)]
 
-pub mod logs;
+pub mod logging;
 pub mod db;
 mod db_manager;
 mod input_data;

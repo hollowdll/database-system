@@ -76,12 +76,37 @@ impl DatabaseEventLog {
     }
 }
 
+/// Error log to write to log file.
+struct ErrorLog {
+    created: DateTime<Local>,
+    content: String,
+}
+
+impl ErrorLog {
+    fn format(&self) -> String {
+        format!(
+            "[{:?}] {}\n",
+            self.created,
+            self.content
+        )
+    }
+}
+
+impl ErrorLog {
+    fn from(content: &str) -> Self {
+        Self {
+            created: Local::now(),
+            content: String::from(content),
+        }
+    }
+}
+
 /// Logger that logs all events to log files.
 pub struct Logger {}
 
 impl Logger {
-    /// Logs data to log file.
-    pub fn log(
+    /// Logs database event to log file.
+    pub fn log_event(
         event_source: DatabaseEventSource,
         event: DatabaseEvent,
         content: &str,
@@ -89,6 +114,21 @@ impl Logger {
     ) -> io::Result<()>
     {
         let log = DatabaseEventLog::from(event_source, event, content).format();
+
+        create_logs_dir_if_not_exists()?;
+        create_log_file_if_not_exists(file_path)?;
+        write_log_file(file_path, &log)?;
+
+        Ok(())
+    }
+
+    /// Logs error to log file.
+    pub fn log_error(
+        content: &str,
+        file_path: &Path,
+    ) -> io::Result<()>
+    {
+        let log = ErrorLog::from(content).format();
 
         create_logs_dir_if_not_exists()?;
         create_log_file_if_not_exists(file_path)?;
@@ -190,12 +230,28 @@ mod tests {
     }
 
     #[test]
-    fn test_log() {
+    fn test_log_event() {
         let log = DatabaseEventLog::from(
             DatabaseEventSource::System,
             DatabaseEvent::Test,
             "Test log 123",
         ).format();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.log");
+        let file = File::create(&file_path).unwrap();
+        
+        assert!(write_log_file(&file_path, &log).is_ok());
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, log);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    #[test]
+    fn test_log_error() {
+        let log = ErrorLog::from("test").format();
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.log");
