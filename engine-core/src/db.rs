@@ -134,13 +134,7 @@ mod tests {
         let file = File::create(&file_path).unwrap();
 
         assert!(write_database_json(&database, &file_path).is_ok());
-
-        let mut buf = String::new();
-        assert!(File::open(&file_path)
-            .unwrap()
-            .read_to_string(&mut buf)
-            .is_ok()
-        );
+        let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, json);
 
         drop(file);

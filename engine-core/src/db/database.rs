@@ -279,12 +279,7 @@ mod tests {
         ).unwrap();
         assert_eq!((result, message), (true, "".to_string()));
 
-        let mut buf = String::new();
-        assert!(File::open(file_path)
-            .unwrap()
-            .read_to_string(&mut buf)
-            .is_ok()
-        );
+        let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
 
         dir.close().expect("Failed to clean up tempdir before dropping.");
@@ -350,12 +345,7 @@ mod tests {
         ).unwrap();
         assert_eq!((result, message), (true, "".to_string()));
 
-        let mut buf = String::new();
-        assert!(File::open(file_path)
-            .unwrap()
-            .read_to_string(&mut buf)
-            .is_ok()
-        );
+        let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
 
         drop(file);

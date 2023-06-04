@@ -49,7 +49,8 @@ impl DocumentCollection {
     }
 }
 
-/// Formatted document collection that can be listed in clients
+#[derive(PartialEq, Debug)]
+/// Formatted document collection that can be listed in clients.
 pub struct FormattedDocumentCollection {
     name: String,
 }
@@ -61,16 +62,16 @@ impl FormattedDocumentCollection {
 }
 
 impl FormattedDocumentCollection {
-    pub fn from(name: String) -> Self {
+    pub fn from(name: &str) -> Self {
         Self {
-            name
+            name: String::from(name),
         }
     }
 }
 
 
 
-/// Writes a new collection to a database file
+/// Writes a new collection to a database file.
 pub fn create_collection_to_database_file(
     collection_name: &str,
     file_path: &Path,
@@ -96,7 +97,7 @@ pub fn create_collection_to_database_file(
     Ok((false, message.to_string()))
 }
 
-/// Deletes a collection from a database file
+/// Deletes a collection from a database file.
 pub fn delete_collection_from_database_file(
     collection_name: &str,
     file_path: &Path
@@ -135,7 +136,7 @@ pub fn delete_collection_from_database_file(
     Ok((false, message.to_string()))
 }
 
-/// Finds all collections of a database
+/// Finds all collections of a database.
 pub fn find_all_collections_of_database(
     file_path: &Path
 ) -> io::Result<Vec<FormattedDocumentCollection>>
@@ -148,7 +149,7 @@ pub fn find_all_collections_of_database(
 
         for collection in database.collections() {
             let formatted_collection = FormattedDocumentCollection::from(
-                String::from(collection.name())
+                collection.name()
             );
             
             collections.push(formatted_collection);
@@ -199,7 +200,6 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let mut file = File::create(&file_path).unwrap();
-
         assert!(file.write(json.as_bytes()).is_ok());
         
         let (result, message) = create_collection_to_database_file(
@@ -208,15 +208,67 @@ mod tests {
         ).unwrap();
         assert_eq!((result, message), (true, "".to_string()));
 
-        let mut buf = String::new();
-        assert!(File::open(file_path)
-            .unwrap()
-            .read_to_string(&mut buf)
-            .is_ok()
-        );
+        let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
 
         drop(file);
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
+
+    #[test]
+    fn test_delete_collection_from_database_file() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+    
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+    
+        let (result, message) = delete_collection_from_database_file(
+            collection_name,
+            file_path.as_path()
+        ).unwrap();
+        assert_eq!((result, message), (true, "".to_string()));
+
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+    
+    #[test]
+    fn test_find_all_collections_of_database() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let collections = find_all_collections_of_database(&file_path).unwrap();
+        assert_eq!(
+            collections.get(0),
+            Some(&FormattedDocumentCollection::from(collection_name))
+        );
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+    
+    /* Implementation will be changed
+    #[test]
+    fn test_find_collection() {
+        
+    }
+    */
 }
+
