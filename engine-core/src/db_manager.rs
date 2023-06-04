@@ -286,6 +286,8 @@ impl DatabaseManager {
     /// Deletes a document from a collection
     /// 
     /// This is a faster way to delete a document if the collection is known beforehand.
+    
+    /* DISABLED. NOT NEEDED RIGHT NOW.
     pub fn delete_document_from_collection(
         &self,
         database_name: &str,
@@ -320,6 +322,7 @@ impl DatabaseManager {
 
         Ok((true, "Deleted document".to_string()))
     }
+    */
 
     /// Deletes a document from database
     pub fn delete_document(

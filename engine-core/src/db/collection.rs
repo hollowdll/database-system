@@ -184,7 +184,7 @@ pub fn find_collection(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{self, Write, Read, Seek, SeekFrom};
+    use std::io::{self, Write, Read};
     use tempfile::tempdir;
     use std::fs::File;
 

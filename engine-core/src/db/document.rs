@@ -39,9 +39,10 @@ impl Document {
 }
 
 impl Document {
-    pub fn from(id_count: u64) -> Self {
+    pub fn from(database: &mut Database) -> Self {
+        database.id_count += 1;
         Self {
-            id: id_count,
+            id: database.id_count,
             data: HashMap::new(),
         }
     }
@@ -74,7 +75,7 @@ impl FormattedDocument {
 }
 
 /// Data type for document fields
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum DataType {
     Int32(i32),
     Int64(i64),
@@ -108,9 +109,7 @@ pub fn create_document_to_collection(
         }
 
         if let Some(collection_index) = collection_index {
-            // Increment database id_count by one
-            database.id_count += 1;
-            let mut document = Document::from(database.id_count);
+            let mut document = Document::from(&mut database);
             document.data = data;
 
             if let Some(collection) = database.collections_mut().get_mut(collection_index) {
@@ -137,6 +136,8 @@ pub fn create_document_to_collection(
 /// 
 /// This is a faster way to delete a document
 /// if the collection is known beforehand.
+
+/* DISABLED. NOT NEEDED RIGHT NOW.
 pub fn delete_document_from_collection(
     file_path: &Path,
     collection_name: &str,
@@ -171,6 +172,7 @@ pub fn delete_document_from_collection(
 
     Ok((false, message.to_string()))
 }
+*/
 
 /// Deletes a document from database by document id.
 /// 
@@ -285,10 +287,74 @@ pub fn find_document_by_id(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::{self, Write, Read};
+    use tempfile::tempdir;
+    use std::fs::File;
+
+    #[test]
+    fn test_create_document_to_collection() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let mut data = HashMap::new();
+        data.insert(
+            String::from("first_name"),
+            DataType::Text(String::from("John"))
+        );
+        data.insert(
+            String::from("last_name"),
+            DataType::Text(String::from("Smith"))
+        );
+        let mut document = Document::from(&mut database);
+        document.data = data.clone();
+        database
+            .collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .push(document);
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let (result, message) = create_document_to_collection(
+            &file_path,
+            collection_name,
+            data
+        ).unwrap();
+        assert_eq!((result, message), (true, "".to_string()));
+
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    /*
+    #[test]
+    fn test_delete_document_from_collection() {
+        assert!(false);
+    }
+    */
+
+    #[test]
+    fn test_delete_document() {
+        assert!(false);
+    }
+
+    #[test]
+    fn test_find_all_documents_of_collection() {
+        assert!(false);
+    }
 
     #[test]
     fn test_find_document_by_id() {
-
-        
+        assert!(false);
     }
 }
