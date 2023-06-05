@@ -112,7 +112,10 @@ pub fn create_document_to_collection(
             let mut document = Document::from(&mut database);
             document.data = data;
 
-            if let Some(collection) = database.collections_mut().get_mut(collection_index) {
+            if let Some(collection) = database
+                .collections_mut()
+                .get_mut(collection_index)
+            {
                 collection.documents_mut().push(document);
 
                 match write_database_json(&database, file_path) {
@@ -190,7 +193,11 @@ pub fn delete_document(
         let mut found = false;
 
         for collection in database.collections_mut() {
-            if let Some(document) = collection.documents().iter().find(|document| document.id() == document_id) {
+            if let Some(document) = collection
+                .documents()
+                .iter()
+                .find(|document| document.id() == document_id)
+            {
                 collection.documents_mut().retain(|document| document.id() != document_id);
                 found = true;
             };
@@ -291,14 +298,7 @@ mod tests {
     use tempfile::tempdir;
     use std::fs::File;
 
-    #[test]
-    fn test_create_document_to_collection() {
-        let mut database = Database::from("test");
-        let collection_name = "test_collection";
-        database.collections_mut().push(DocumentCollection::from(collection_name));
-        let json = serde_json::to_string_pretty(&database).unwrap();
-
-        let mut data = HashMap::new();
+    fn insert_document_test_data(data: &mut HashMap<String, DataType>) {
         data.insert(
             String::from("first_name"),
             DataType::Text(String::from("John"))
@@ -307,6 +307,27 @@ mod tests {
             String::from("last_name"),
             DataType::Text(String::from("Smith"))
         );
+        data.insert(
+            String::from("age"),
+            DataType::Int32(30)
+        );
+        data.insert(
+            String::from("is_athletic"),
+            DataType::Bool(true)
+        );
+    }
+
+    #[test]
+    fn test_create_document_to_collection() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let mut data = HashMap::new();
+        insert_document_test_data(&mut data);
+        assert!(data.len() > 0);
+
         let mut document = Document::from(&mut database);
         document.data = data.clone();
         database
@@ -345,7 +366,48 @@ mod tests {
 
     #[test]
     fn test_delete_document() {
-        assert!(false);
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        
+        let mut data = HashMap::new();
+        insert_document_test_data(&mut data);
+        assert!(data.len() > 0);
+
+        let mut document = Document::from(&mut database);
+        document.data = data.clone();
+        database
+            .collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .push(document);
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        database
+            .collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .remove(0);
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let (result, message) = delete_document(
+            &file_path,
+            &1
+        ).unwrap();
+        assert_eq!((result, message), (true, "".to_string()));
+
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
     #[test]
