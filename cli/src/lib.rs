@@ -662,17 +662,17 @@ fn list_document(
         return;
     }
 
-    let (result, message, collection) = match database_manager.find_document_by_id(
+    let (result, message) = match database_manager.find_document_by_id(
         &document_id,
         connected_database_name
     ) {
-        Ok((result, message, collection)) => (result, message, collection),
+        Ok((result, message)) => (result, message),
         Err(e) => return eprintln!("Error occurred: {e}"),
     };
 
     match result {
         Some(document) => {
-            println!("Collection: {collection}");
+            println!("Collection: {}", document.collection());
             display_formatted_document(&document);
         },
         None => return println!("{message}"),

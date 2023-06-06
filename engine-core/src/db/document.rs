@@ -52,6 +52,7 @@ impl Document {
 #[derive(Debug)]
 pub struct FormattedDocument {
     id: u64,
+    collection: String,
     data: HashMap<String, DataType>,
 }
 
@@ -60,15 +61,20 @@ impl FormattedDocument {
         &self.id
     }
 
+    pub fn collection(&self) -> &str {
+        &self.collection
+    }
+
     pub fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
 }
 
 impl FormattedDocument {
-    pub fn from(id: u64, data: HashMap<String, DataType>) -> Self {
+    pub fn from(id: u64, collection: String, data: HashMap<String, DataType>) -> Self {
         Self {
             id,
+            collection,
             data,
         }
     }
@@ -235,6 +241,7 @@ pub fn find_all_documents_of_collection(
                 for document in collection.documents.into_iter() {
                     let formatted_document = FormattedDocument::from(
                         document.id,
+                        collection.name.to_string(),
                         document.data,
                     );
 
@@ -254,11 +261,10 @@ pub fn find_all_documents_of_collection(
 pub fn find_document_by_id(
     document_id: &u64,
     file_path: &Path,
-) -> io::Result<(Option<FormattedDocument>, String, String)>
+) -> io::Result<(Option<FormattedDocument>, String)>
 {
     let mut found_document = None;
     let mut message = "";
-    let mut collection = "";
 
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
@@ -269,13 +275,13 @@ pub fn find_document_by_id(
                 if document.id() == document_id {
                     let formatted_document = FormattedDocument::from(
                         document.id,
+                        collection.name,
                         document.data,
                     );
 
                     return Ok((
                         Some(formatted_document),
                         message.to_string(),
-                        collection.name,
                     ))
                 }
             }
@@ -286,7 +292,7 @@ pub fn find_document_by_id(
         message = DB_NOT_FOUND;
     }
 
-    Ok((found_document, message.to_string(), collection.to_string()))
+    Ok((found_document, message.to_string()))
 }
 
 
