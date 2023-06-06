@@ -259,6 +259,7 @@ mod tests {
             collections.get(0),
             Some(&FormattedDocumentCollection::from(collection_name))
         );
+        assert!(collections.len() == 1);
 
         drop(file);
         dir.close().expect("Failed to clean up tempdir before dropping.");

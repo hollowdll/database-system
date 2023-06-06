@@ -412,11 +412,30 @@ mod tests {
 
     #[test]
     fn test_find_all_documents_of_collection() {
-        assert!(false);
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let documents = find_all_documents_of_collection(
+            &file_path,
+            collection_name
+        ).unwrap();
+        assert!(documents.len() == 0);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
     #[test]
     fn test_find_document_by_id() {
+
+
         assert!(false);
     }
 }
