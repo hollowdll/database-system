@@ -4,6 +4,7 @@ use std::{
     io,
     collections::HashMap,
     path::Path,
+    error::Error,
 };
 use crate::{
     logging::*,
@@ -15,6 +16,7 @@ use crate::{
 };
 use crate::db::{
     self,
+    error::DatabaseError,
     DataType,
     FormattedDatabase,
     FormattedDocumentCollection,
@@ -32,17 +34,15 @@ impl DatabaseManager {
     pub fn create_database(
         &self,
         database_name: &str,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
         db::create_databases_dir_if_not_exists()?;
-            
-        match db::create_database_file(database_name, &database_file_path(database_name)) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to create database: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
+
+        if let Err(e) = db::create_database_file(
+            database_name,
+            &database_file_path(database_name)
+        ) {
+            return Err(Box::new(DatabaseError(format!("{}", e))));
         }
 
         if let Err(e) = Logger::log_event(
@@ -54,7 +54,7 @@ impl DatabaseManager {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, "Created database".to_string()))
+        Ok("Created database".to_string())
     }
 
     /// Deletes a database

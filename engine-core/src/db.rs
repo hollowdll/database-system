@@ -6,6 +6,7 @@
 pub mod database;
 pub mod collection;
 pub mod document;
+pub mod error;
 
 use std::{
     fs::{self, OpenOptions},

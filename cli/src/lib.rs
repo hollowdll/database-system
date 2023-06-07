@@ -340,8 +340,8 @@ fn create_database_menu(database_manager: &DatabaseManager) {
     };
 
     match database_manager.create_database(&database_name) {
-        Ok((_result, message)) => println!("{message}"),
-        Err(e) => eprintln!("Error occurred: {e}"),
+        Ok(message) => println!("{}", message),
+        Err(e) => eprintln!("Failed to create database: {e}"),
     }
 }
 

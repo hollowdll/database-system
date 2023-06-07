@@ -3,18 +3,22 @@ use std::{
     io,
     fs,
     path::Path,
+    error::Error,
 };
-use crate::db::{
-    DocumentCollection,
-    database_file_path,
-    write_database_json,
-    create_databases_dir_if_not_exists,
-};
-use crate::constants::{
-    DB_NOT_FOUND,
-    DB_EXISTS,
-    DB_FILE_EXTENSION,
-    DB_DIR_PATH,
+use crate::{
+    db::{
+        error::DatabaseError,
+        DocumentCollection,
+        database_file_path,
+        write_database_json,
+        create_databases_dir_if_not_exists,
+    },
+    constants::{
+        DB_NOT_FOUND,
+        DB_EXISTS,
+        DB_FILE_EXTENSION,
+        DB_DIR_PATH,
+    },
 };
 
 /// Database structure for database files
@@ -113,7 +117,7 @@ impl FormattedDatabase {
 pub fn create_database_file(
     database_name: &str,
     file_path: &Path
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
     let mut message = "";
 
@@ -122,14 +126,14 @@ pub fn create_database_file(
         let database = Database::from(database_name);
         
         match write_database_json(&database, file_path) {
-            Ok(()) => return Ok((true, message.to_string())),
-            Err(e) => return Err(e),
+            Ok(()) => return Ok(()),
+            Err(e) => return Err(e.into()),
         }
     } else {
-        message = DB_EXISTS;
+        return Err(Box::new(DatabaseError(DB_EXISTS.into())));
     }
 
-    Ok((false, message.to_string()))
+    Ok(())
 }
 
 /// Deletes a database file in databases directory
@@ -151,7 +155,7 @@ pub fn delete_database_file(
     Ok((false, message.to_string()))
 }
 
-/// Finds all database files in databases directory
+/// Finds all databases in databases directory
 pub fn find_all_databases(
     dir_path: &Path
 ) -> io::Result<Vec<FormattedDatabase>>
@@ -189,7 +193,7 @@ pub fn find_all_databases(
     Ok(databases)
 }
 
-/// Finds a database file in databases directory.
+/// Finds a database in databases directory.
 pub fn find_database(
     database_name: &str,
     dir_path: &Path
@@ -272,12 +276,7 @@ mod tests {
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
-        
-        let (result, message) = create_database_file(
-            database_name,
-            file_path.as_path(),
-        ).unwrap();
-        assert_eq!((result, message), (true, "".to_string()));
+        assert!(create_database_file(database_name, file_path.as_path()).is_ok());
 
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
