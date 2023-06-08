@@ -3,13 +3,33 @@
 use std::error::Error;
 use std::fmt;
 
+// #[derive(Debug)]
+// pub struct DatabaseError(pub String);
+
 /// Error type for database errors
 #[derive(Debug)]
-pub struct DatabaseError(pub String);
+pub enum DatabaseError {
+    Exists,
+    NotFound,
+}
 
+/*
 impl fmt::Display for DatabaseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}*/
+
+impl fmt::Display for DatabaseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DatabaseError::Exists => "Database already exists",
+                DatabaseError::NotFound => "Database was not found",
+            }
+        )
     }
 }
 

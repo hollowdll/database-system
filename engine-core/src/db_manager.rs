@@ -16,7 +16,6 @@ use crate::{
 };
 use crate::db::{
     self,
-    error::DatabaseError,
     DataType,
     FormattedDatabase,
     FormattedDocumentCollection,
@@ -38,12 +37,10 @@ impl DatabaseManager {
     {
         db::create_databases_dir_if_not_exists()?;
 
-        if let Err(e) = db::create_database_file(
+        db::create_database_file(
             database_name,
             &database_file_path(database_name)
-        ) {
-            return Err(Box::new(DatabaseError(format!("{}", e))));
-        }
+        )?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Database,
@@ -61,16 +58,12 @@ impl DatabaseManager {
     pub fn delete_database(
         &self,
         database_name: &str,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
-        match db::delete_database_file(database_name, &database_file_path(database_name)) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to delete database: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
+        db::delete_database_file(
+            database_name,
+            &database_file_path(database_name)
+        )?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Database,
@@ -81,7 +74,7 @@ impl DatabaseManager {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
         
-        Ok((true, "Deleted database".to_string()))
+        Ok("Deleted database".to_string())
     }
 
     /// Changes description of a database
@@ -89,16 +82,12 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         description: &str,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
-        match db::change_database_description(description, &database_file_path(database_name)) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to change database description: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
+        db::change_database_description(
+            description,
+            &database_file_path(database_name)
+        )?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Database,
@@ -109,7 +98,7 @@ impl DatabaseManager {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, "Changed database description".to_string()))
+        Ok("Changed database description".to_string())
     }
 
     /// Creates a new collection to a database
@@ -189,19 +178,13 @@ impl DatabaseManager {
     }
 
     /// Check if a database exists
-    pub fn find_database(&self, database_name: &str) -> io::Result<bool> {
+    pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
         db::create_databases_dir_if_not_exists()?;
 
         match db::find_database(database_name, Path::new(DB_DIR_PATH)) {
-            Ok(result) => {
-                if !result {
-                    return Ok(false);
-                }
-            },
+            Ok(result) => return Ok(result),
             Err(e) => return Err(e),
         }
-
-        Ok(true)
     }
 
     /// Finds all collections of a database

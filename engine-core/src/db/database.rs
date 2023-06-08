@@ -81,6 +81,7 @@ impl From<(&str, &str)> for Database {
 /// Formatted database that can be listed in clients.
 /// 
 /// Size = database file size in bytes.
+#[derive(Debug, PartialEq)]
 pub struct FormattedDatabase {
     name: String,
     description: String,
@@ -119,8 +120,6 @@ pub fn create_database_file(
     file_path: &Path
 ) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if !file_path.is_file() {
         let file = fs::File::create(file_path)?;
         let database = Database::from(database_name);
@@ -130,29 +129,23 @@ pub fn create_database_file(
             Err(e) => return Err(e.into()),
         }
     } else {
-        return Err(Box::new(DatabaseError(DB_EXISTS.into())));
+        return Err(Box::new(DatabaseError::Exists))
     }
-
-    Ok(())
 }
 
 /// Deletes a database file in databases directory
 pub fn delete_database_file(
     database_name: &str,
     file_path: &Path
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if file_path.is_file() {
         fs::remove_file(file_path)?;
 
-        return Ok((true, message.to_string()));
+        return Ok(())
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-    
-    Ok((false, message.to_string()))
 }
 
 /// Finds all databases in databases directory
@@ -179,8 +172,8 @@ pub fn find_all_databases(
                     };
 
                     let formatted_database = FormattedDatabase::from(
-                        String::from(database.name()),
-                        String::from(database.description()),
+                        database.name,
+                        database.description,
                         entry.metadata()?.len()
                     );
                     
@@ -197,8 +190,10 @@ pub fn find_all_databases(
 pub fn find_database(
     database_name: &str,
     dir_path: &Path
-) -> io::Result<bool>
+) -> io::Result<Option<FormattedDatabase>>
 {
+    let mut error_message = "";
+    
     for entry in fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
@@ -210,13 +205,19 @@ pub fn find_database(
                 let database: Database = serde_json::from_str(contents.as_str())?;
 
                 if database.name() == database_name {
-                    return Ok(true);
+                    let formatted_database = FormattedDatabase::from(
+                        database.name,
+                        database.description,
+                        entry.metadata()?.len()
+                    );
+
+                    return Ok(Some(formatted_database));
                 }
             }
         }
     }
 
-    Ok(false)
+    Ok(None)
 }
 
 /// Changes description of a database.
@@ -225,24 +226,20 @@ pub fn find_database(
 pub fn change_database_description(
     description: &str,
     file_path: &Path,
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         database.description = String::from(description);
         
         match write_database_json(&database, file_path) {
-            Ok(()) => return Ok((true, message.to_string())),
-            Err(e) => return Err(e),
+            Ok(()) => return Ok(()),
+            Err(e) => return Err(e.into()),
         }
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-
-    Ok((false, message.to_string()))
 }
 
 
@@ -290,14 +287,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let file = File::create(&file_path).unwrap();
+
         assert_eq!(file_path.try_exists().unwrap(), true);
-
-        let (result, message) = delete_database_file(
-            database_name,
-            file_path.as_path(),
-        ).unwrap();
-
-        assert_eq!((result, message), (true, "".to_string()));
+        assert!(delete_database_file(database_name, file_path.as_path()).is_ok());
         assert_eq!(file_path.try_exists().unwrap(), false);
 
         drop(file);
@@ -319,7 +311,7 @@ mod tests {
         let dir = tempdir().unwrap();
 
         let result = find_database(database_name, dir.path()).unwrap();
-        assert_eq!(result, false);
+        assert_eq!(result, None);
 
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
@@ -329,20 +321,15 @@ mod tests {
         let description = "Test database 123";
         let mut database = Database::from("test");
         let json = serde_json::to_string_pretty(&database).unwrap();
-
         database.description = String::from(description);
         let expected_json = serde_json::to_string_pretty(&database).unwrap();
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let mut file = File::create(&file_path).unwrap();
-        assert!(file.write(json.as_bytes()).is_ok());
 
-        let (result, message) = change_database_description(
-            description,
-            file_path.as_path(),
-        ).unwrap();
-        assert_eq!((result, message), (true, "".to_string()));
+        assert!(file.write(json.as_bytes()).is_ok());
+        assert!(change_database_description(description, file_path.as_path()).is_ok());
 
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);

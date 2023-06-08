@@ -62,7 +62,7 @@ pub fn run(config: Config) {
     let mut connected_database = config.connected_database;
     let help_message = "Write /help for all available commands";
 
-    println!("{}", "NOTE: Nothing is final in the current version. Colored text might be added later.");
+    println!("{}", "NOTE: This is an early version. Nothing is final.");
     println!("Version: {}", config.version);
     println!("\n{}\n", "Database Engine Project ");
     println!("{}", help_message);
@@ -229,7 +229,7 @@ fn refresh_connected_database(
 
     match database_manager.find_database(connected_database_name) {
         Ok(result) => {
-            if !result {
+            if result.is_none() {
                 connected_database.take();   
             }
         },
@@ -245,7 +245,7 @@ fn database_exists(
 {
     match database_manager.find_database(connected_database_name) {
         Ok(result) => {
-            if !result {
+            if result.is_none() {
                 println!("Cannot find database '{connected_database_name}'");
                 return false;
             }
@@ -365,13 +365,11 @@ fn delete_database_menu(
     match confirm.as_str() {
         CONFIRM_OPTION_YES => {
             match database_manager.delete_database(&database_name) {
-                Ok((result, message)) => {
-                    if result {
-                        // Disconnect database if it is connected
-                        if let Some(connected_database_name) = connected_database {
-                            if connected_database_name == &database_name {
-                                connected_database.take();
-                            }
+                Ok(message) => {
+                    // Disconnect database if it is connected
+                    if let Some(connected_database_name) = connected_database {
+                        if connected_database_name == &database_name {
+                            connected_database.take();
                         }
                     }
                     println!("{message}");
@@ -395,7 +393,7 @@ fn connect_database_menu(
 
     match database_manager.find_database(&database_name) {
         Ok(result) => {
-            if result {
+            if result.is_some() {
                 connected_database.replace(database_name);
                 println!("Connected to database");
             } else {
@@ -540,7 +538,7 @@ fn change_database_description_menu(
 
     // Change description of connected database
     match database_manager.change_database_description(connected_database_name, &description) {
-        Ok((_result, message)) => println!("{message}"),
+        Ok(message) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
