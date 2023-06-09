@@ -3,8 +3,13 @@ use std::{
     io,
     fs,
     path::Path,
+    error::Error,
 };
 use crate::db::{
+    error::{
+        DatabaseError,
+        CollectionError,
+    },
     Database,
     Document,
     database_file_path,
@@ -49,7 +54,7 @@ impl DocumentCollection {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug, PartialEq)]
 /// Formatted document collection that can be listed in clients.
 pub struct FormattedDocumentCollection {
     name: String,
@@ -75,36 +80,37 @@ impl FormattedDocumentCollection {
 pub fn create_collection_to_database_file(
     collection_name: &str,
     file_path: &Path,
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
+
+        // Error if collection already exists
+        for collection in database.collections() {
+            if collection.name() == collection_name {
+                return Err(Box::new(CollectionError::Exists));
+            }
+        }
 
         let collection = DocumentCollection::from(collection_name);
         database.collections_mut().push(collection);
         
         match write_database_json(&database, file_path) {
-            Ok(()) => return Ok((true, message.to_string())),
-            Err(e) => return Err(e),
+            Ok(()) => return Ok(()),
+            Err(e) => return Err(e.into()),
         }
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-
-    Ok((false, message.to_string()))
 }
 
 /// Deletes a collection from a database file.
 pub fn delete_collection_from_database_file(
     collection_name: &str,
     file_path: &Path
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
@@ -123,17 +129,15 @@ pub fn delete_collection_from_database_file(
                 .retain(|collection| collection.name() != collection_name);
 
             match write_database_json(&database, file_path) {
-                Ok(()) => return Ok((true, message.to_string())),
-                Err(e) => return Err(e),
+                Ok(()) => return Ok(()),
+                Err(e) => return Err(e.into()),
             }
         } else {
-            message = COLLECTION_NOT_FOUND;
+            return Err(Box::new(CollectionError::NotFound));
         }
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-
-    Ok((false, message.to_string()))
 }
 
 /// Finds all collections of a database.
@@ -163,7 +167,7 @@ pub fn find_all_collections_of_database(
 pub fn find_collection(
     collection_name: &str,
     file_path: &Path
-) -> io::Result<bool>
+) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
 {
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
@@ -171,12 +175,18 @@ pub fn find_collection(
 
         for collection in database.collections() {
             if collection.name() == collection_name {
-                return Ok(true)
+                let formatted_collection = FormattedDocumentCollection::from(
+                    collection.name()
+                );
+
+                return Ok(Some(formatted_collection));
             }
         }
-    }
 
-    Ok(false)
+        return Ok(None);
+    } else {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
 }
 
 
@@ -200,13 +210,12 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let mut file = File::create(&file_path).unwrap();
+
         assert!(file.write(json.as_bytes()).is_ok());
-        
-        let (result, message) = create_collection_to_database_file(
+        assert!(create_collection_to_database_file(
             collection_name,
             file_path.as_path()
-        ).unwrap();
-        assert_eq!((result, message), (true, "".to_string()));
+        ).is_ok());
 
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
@@ -227,13 +236,12 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let mut file = File::create(&file_path).unwrap();
+
         assert!(file.write(json.as_bytes()).is_ok());
-    
-        let (result, message) = delete_collection_from_database_file(
+        assert!(delete_collection_from_database_file(
             collection_name,
             file_path.as_path()
-        ).unwrap();
-        assert_eq!((result, message), (true, "".to_string()));
+        ).is_ok());
 
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);

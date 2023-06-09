@@ -3,22 +3,15 @@
 use std::error::Error;
 use std::fmt;
 
-// #[derive(Debug)]
-// pub struct DatabaseError(pub String);
-
 /// Error type for database errors
 #[derive(Debug)]
 pub enum DatabaseError {
+    /// Database already exists.
     Exists,
+
+    /// Database was not found.
     NotFound,
 }
-
-/*
-impl fmt::Display for DatabaseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}*/
 
 impl fmt::Display for DatabaseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -36,7 +29,29 @@ impl fmt::Display for DatabaseError {
 impl Error for DatabaseError {}
 
 /// Error type for collection errors.
-pub struct CollectionError(pub String);
+#[derive(Debug)]
+pub enum CollectionError {
+    /// Collection already exists.
+    Exists,
+
+    /// Collection was not found.
+    NotFound,
+}
+
+impl fmt::Display for CollectionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                CollectionError::Exists => "Collection already exists",
+                CollectionError::NotFound => "Collection was not found",
+            }
+        )
+    }
+}
+
+impl Error for CollectionError {}
 
 /// Error type for document errors.
 pub struct DocumentError(pub String);

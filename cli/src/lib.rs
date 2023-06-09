@@ -268,7 +268,7 @@ fn collection_exists(
 {
     match database_manager.find_collection(collection_name, connected_database_name) {
         Ok(result) => {
-            if !result {
+            if result.is_none() {
                 println!("Cannot find collection '{collection_name}'");
                 return false;
             }
@@ -447,7 +447,7 @@ fn create_collection_menu(
     }
 
     match database_manager.create_collection(&collection_name, connected_database_name) {
-        Ok((_result, message)) => println!("{message}"),
+        Ok(message) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
@@ -481,7 +481,7 @@ fn delete_collection_menu(
                 return;
             }
             match database_manager.delete_collection(&collection_name, connected_database_name) {
-                Ok((_result, message)) => println!("{message}"),
+                Ok(message) => println!("{message}"),
                 Err(e) => return eprintln!("Error occurred: {e}"),
             }
         },

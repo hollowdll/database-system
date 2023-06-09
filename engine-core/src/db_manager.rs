@@ -106,37 +106,27 @@ impl DatabaseManager {
         &self,
         collection_name: &str,
         database_name: &str,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
-        // Cancel if collection with this name already exists
-        match db::find_collection(collection_name, &database_file_path(database_name)) {
-            Ok(result) => {
-                if result {
-                    return Ok((false, "Failed to create collection: Collection already exists".to_string()));
-                }
-            },
-            Err(e) => return Err(e),
-        }
-
-        match db::create_collection_to_database_file(collection_name, &database_file_path(database_name)) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to create collection: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
+        db::create_collection_to_database_file(
+            collection_name,
+            &database_file_path(database_name)
+        )?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Collection,
             DatabaseEvent::Created,
-            &format!("Created collection '{}' to database '{}'", collection_name, database_name),
+            &format!(
+                "Created collection '{}' to database '{}'",
+                collection_name,
+                database_name
+            ),
             &get_db_events_log_path(),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, "Created collection".to_string()))
+        Ok("Created collection".to_string())
     }
 
     /// Deletes a collection from a database
@@ -144,27 +134,27 @@ impl DatabaseManager {
         &self,
         collection_name: &str,
         database_name: &str,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
-        match db::delete_collection_from_database_file(collection_name, &database_file_path(database_name)) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to delete collection: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
+        db::delete_collection_from_database_file(
+            collection_name,
+            &database_file_path(database_name)
+        )?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Collection,
             DatabaseEvent::Deleted,
-            &format!("Deleted collection '{}' from database '{}'", collection_name, database_name),
+            &format!(
+                "Deleted collection '{}' from database '{}'",
+                collection_name,
+                database_name
+            ),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, "Deleted collection".to_string()))
+        Ok("Deleted collection".to_string())
     }
 
     /// Finds all databases
@@ -177,7 +167,7 @@ impl DatabaseManager {
         };
     }
 
-    /// Check if a database exists
+    /// Finds a database
     pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
         db::create_databases_dir_if_not_exists()?;
 
@@ -199,23 +189,17 @@ impl DatabaseManager {
         };
     }
 
-    /// Check if a collection exists
+    /// Finds a collection in a database
     pub fn find_collection(
         &self,
         collection_name: &str,
         database_name: &str,
-    ) -> io::Result<bool>
+    ) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
     {
         match db::find_collection(collection_name, &database_file_path(database_name)) {
-            Ok(result) => {
-                if !result {
-                    return Ok(false);
-                }
-            },
+            Ok(result) => return Ok(result),
             Err(e) => return Err(e),
         }
-
-        Ok(true)
     }
 
     /// Creates a new document to a collection
