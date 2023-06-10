@@ -54,4 +54,22 @@ impl fmt::Display for CollectionError {
 impl Error for CollectionError {}
 
 /// Error type for document errors.
-pub struct DocumentError(pub String);
+#[derive(Debug)]
+pub enum DocumentError {
+    /// Document was not found.
+    NotFound,
+}
+
+impl fmt::Display for DocumentError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DocumentError::NotFound => "Document was not found",
+            }
+        )
+    }
+}
+
+impl Error for DocumentError {}

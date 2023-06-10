@@ -597,7 +597,7 @@ fn create_document_menu(
     }
 
     match database_manager.create_document(connected_database_name, &collection_name, data) {
-        Ok((_result, message)) => println!("{message}"),
+        Ok(message) => println!("{message}"),
         Err(e) => return eprintln!("Error occurred: {e}"),
     }
 }
@@ -660,11 +660,11 @@ fn list_document(
         return;
     }
 
-    let (result, message) = match database_manager.find_document_by_id(
+    let result = match database_manager.find_document_by_id(
         &document_id,
         connected_database_name
     ) {
-        Ok((result, message)) => (result, message),
+        Ok(result) => result,
         Err(e) => return eprintln!("Error occurred: {e}"),
     };
 
@@ -673,7 +673,7 @@ fn list_document(
             println!("Collection: {}", document.collection());
             display_formatted_document(&document);
         },
-        None => return println!("{message}"),
+        None => return println!("Document with this ID was not found"),
     }
 }
 
@@ -709,7 +709,7 @@ fn delete_document_menu(
                 return;
             }
             match database_manager.delete_document(connected_database_name, &document_id) {
-                Ok((_result, message)) => println!("{message}"),
+                Ok(message) => println!("{message}"),
                 Err(e) => return eprintln!("Error occurred: {e}"),
             }
         },
@@ -749,7 +749,7 @@ fn create_test_documents(
         data.push(InputDataField::from(&field, data_type, &value));
 
         match database_manager.create_document(connected_database_name, &collection_name, data) {
-            Ok((_result, message)) => println!("{message}"),
+            Ok(message) => println!("{message}"),
             Err(e) => eprintln!("Error occurred: {e}"),
         }
     }

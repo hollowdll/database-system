@@ -161,20 +161,14 @@ impl DatabaseManager {
     pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
         db::create_databases_dir_if_not_exists()?;
 
-        match db::find_all_databases(Path::new(DB_DIR_PATH)) {
-            Ok(databases) => return Ok(databases),
-            Err(e) => return Err(e),
-        };
+        return db::find_all_databases(Path::new(DB_DIR_PATH))
     }
 
     /// Finds a database
     pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
         db::create_databases_dir_if_not_exists()?;
 
-        match db::find_database(database_name, Path::new(DB_DIR_PATH)) {
-            Ok(result) => return Ok(result),
-            Err(e) => return Err(e),
-        }
+        return db::find_database(database_name, Path::new(DB_DIR_PATH))
     }
 
     /// Finds all collections of a database
@@ -183,10 +177,9 @@ impl DatabaseManager {
         database_name: &str,
     ) -> io::Result<Vec<FormattedDocumentCollection>>
     {
-        match db::find_all_collections_of_database(&database_file_path(database_name)) {
-            Ok(collections) => return Ok(collections),
-            Err(e) => return Err(e),
-        };
+        return db::find_all_collections_of_database(
+            &database_file_path(database_name)
+        )
     }
 
     /// Finds a collection in a database
@@ -196,10 +189,10 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
     {
-        match db::find_collection(collection_name, &database_file_path(database_name)) {
-            Ok(result) => return Ok(result),
-            Err(e) => return Err(e),
-        }
+        return db::find_collection(
+            collection_name,
+            &database_file_path(database_name)
+        )
     }
 
     /// Creates a new document to a collection
@@ -208,7 +201,7 @@ impl DatabaseManager {
         database_name: &str,
         collection_name: &str,
         data: Vec<InputDataField>,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
@@ -219,35 +212,35 @@ impl DatabaseManager {
                 data_field.data_type()
             ) {
                 Some(converted_value) => converted_value,
-                None => return Ok((false, String::from("Failed to create document. Data type is not valid"))),
+                None => return Err(format!(
+                    "Data type '{}' is not valid",
+                    data_field.data_type()
+                ).into()),
             };
 
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        match db::create_document_to_collection(
+        db::create_document_to_collection(
             &database_file_path(database_name),
             collection_name,
             document_data
-        ) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to create document: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
+        )?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Document,
             DatabaseEvent::Created,
-            &format!("Created document to collection '{}' in database '{}'", collection_name, database_name),
+            &format!(
+                "Created document to collection '{}' in database '{}'",
+                collection_name,
+                database_name
+            ),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, "Created document".to_string()))
+        Ok("Created document".to_string())
     }
 
     /// Deletes a document from a collection
@@ -296,16 +289,9 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         document_id: &u64,
-    ) -> io::Result<(bool, String)>
+    ) -> Result<String, Box<dyn Error>>
     {
-        match db::delete_document(&database_file_path(database_name), document_id) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to delete document: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
+        db::delete_document(&database_file_path(database_name), document_id)?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Document,
@@ -319,7 +305,7 @@ impl DatabaseManager {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
 
-        Ok((true, "Deleted document".to_string()))
+        Ok("Deleted document".to_string())
     }
 
     /// Finds all documents of collection
@@ -329,13 +315,10 @@ impl DatabaseManager {
         collection_name: &str,
     ) -> io::Result<Vec<FormattedDocument>>
     {
-        match db::find_all_documents_of_collection(
+        return db::find_all_documents_of_collection(
             &database_file_path(database_name),
             collection_name
-        ) {
-            Ok(documents) => return Ok(documents),
-            Err(e) => return Err(e),
-        };
+        )
     }
 
     /// Finds a document from a database by its id.
@@ -343,15 +326,12 @@ impl DatabaseManager {
         &self,
         document_id: &u64,
         database_name: &str,
-    ) -> io::Result<(Option<FormattedDocument>, String)>
+    ) -> Result<Option<FormattedDocument>, Box<dyn Error>>
     {
-        match db::find_document_by_id(document_id, &database_file_path(database_name)) {
-            Ok((result, message)) => return Ok((
-                result,
-                message
-            )),
-            Err(e) => return Err(e),
-        }
+        return db::find_document_by_id(
+            document_id,
+            &database_file_path(database_name)
+        )
     }
 }
 

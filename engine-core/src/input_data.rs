@@ -22,8 +22,7 @@ impl InputDataField {
         &self.value
     }
 
-    /// Converts input data from string
-    /// to correct database document data type.
+    /// Converts input data to correct database document data type.
     pub fn convert_to_document_data_type(&self, input_data: &str, data_type: &str) -> Option<DataType> {
         match data_type {
             "Int32" => {

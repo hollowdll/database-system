@@ -4,8 +4,14 @@ use std::{
     io,
     fs,
     path::Path,
+    error::Error,
 };
 use crate::db::{
+    error::{
+        DatabaseError,
+        CollectionError,
+        DocumentError,
+    },
     Database,
     DocumentCollection,
     database_file_path,
@@ -98,17 +104,19 @@ pub fn create_document_to_collection(
     file_path: &Path,
     collection_name: &str, 
     data: HashMap<String, DataType>,
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
         let mut collection_index = None;
 
-        // Find collection
-        for (index, collection) in database.collections().iter().enumerate() {
+        // Find collection index
+        for (index, collection) in database
+            .collections()
+            .iter()
+            .enumerate()
+        {
             if collection.name() == collection_name {
                 collection_index = Some(index);
             }
@@ -125,20 +133,18 @@ pub fn create_document_to_collection(
                 collection.documents_mut().push(document);
 
                 match write_database_json(&database, file_path) {
-                    Ok(()) => return Ok((true, message.to_string())),
-                    Err(e) => return Err(e),
+                    Ok(()) => return Ok(()),
+                    Err(e) => return Err(e.into()),
                 }
             } else {
-                message = COLLECTION_NOT_FOUND;
+                return Err(Box::new(CollectionError::NotFound));
             }
         } else {
-            message = COLLECTION_NOT_FOUND;
+            return Err(Box::new(CollectionError::NotFound));
         }
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-
-    Ok((false, message.to_string()))
 }
 
 /// Deletes a document from a collection by document id.
@@ -189,10 +195,8 @@ pub fn delete_document_from_collection(
 pub fn delete_document(
     file_path: &Path,
     document_id: &u64
-) -> io::Result<(bool, String)>
+) -> Result<(), Box<dyn Error>>
 {
-    let mut message = "";
-
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(contents.as_str())?;
@@ -211,17 +215,15 @@ pub fn delete_document(
 
         if found {
             match write_database_json(&database, file_path) {
-                Ok(()) => return Ok((true, message.to_string())),
-                Err(e) => return Err(e),
+                Ok(()) => return Ok(()),
+                Err(e) => return Err(e.into()),
             }
         } else {
-            message = DOCUMENT_NOT_FOUND;
+            return Err(Box::new(DocumentError::NotFound));
         }
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-
-    Ok((false, message.to_string()))
 }
 
 /// Finds all documents of a collection
@@ -256,16 +258,12 @@ pub fn find_all_documents_of_collection(
 
 /// Finds a document from a database by its id.
 /// 
-/// Returns the document if it was found along with a message
-/// and the collection the document belongs to.
+/// Returns the document if it was found.
 pub fn find_document_by_id(
     document_id: &u64,
     file_path: &Path,
-) -> io::Result<(Option<FormattedDocument>, String)>
+) -> Result<Option<FormattedDocument>, Box<dyn Error>>
 {
-    let mut found_document = None;
-    let mut message = "";
-
     if file_path.is_file() {
         let contents = fs::read_to_string(file_path)?;
         let mut database: Database = serde_json::from_str(&contents)?;
@@ -279,20 +277,15 @@ pub fn find_document_by_id(
                         document.data,
                     );
 
-                    return Ok((
-                        Some(formatted_document),
-                        message.to_string(),
-                    ))
+                    return Ok(Some(formatted_document));
                 }
             }
         }
 
-        message = DOCUMENT_NOT_FOUND;
+        return Ok(None);
     } else {
-        message = DB_NOT_FOUND;
+        return Err(Box::new(DatabaseError::NotFound));
     }
-
-    Ok((found_document, message.to_string()))
 }
 
 
@@ -347,14 +340,13 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let mut file = File::create(&file_path).unwrap();
-        assert!(file.write(json.as_bytes()).is_ok());
 
-        let (result, message) = create_document_to_collection(
+        assert!(file.write(json.as_bytes()).is_ok());
+        assert!(create_document_to_collection(
             &file_path,
             collection_name,
             data
-        ).unwrap();
-        assert_eq!((result, message), (true, "".to_string()));
+        ).is_ok());
 
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
@@ -401,13 +393,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.json");
         let mut file = File::create(&file_path).unwrap();
-        assert!(file.write(json.as_bytes()).is_ok());
 
-        let (result, message) = delete_document(
-            &file_path,
-            &1
-        ).unwrap();
-        assert_eq!((result, message), (true, "".to_string()));
+        assert!(file.write(json.as_bytes()).is_ok());
+        assert!(delete_document(&file_path, &1).is_ok());
 
         let buf = fs::read_to_string(&file_path).unwrap();
         assert_eq!(buf, expected_json);
