@@ -273,11 +273,25 @@ mod tests {
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
     
-    /* Implementation will be changed
     #[test]
     fn test_find_collection() {
-        
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let collection = find_collection(collection_name, &file_path).unwrap();
+        assert!(collection.is_some());
+        assert_eq!(collection.unwrap().name(), collection_name);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
-    */
+    
 }
 

@@ -89,6 +89,7 @@ impl FormattedDocument {
 /// Data type for document fields
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum DataType {
+    DocumentId(u64),
     Int32(i32),
     Int64(i64),
     Decimal(f64),
@@ -310,10 +311,6 @@ mod tests {
             String::from("age"),
             DataType::Int32(30)
         );
-        data.insert(
-            String::from("is_athletic"),
-            DataType::Bool(true)
-        );
     }
 
     #[test]
@@ -426,9 +423,32 @@ mod tests {
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
-    /*
     #[test]
     fn test_find_document_by_id() {
-        assert!(false);
-    }*/
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let mut document = Document::from(&mut database);
+
+        assert_eq!(document.id(), &1);
+        database
+            .collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .push(document);
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let document = find_document_by_id(&1, &file_path).unwrap();
+        assert!(document.is_some());
+        assert_eq!(document.unwrap().id(), &1);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
 }

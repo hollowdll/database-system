@@ -210,6 +210,7 @@ fn display_formatted_document(document: &FormattedDocument) {
             DataType::Decimal(value) => ("Decimal", value.to_string()),
             DataType::Bool(value) => ("Bool", value.to_string()),
             DataType::Text(value) => ("Text", value.to_string()),
+            _ => return eprintln!("Invalid document data type"),
         };
 
         println!("  [{data_type}] {key}: {field_value}");
