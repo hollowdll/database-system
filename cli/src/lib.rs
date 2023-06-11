@@ -201,7 +201,7 @@ fn display_connection_status(connected_database: &Option<String>) {
 
 /// Display formatted document in more readable format
 fn display_formatted_document(document: &FormattedDocument) {
-    println!("{}\n  id: {}", "{", document.id());
+    println!("{}\n  [DocumentId] _id: {}", "{", document.id());
     for (key, value) in document.data().iter() {
         // Get data type and value
         let (data_type, field_value) = match value {
@@ -209,11 +209,11 @@ fn display_formatted_document(document: &FormattedDocument) {
             DataType::Int64(value) => ("Int64", value.to_string()),
             DataType::Decimal(value) => ("Decimal", value.to_string()),
             DataType::Bool(value) => ("Bool", value.to_string()),
-            DataType::Text(value) => ("Text", value.to_string()),
+            DataType::Text(value) => ("Text", format!("\"{}\"", value)),
             _ => return eprintln!("Invalid document data type"),
         };
 
-        println!("  [{data_type}] {key}: {field_value}");
+        println!("  [{data_type}] \"{key}\": {field_value}");
     }
     println!("{}", "}");
 }

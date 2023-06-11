@@ -5,6 +5,7 @@ use std::{
     fs,
     path::Path,
     error::Error,
+    fmt,
 };
 use crate::db::{
     error::{
@@ -30,12 +31,12 @@ use crate::constants::{
 /// data in key-value pairs
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Document {
-    pub id: u64,
+    pub id: DataType,
     pub data: HashMap<String, DataType>,
 }
 
 impl Document {
-    pub fn id(&self) -> &u64 {
+    pub fn id(&self) -> &DataType {
         &self.id
     }
 
@@ -48,7 +49,7 @@ impl Document {
     pub fn from(database: &mut Database) -> Self {
         database.id_count += 1;
         Self {
-            id: database.id_count,
+            id: DataType::DocumentId(database.id_count),
             data: HashMap::new(),
         }
     }
@@ -57,13 +58,13 @@ impl Document {
 /// Formatted document that can be listed in clients
 #[derive(Debug)]
 pub struct FormattedDocument {
-    id: u64,
+    id: DataType,
     collection: String,
     data: HashMap<String, DataType>,
 }
 
 impl FormattedDocument {
-    pub fn id(&self) -> &u64 {
+    pub fn id(&self) -> &DataType {
         &self.id
     }
 
@@ -77,7 +78,7 @@ impl FormattedDocument {
 }
 
 impl FormattedDocument {
-    pub fn from(id: u64, collection: String, data: HashMap<String, DataType>) -> Self {
+    pub fn from(id: DataType, collection: String, data: HashMap<String, DataType>) -> Self {
         Self {
             id,
             collection,
@@ -89,13 +90,43 @@ impl FormattedDocument {
 /// Data type for document fields
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub enum DataType {
+    /// 64-bit unsigned integer. Only document id can have this.
     DocumentId(u64),
+
+    /// 32-bit signed integer for numbers.
     Int32(i32),
+
+    /// 64-bit signed integer for numbers.
     Int64(i64),
+
+    /// 64-bit floating point for deicmal numbers.
     Decimal(f64),
+
+    /// Boolean type for values true and false.
     Bool(bool),
+
+    /// UTF-8 string for dynamic texts.
     Text(String),
+
     // Possibly more in the future
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DataType::DocumentId(value) => value.to_string(),
+                DataType::Int32(value) => value.to_string(),
+                DataType::Int64(value) => value.to_string(),
+                DataType::Decimal(value) => value.to_string(),
+                DataType::Bool(value) => value.to_string(),
+                DataType::Text(value) => value.to_string(),
+                _ => "DataType".to_string(),
+            }
+        )
+    }
 }
 
 
@@ -207,9 +238,11 @@ pub fn delete_document(
             if let Some(document) = collection
                 .documents()
                 .iter()
-                .find(|document| document.id() == document_id)
+                .find(|document| document.id() == &DataType::DocumentId(*document_id))
             {
-                collection.documents_mut().retain(|document| document.id() != document_id);
+                collection
+                    .documents_mut()
+                    .retain(|document| document.id() != &DataType::DocumentId(*document_id));
                 found = true;
             };
         }
@@ -271,7 +304,7 @@ pub fn find_document_by_id(
 
         for collection in database.collections.into_iter() {
             for document in collection.documents.into_iter() {
-                if document.id() == document_id {
+                if document.id() == &DataType::DocumentId(*document_id) {
                     let formatted_document = FormattedDocument::from(
                         document.id,
                         collection.name,
@@ -430,7 +463,7 @@ mod tests {
         database.collections_mut().push(DocumentCollection::from(collection_name));
         let mut document = Document::from(&mut database);
 
-        assert_eq!(document.id(), &1);
+        assert_eq!(document.id(), &DataType::DocumentId(1));
         database
             .collections_mut()
             .get_mut(0)
@@ -446,7 +479,7 @@ mod tests {
 
         let document = find_document_by_id(&1, &file_path).unwrap();
         assert!(document.is_some());
-        assert_eq!(document.unwrap().id(), &1);
+        assert_eq!(document.unwrap().id(), &DataType::DocumentId(1));
 
         drop(file);
         dir.close().expect("Failed to clean up tempdir before dropping.");
