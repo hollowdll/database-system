@@ -6,6 +6,8 @@
 
 //#![allow(unused)]
 
+mod error;
+
 use std::{
     fs::{self, File, OpenOptions},
     io::{self, Write},
@@ -15,6 +17,7 @@ use chrono::{
     DateTime,
     Local,
 };
+use self::error::LogError;
 
 const LOGS_DIR_PATH: &str = "./logs";
 const DB_EVENTS_LOG: &str = "db_events.log";
@@ -111,13 +114,19 @@ impl Logger {
         event: DatabaseEvent,
         content: &str,
         file_path: &Path,
-    ) -> io::Result<()>
+    ) -> Result<(), LogError>
     {
         let log = DatabaseEventLog::from(event_source, event, content).format();
 
-        create_logs_dir_if_not_exists()?;
-        create_log_file_if_not_exists(file_path)?;
-        write_log_file(file_path, &log)?;
+        if let Err(e) = create_logs_dir_if_not_exists() {
+            return Err(LogError::CreateDir(e.to_string()));
+        }
+        if let Err(e) = create_log_file_if_not_exists(file_path) {
+            return Err(LogError::CreateFile(e.to_string()));
+        }
+        if let Err(e) = write_log_file(file_path, &log) {
+            return Err(LogError::WriteFile(e.to_string()));
+        }
 
         Ok(())
     }
@@ -126,13 +135,19 @@ impl Logger {
     pub fn log_error(
         content: &str,
         file_path: &Path,
-    ) -> io::Result<()>
+    ) -> Result<(), LogError>
     {
         let log = ErrorLog::from(content).format();
 
-        create_logs_dir_if_not_exists()?;
-        create_log_file_if_not_exists(file_path)?;
-        write_log_file(file_path, &log)?;
+        if let Err(e) = create_logs_dir_if_not_exists() {
+            return Err(LogError::CreateDir(e.to_string()));
+        }
+        if let Err(e) = create_log_file_if_not_exists(file_path) {
+            return Err(LogError::CreateFile(e.to_string()));
+        }
+        if let Err(e) = write_log_file(file_path, &log) {
+            return Err(LogError::WriteFile(e.to_string()));
+        }
 
         Ok(())
     }
@@ -196,6 +211,7 @@ mod tests {
 
     #[test]
     fn test_create_log_file_if_not_exists() {
+        assert!(create_logs_dir_if_not_exists().is_ok());
         assert!(create_log_file_if_not_exists(
             Path::new(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG))
         ).is_ok());

@@ -37,18 +37,27 @@ impl DatabaseManager {
     {
         db::create_databases_dir_if_not_exists()?;
 
-        db::create_database_file(
+        if let Err(err) = db::create_database_file(
             database_name,
             &database_file_path(database_name)
-        )?;
+        ) {
+            if let Err(log_err) = Logger::log_error(
+                &format!("Failed to create database: {}", err),
+                &get_errors_log_path()
+            ) {
+                eprintln!("{}", log_err);
+            }
 
-        if let Err(e) = Logger::log_event(
+            return Err(err);
+        }
+
+        if let Err(err) = Logger::log_event(
             DatabaseEventSource::Database,
             DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
             &get_db_events_log_path() 
         ) {
-            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
+            eprintln!("{}", err);
         }
 
         Ok("Created database".to_string())
