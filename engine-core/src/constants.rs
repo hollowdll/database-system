@@ -9,9 +9,5 @@ pub const DOCUMENT_NOT_FOUND: &str = "Document was not found";
 // Path to databases directory in filesystem
 pub const DB_DIR_PATH: &str = "./databases";
 
-// Path to temporary databases directory.
-// This directory is mainly used in tests.
-pub const TEMP_DB_DIR_PATH: &str = "./temp-databases";
-
 // Database file extension
 pub const DB_FILE_EXTENSION: &str = "json";

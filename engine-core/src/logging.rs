@@ -113,12 +113,13 @@ impl Logger {
         event_source: DatabaseEventSource,
         event: DatabaseEvent,
         content: &str,
+        dir_path: &Path,
         file_path: &Path,
     ) -> Result<(), LogError>
     {
         let log = DatabaseEventLog::from(event_source, event, content).format();
 
-        if let Err(e) = create_logs_dir_if_not_exists() {
+        if let Err(e) = create_logs_dir_if_not_exists(dir_path) {
             return Err(LogError::CreateDir(e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(file_path) {
@@ -134,12 +135,13 @@ impl Logger {
     /// Logs error to log file.
     pub fn log_error(
         content: &str,
+        dir_path: &Path,
         file_path: &Path,
     ) -> Result<(), LogError>
     {
         let log = ErrorLog::from(content).format();
 
-        if let Err(e) = create_logs_dir_if_not_exists() {
+        if let Err(e) = create_logs_dir_if_not_exists(dir_path) {
             return Err(LogError::CreateDir(e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(file_path) {
@@ -153,6 +155,10 @@ impl Logger {
     }
 }
 
+pub fn get_logs_dir_path() -> PathBuf {
+    PathBuf::from(LOGS_DIR_PATH)
+}
+
 /// Gets database events log file path.
 pub fn get_db_events_log_path() -> PathBuf {
     PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG))
@@ -164,9 +170,9 @@ pub fn get_errors_log_path() -> PathBuf {
 }
 
 /// Creates logs directory if it doesn't exist.
-fn create_logs_dir_if_not_exists() -> io::Result<()> {
-    if !Path::new(LOGS_DIR_PATH).is_dir() {
-        fs::create_dir(LOGS_DIR_PATH)?;
+fn create_logs_dir_if_not_exists(path: &Path) -> io::Result<()> {
+    if !path.is_dir() {
+        fs::create_dir(path)?;
     }
 
     Ok(())
@@ -200,22 +206,32 @@ mod tests {
     use tempfile::tempdir;
     use std::{
         fs::File,
-        path::Path,
     };
 
     #[test]
     fn test_create_logs_dir_if_not_exists() {
-        assert!(create_logs_dir_if_not_exists().is_ok());
-        assert!(Path::new(&format!("{LOGS_DIR_PATH}")).is_dir());
+        let base_dir = tempdir().unwrap();
+        let new_dir = base_dir.path().join("test");
+
+        assert!(create_logs_dir_if_not_exists(new_dir.as_path()).is_ok());
+        assert!(new_dir.is_dir());
+
+        base_dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
     #[test]
     fn test_create_log_file_if_not_exists() {
-        assert!(create_logs_dir_if_not_exists().is_ok());
+        let base_dir = tempdir().unwrap();
+        let new_dir = base_dir.path().join("test");
+
+        assert!(create_logs_dir_if_not_exists(new_dir.as_path()).is_ok());
+        assert!(new_dir.is_dir());
         assert!(create_log_file_if_not_exists(
-            Path::new(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG))
+            new_dir.join("test.log").as_path()
         ).is_ok());
-        assert!(Path::new(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG)).is_file());
+        assert!(new_dir.join("test.log").is_file());
+
+        base_dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
     #[test]
@@ -231,6 +247,11 @@ mod tests {
 
         drop(file);
         dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    #[test]
+    fn test_get_logs_dir_path() {
+        assert_eq!(get_logs_dir_path(), PathBuf::from(LOGS_DIR_PATH));
     }
 
     #[test]

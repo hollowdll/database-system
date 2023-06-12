@@ -35,7 +35,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, Box<dyn Error>>
     {
-        db::create_databases_dir_if_not_exists()?;
+        db::create_databases_dir_if_not_exists(Path::new(DB_DIR_PATH))?;
 
         if let Err(err) = db::create_database_file(
             database_name,
@@ -43,6 +43,7 @@ impl DatabaseManager {
         ) {
             if let Err(log_err) = Logger::log_error(
                 &format!("Failed to create database: {}", err),
+                &get_logs_dir_path(),
                 &get_errors_log_path()
             ) {
                 eprintln!("{}", log_err);
@@ -55,6 +56,7 @@ impl DatabaseManager {
             DatabaseEventSource::Database,
             DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
+            &get_logs_dir_path(),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}", err);
@@ -78,6 +80,7 @@ impl DatabaseManager {
             DatabaseEventSource::Database,
             DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
+            &get_logs_dir_path(),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -102,6 +105,7 @@ impl DatabaseManager {
             DatabaseEventSource::Database,
             DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
+            &get_logs_dir_path(),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -130,6 +134,7 @@ impl DatabaseManager {
                 collection_name,
                 database_name
             ),
+            &get_logs_dir_path(),
             &get_db_events_log_path(),
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -158,6 +163,7 @@ impl DatabaseManager {
                 collection_name,
                 database_name
             ),
+            &get_logs_dir_path(),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -168,14 +174,14 @@ impl DatabaseManager {
 
     /// Finds all databases
     pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
-        db::create_databases_dir_if_not_exists()?;
+        db::create_databases_dir_if_not_exists(Path::new(DB_DIR_PATH))?;
 
         return db::find_all_databases(Path::new(DB_DIR_PATH))
     }
 
     /// Finds a database
     pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
-        db::create_databases_dir_if_not_exists()?;
+        db::create_databases_dir_if_not_exists(Path::new(DB_DIR_PATH))?;
 
         return db::find_database(database_name, Path::new(DB_DIR_PATH))
     }
@@ -244,6 +250,7 @@ impl DatabaseManager {
                 collection_name,
                 database_name
             ),
+            &get_logs_dir_path(),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
@@ -309,6 +316,7 @@ impl DatabaseManager {
                 "Deleted document with ID '{}' from database '{}'",
                 document_id, database_name
             ),
+            &get_logs_dir_path(),
             &get_db_events_log_path() 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);

@@ -18,7 +18,6 @@ use std::{
 };
 use crate::constants::{
     DB_DIR_PATH,
-    TEMP_DB_DIR_PATH,
     DB_FILE_EXTENSION,
 };
 pub use crate::db::{
@@ -32,34 +31,10 @@ pub fn database_file_path(database_name: &str) -> PathBuf {
     PathBuf::from(&format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"))
 }
 
-/// Gets temporary database file path.
-pub fn temp_database_file_path(database_name: &str) -> PathBuf {
-    PathBuf::from(&format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"))
-}
-
-/// Check if a database file exists in databases directory
-fn database_file_exists(database_name: &str) -> bool {
-    return database_file_path(database_name).is_file();
-}
-
-/// Check if databases directory exists
-fn databases_dir_exists() -> bool {
-    return Path::new(DB_DIR_PATH).is_dir();
-}
-
 /// Creates databases directory if it doesn't exist
-pub fn create_databases_dir_if_not_exists() -> io::Result<()> {
-    if !databases_dir_exists() {
-        fs::create_dir(DB_DIR_PATH)?;
-    }
-
-    Ok(())
-}
-
-/// Creates temporary databases directory if it doesn't exist
-pub fn create_temp_databases_dir_if_not_exists() -> io::Result<()> {
-    if !Path::new(TEMP_DB_DIR_PATH).is_dir() {
-        fs::create_dir(TEMP_DB_DIR_PATH)?;
+pub fn create_databases_dir_if_not_exists(path: &Path) -> io::Result<()> {
+    if !path.is_dir() {
+        fs::create_dir(path)?;
     }
 
     Ok(())
@@ -104,25 +79,14 @@ mod tests {
     }
 
     #[test]
-    fn test_temp_database_file_path() {
-        let database_name = "test_temp_database_file_path";
-        let file_path = PathBuf::from(&format!("{TEMP_DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"));
-
-        assert_eq!(file_path, temp_database_file_path(database_name));
-    }
-
-    #[test]
     fn test_create_databases_dir_if_not_exists() {
-        create_databases_dir_if_not_exists().unwrap();
+        let base_dir = tempdir().unwrap();
+        let new_dir = base_dir.path().join("test");
 
-        assert_eq!(Path::new(&format!("{DB_DIR_PATH}")).is_dir(), true);
-    }
+        assert!(create_databases_dir_if_not_exists(new_dir.as_path()).is_ok());
+        assert!(new_dir.is_dir());
 
-    #[test]
-    fn test_create_temp_databases_dir_if_not_exists() {
-        create_temp_databases_dir_if_not_exists().unwrap();
-
-        assert_eq!(Path::new(&format!("{TEMP_DB_DIR_PATH}")).is_dir(), true);
+        base_dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 
     #[test]
