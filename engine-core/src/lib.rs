@@ -8,6 +8,7 @@ mod db_manager;
 mod input_data;
 pub mod constants;
 
+use std::path::PathBuf;
 pub use serde_json;
 pub use db_manager::DatabaseManager;
 pub use input_data::InputDataField;
@@ -20,6 +21,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Config {
     database_manager: db_manager::DatabaseManager,
     version: &'static str,
+    db_dir_path: PathBuf,
+    logs_dir_path: PathBuf,
 }
 
 impl Config {
@@ -44,8 +47,15 @@ impl Config {
     /// Call this only once.
     pub fn build() -> Config {
         Config {
-            database_manager: DatabaseManager::build(),
+            // db_dir_path is hard coded for now.
+            // Will be changed later to read from config file.
+            database_manager: DatabaseManager::build(
+                PathBuf::from("./databases"),
+                logging::get_logs_dir_path()
+            ),
             version: VERSION,
+            db_dir_path: PathBuf::from("./databases"),
+            logs_dir_path: logging::get_logs_dir_path(),
         }
     }
 }
@@ -59,8 +69,13 @@ mod tests {
     #[test]
     fn engine_config_build_works() {
         let config = Config {
-            database_manager: DatabaseManager::build(),
+            database_manager: DatabaseManager::build(
+                PathBuf::from("./databases"),
+                logging::get_logs_dir_path()
+            ),
             version: VERSION,
+            db_dir_path: PathBuf::from("./databases"),
+            logs_dir_path: logging::get_logs_dir_path(),
         };
 
         assert_eq!(config, Config::build());

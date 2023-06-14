@@ -20,8 +20,8 @@ use chrono::{
 use self::error::LogError;
 
 const LOGS_DIR_PATH: &str = "./logs";
-const DB_EVENTS_LOG: &str = "db_events.log";
-const ERRORS_LOG: &str = "errors.log";
+pub const DB_EVENTS_LOG: &str = "db_events.log";
+pub const ERRORS_LOG: &str = "errors.log";
 
 #[derive(Debug)]
 pub enum DatabaseEventSource {
@@ -189,6 +189,7 @@ fn create_log_file_if_not_exists(file_path: &Path) -> io::Result<()> {
 
 /// Writes data to a log file by appending.
 fn write_log_file(file_path: &Path, content: &str) -> io::Result<()> {
+
     let mut file = OpenOptions::new()
         .append(true)
         .open(file_path)?;
