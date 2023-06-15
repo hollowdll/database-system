@@ -13,7 +13,6 @@ use crate::{
     logging::*,
     constants::{
         DB_EVENT_LOG_ERROR,
-        DB_DIR_PATH,
         DB_FILE_EXTENSION,
     },
     InputDataField,
@@ -24,7 +23,6 @@ use crate::db::{
     FormattedDatabase,
     FormattedDocumentCollection,
     FormattedDocument,
-    database_file_path,
 };
 
 /// Database manager that manages all databases
@@ -74,20 +72,10 @@ impl DatabaseManager {
     {
         db::create_databases_dir_if_not_exists(&self.db_dir_path())?;
 
-        if let Err(err) = db::create_database_file(
+        db::create_database_file(
             database_name,
             &self.db_file_path(database_name)
-        ) {
-            if let Err(log_err) = Logger::log_error(
-                &format!("Failed to create database '{}': {}", database_name, err),
-                &self.logs_dir_path(),
-                &self.logs_dir_path().join(ERRORS_LOG),
-            ) {
-                eprintln!("{}", log_err);
-            }
-
-            return Err(err);
-        }
+        )?;
 
         if let Err(err) = Logger::log_event(
             DatabaseEventSource::Database,
@@ -108,27 +96,17 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, Box<dyn Error>>
     {
-        if let Err(err) = db::delete_database_file(
+        db::delete_database_file(
             database_name,
-            &database_file_path(database_name)
-        ) {
-            if let Err(log_err) = Logger::log_error(
-                &format!("Failed to delete database '{}': {}", database_name, err),
-                &get_logs_dir_path(),
-                &get_errors_log_path()
-            ) {
-                eprintln!("{}", log_err);
-            }
-
-            return Err(err);
-        }
+            &self.db_file_path(database_name)
+        )?;
 
         if let Err(err) = Logger::log_event(
             DatabaseEventSource::Database,
             DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
-            &get_logs_dir_path(),
-            &get_db_events_log_path() 
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
             eprintln!("{}", err);
         }
@@ -143,27 +121,17 @@ impl DatabaseManager {
         description: &str,
     ) -> Result<String, Box<dyn Error>>
     {
-        if let Err(err) = db::change_database_description(
+        db::change_database_description(
             description,
-            &database_file_path(database_name)
-        ) {
-            if let Err(log_err) = Logger::log_error(
-                &format!("Failed to change description of database '{}': {}", database_name, err),
-                &get_logs_dir_path(),
-                &get_errors_log_path()
-            ) {
-                eprintln!("{}", log_err);
-            }
-
-            return Err(err);
-        }
+            &self.db_file_path(database_name)
+        )?;
 
         if let Err(err) = Logger::log_event(
             DatabaseEventSource::Database,
             DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
-            &get_logs_dir_path(),
-            &get_db_events_log_path() 
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
             eprintln!("{}", err);
         }
@@ -178,25 +146,10 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, Box<dyn Error>>
     {
-        if let Err(err) = db::create_collection_to_database_file(
+        db::create_collection_to_database_file(
             collection_name,
-            &database_file_path(database_name)
-        ) {
-            if let Err(log_err) = Logger::log_error(
-                &format!(
-                    "Failed to create collection '{}' to database '{}': {}",
-                    collection_name,
-                    database_name,
-                    err
-                ),
-                &get_logs_dir_path(),
-                &get_errors_log_path()
-            ) {
-                eprintln!("{}", log_err);
-            }
-
-            return Err(err);
-        }
+            &self.db_file_path(database_name)
+        )?;
 
         if let Err(err) = Logger::log_event(
             DatabaseEventSource::Collection,
@@ -206,8 +159,8 @@ impl DatabaseManager {
                 collection_name,
                 database_name
             ),
-            &get_logs_dir_path(),
-            &get_db_events_log_path(),
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
             eprintln!("{}", err);
         }
@@ -222,25 +175,10 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, Box<dyn Error>>
     {
-        if let Err(err) = db::delete_collection_from_database_file(
+        db::delete_collection_from_database_file(
             collection_name,
-            &database_file_path(database_name)
-        ) {
-            if let Err(log_err) = Logger::log_error(
-                &format!(
-                    "Failed to delete collection '{}' from database '{}': {}",
-                    collection_name,
-                    database_name,
-                    err
-                ),
-                &get_logs_dir_path(),
-                &get_errors_log_path()
-            ) {
-                eprintln!("{}", log_err);
-            }
-
-            return Err(err);
-        }
+            &self.db_file_path(database_name)
+        )?;
 
         if let Err(err) = Logger::log_event(
             DatabaseEventSource::Collection,
@@ -250,8 +188,8 @@ impl DatabaseManager {
                 collection_name,
                 database_name
             ),
-            &get_logs_dir_path(),
-            &get_db_events_log_path() 
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
             eprintln!("{}", err);
         }
@@ -261,16 +199,16 @@ impl DatabaseManager {
 
     /// Finds all databases
     pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
-        db::create_databases_dir_if_not_exists(Path::new(DB_DIR_PATH))?;
+        db::create_databases_dir_if_not_exists(&self.db_dir_path())?;
 
-        return db::find_all_databases(Path::new(DB_DIR_PATH))
+        return db::find_all_databases(&self.db_dir_path())
     }
 
     /// Finds a database
     pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
-        db::create_databases_dir_if_not_exists(Path::new(DB_DIR_PATH))?;
+        db::create_databases_dir_if_not_exists(&self.db_dir_path())?;
 
-        return db::find_database(database_name, Path::new(DB_DIR_PATH))
+        return db::find_database(database_name, &self.db_dir_path())
     }
 
     /// Finds all collections of a database
@@ -280,7 +218,7 @@ impl DatabaseManager {
     ) -> io::Result<Vec<FormattedDocumentCollection>>
     {
         return db::find_all_collections_of_database(
-            &database_file_path(database_name)
+            &self.db_file_path(database_name)
         )
     }
 
@@ -293,7 +231,7 @@ impl DatabaseManager {
     {
         return db::find_collection(
             collection_name,
-            &database_file_path(database_name)
+            &self.db_file_path(database_name)
         )
     }
 
@@ -323,26 +261,11 @@ impl DatabaseManager {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        if let Err(err) = db::create_document_to_collection(
-            &database_file_path(database_name),
+        db::create_document_to_collection(
+            &self.db_file_path(database_name),
             collection_name,
             document_data
-        ) {
-            if let Err(log_err) = Logger::log_error(
-                &format!(
-                    "Failed to create document to collection '{}' in database '{}': {}",
-                    collection_name,
-                    database_name,
-                    err
-                ),
-                &get_logs_dir_path(),
-                &get_errors_log_path()
-            ) {
-                eprintln!("{}", log_err);
-            }
-
-            return Err(err);
-        }
+        )?;
 
         if let Err(err) = Logger::log_event(
             DatabaseEventSource::Document,
@@ -352,55 +275,14 @@ impl DatabaseManager {
                 collection_name,
                 database_name
             ),
-            &get_logs_dir_path(),
-            &get_db_events_log_path() 
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
             eprintln!("{}", err);
         }
 
         Ok("Created document".to_string())
     }
-
-    /// Deletes a document from a collection
-    /// 
-    /// This is a faster way to delete a document if the collection is known beforehand.
-    
-    /* DISABLED. NOT NEEDED RIGHT NOW.
-    pub fn delete_document_from_collection(
-        &self,
-        database_name: &str,
-        collection_name: &str,
-        document_id: &u64,
-    ) -> io::Result<(bool, String)>
-    {
-        match db::delete_document_from_collection(
-            &database_file_path(database_name),
-            collection_name,
-            document_id
-        ) {
-            Ok((result, message)) => {
-                if !result {
-                    return Ok((false, format!("Failed to delete document: {message}")));
-                }
-            },
-            Err(e) => return Err(e),
-        }
-
-        if let Err(e) = Logger::log_event(
-            DatabaseEventSource::Document,
-            DatabaseEvent::Deleted,
-            &format!(
-                "Deleted document with ID '{}' from collection '{}' in database '{}'",
-                document_id, collection_name, database_name
-            ),
-            &get_db_events_log_path() 
-        ) {
-            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
-        }
-
-        Ok((true, "Deleted document".to_string()))
-    }
-    */
 
     /// Deletes a document from database
     pub fn delete_document(
@@ -409,7 +291,7 @@ impl DatabaseManager {
         document_id: &u64,
     ) -> Result<String, Box<dyn Error>>
     {
-        db::delete_document(&database_file_path(database_name), document_id)?;
+        db::delete_document(&self.db_file_path(database_name), document_id)?;
 
         if let Err(e) = Logger::log_event(
             DatabaseEventSource::Document,
@@ -418,8 +300,8 @@ impl DatabaseManager {
                 "Deleted document with ID '{}' from database '{}'",
                 document_id, database_name
             ),
-            &get_logs_dir_path(),
-            &get_db_events_log_path() 
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG), 
         ) {
             eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
         }
@@ -435,7 +317,7 @@ impl DatabaseManager {
     ) -> io::Result<Vec<FormattedDocument>>
     {
         return db::find_all_documents_of_collection(
-            &database_file_path(database_name),
+            &self.db_file_path(database_name),
             collection_name
         )
     }
@@ -449,7 +331,7 @@ impl DatabaseManager {
     {
         return db::find_document_by_id(
             document_id,
-            &database_file_path(database_name)
+            &self.db_file_path(database_name)
         )
     }
 }
