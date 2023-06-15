@@ -46,34 +46,23 @@ pub enum DatabaseEvent {
 /// Database event log to write to log file.
 struct DatabaseEventLog {
     created: DateTime<Local>,
-    event_source: DatabaseEventSource,
-    event: DatabaseEvent,
     content: String,
 }
 
 impl DatabaseEventLog {
     fn format(&self) -> String {
         format!(
-            "[{:?}] [{:?}] [{:?}] - {}\n",
-            self.created,
-            self.event_source,
-            self.event,
+            "[{}] {}\n",
+            self.created.format("%F %X%.3f %:z"),
             self.content
         )
     }
 }
 
 impl DatabaseEventLog {
-    fn from(
-        event_source: DatabaseEventSource,
-        event: DatabaseEvent,
-        content: &str,
-    ) -> Self
-    {
+    fn from(content: &str) -> Self {
         Self {
             created: Local::now(),
-            event_source,
-            event,
             content: String::from(content),
         }
     }
@@ -88,8 +77,8 @@ struct ErrorLog {
 impl ErrorLog {
     fn format(&self) -> String {
         format!(
-            "[{:?}] {}\n",
-            self.created,
+            "[{}] {}\n",
+            self.created.format("%F %X%.3f %:z"),
             self.content
         )
     }
@@ -110,14 +99,12 @@ pub struct Logger {}
 impl Logger {
     /// Logs database event to log file.
     pub fn log_event(
-        event_source: DatabaseEventSource,
-        event: DatabaseEvent,
         content: &str,
         dir_path: &Path,
         file_path: &Path,
     ) -> Result<(), LogError>
     {
-        let log = DatabaseEventLog::from(event_source, event, content).format();
+        let log = DatabaseEventLog::from(content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(dir_path) {
             return Err(LogError::CreateDir(e.to_string()));
@@ -270,8 +257,6 @@ mod tests {
     #[test]
     fn test_log_event() {
         let log = DatabaseEventLog::from(
-            DatabaseEventSource::System,
-            DatabaseEvent::Test,
             "Test log 123",
         ).format();
 

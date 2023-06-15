@@ -78,8 +78,6 @@ impl DatabaseManager {
         )?;
 
         if let Err(err) = Logger::log_event(
-            DatabaseEventSource::Database,
-            DatabaseEvent::Created,
             &format!("Created database '{}'", database_name),
             &self.logs_dir_path(),
             &self.logs_dir_path().join(DB_EVENTS_LOG),
@@ -102,8 +100,6 @@ impl DatabaseManager {
         )?;
 
         if let Err(err) = Logger::log_event(
-            DatabaseEventSource::Database,
-            DatabaseEvent::Deleted,
             &format!("Deleted database '{}'", database_name),
             &self.logs_dir_path(),
             &self.logs_dir_path().join(DB_EVENTS_LOG),
@@ -127,8 +123,6 @@ impl DatabaseManager {
         )?;
 
         if let Err(err) = Logger::log_event(
-            DatabaseEventSource::Database,
-            DatabaseEvent::Updated,
             &format!("Changed description of database '{}'", database_name),
             &self.logs_dir_path(),
             &self.logs_dir_path().join(DB_EVENTS_LOG),
@@ -152,8 +146,6 @@ impl DatabaseManager {
         )?;
 
         if let Err(err) = Logger::log_event(
-            DatabaseEventSource::Collection,
-            DatabaseEvent::Created,
             &format!(
                 "Created collection '{}' to database '{}'",
                 collection_name,
@@ -181,8 +173,6 @@ impl DatabaseManager {
         )?;
 
         if let Err(err) = Logger::log_event(
-            DatabaseEventSource::Collection,
-            DatabaseEvent::Deleted,
             &format!(
                 "Deleted collection '{}' from database '{}'",
                 collection_name,
@@ -268,8 +258,6 @@ impl DatabaseManager {
         )?;
 
         if let Err(err) = Logger::log_event(
-            DatabaseEventSource::Document,
-            DatabaseEvent::Created,
             &format!(
                 "Created document to collection '{}' in database '{}'",
                 collection_name,
@@ -294,8 +282,6 @@ impl DatabaseManager {
         db::delete_document(&self.db_file_path(database_name), document_id)?;
 
         if let Err(e) = Logger::log_event(
-            DatabaseEventSource::Document,
-            DatabaseEvent::Deleted,
             &format!(
                 "Deleted document with ID '{}' from database '{}'",
                 document_id, database_name
