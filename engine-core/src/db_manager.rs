@@ -241,10 +241,11 @@ impl DatabaseManager {
                 data_field.value(),
                 data_field.data_type()
             ) {
-                Some(converted_value) => converted_value,
-                None => return Err(format!(
-                    "Data type '{}' is not valid",
-                    data_field.data_type()
+                Ok(converted_value) => converted_value,
+                Err(err) => return Err(format!(
+                    "Data type '{}' is not valid: {}",
+                    data_field.data_type(),
+                    err
                 ).into()),
             };
 

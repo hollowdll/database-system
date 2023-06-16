@@ -73,3 +73,33 @@ impl fmt::Display for DocumentError {
 }
 
 impl Error for DocumentError {}
+
+/// Error type for data type conversion errors.
+#[derive(Debug)]
+pub enum ConvertError {
+    Unknown,
+    Int32,
+    Int64,
+    Decimal,
+    Bool,
+    Text,
+}
+
+impl fmt::Display for ConvertError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Failed to convert data into {}",
+            match self {
+                ConvertError::Unknown => "an unknown type. The specified type does not exist",
+                ConvertError::Int32 => "'Int32'",
+                ConvertError::Int64 => "'Int64'",
+                ConvertError::Decimal => "'Decimal'",
+                ConvertError::Bool => "'Bool'",
+                ConvertError::Text => "'Text'",
+            }
+        )
+    }
+}
+
+impl Error for ConvertError {}

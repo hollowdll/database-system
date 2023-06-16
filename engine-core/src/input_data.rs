@@ -1,6 +1,7 @@
 // This module contains code to handle input data
 
 use crate::db::DataType;
+use crate::db::error::ConvertError;
 
 /// Input data field which is used to create fields to documents
 pub struct InputDataField {
@@ -23,42 +24,40 @@ impl InputDataField {
     }
 
     /// Converts input data to correct database document data type.
-    pub fn convert_to_document_data_type(&self, input_data: &str, data_type: &str) -> Option<DataType> {
+    pub fn convert_to_document_data_type(&self, input_data: &str, data_type: &str) -> Result<DataType, ConvertError> {
         match data_type {
             "Int32" => {
                 match input_data.parse::<i32>() {
-                    Ok(data) => return Some(DataType::Int32(data)),
-                    Err(e) => eprintln!("Failed to convert input data to 'Int32': {e}"),
+                    Ok(data) => return Ok(DataType::Int32(data)),
+                    Err(_) => return Err(ConvertError::Int32),
                 };
             },
             "Int64" => {
                 match input_data.parse::<i64>() {
-                    Ok(data) => return Some(DataType::Int64(data)),
-                    Err(e) => eprintln!("Failed to convert input data to 'Int64': {e}"),
+                    Ok(data) => return Ok(DataType::Int64(data)),
+                    Err(_) => return Err(ConvertError::Int64),
                 };
             },
             "Decimal" => {
                 match input_data.parse::<f64>() {
-                    Ok(data) => return Some(DataType::Decimal(data)),
-                    Err(e) => eprintln!("Failed to convert input data to 'Decimal': {e}"),
+                    Ok(data) => return Ok(DataType::Decimal(data)),
+                    Err(_) => return Err(ConvertError::Decimal),
                 };
             },
             "Bool" => {
-                match input_data.parse::<bool>() {
-                    Ok(data) => return Some(DataType::Bool(data)),
-                    Err(e) => eprintln!("Failed to convert input data to 'Bool': {e}"),
+                match input_data.to_lowercase().parse::<bool>() {
+                    Ok(data) => return Ok(DataType::Bool(data)),
+                    Err(_) => return Err(ConvertError::Bool),
                 };
             },
             "Text" => {
                 match input_data.parse::<String>() {
-                    Ok(data) => return Some(DataType::Text(data)),
-                    Err(e) => eprintln!("Failed to convert input data to 'Text': {e}"),
+                    Ok(data) => return Ok(DataType::Text(data)),
+                    Err(_) => return Err(ConvertError::Text),
                 };
             },
-            _ => return None,
+            _ => return Err(ConvertError::Unknown),
         }
-
-        return None;
     }
 }
 
