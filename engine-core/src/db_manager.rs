@@ -48,19 +48,45 @@ impl DatabaseManager {
 }
 
 impl DatabaseManager {
+    /// Gets databases directory path.
     fn db_dir_path(&self) -> &Path {
         &self.db_dir_path
     }
 
+    /// Gets logs directory path.
     pub fn logs_dir_path(&self) -> &Path {
         &self.logs_dir_path
     }
 
+    /// Gets database file path.
     fn db_file_path(&self, db_name: &str) -> PathBuf {
         let mut path = PathBuf::from(&self.db_dir_path().join(db_name));
         path.set_extension(DB_FILE_EXTENSION);
 
         return path
+    }
+
+    /// Logs events with configured logs directory to log file.
+    pub fn log_event(&self, content: &str) {
+        if let Err(e) = Logger::log_event(
+            content,
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(DB_EVENTS_LOG)
+        ) {
+            eprintln!("{}", e);
+        }
+    }
+
+    /// Logs errors with configured logs directory to log file.
+    pub fn log_error(&self, content: &str) {
+        if let Err(e) = Logger::log_error(
+            ErrorLogType::Error,
+            content,
+            &self.logs_dir_path(),
+            &self.logs_dir_path().join(ERRORS_LOG)
+        ) {
+            eprintln!("{}", e);
+        }
     }
 }
 
@@ -71,29 +97,23 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, DatabaseOperationError>
     {
-        let err_message = format!("Failed to create database '{}'", database_name);
-
-        if let Err(reason) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationError(
-                format!("{}: {}", err_message, reason)
-            ));
+        if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to create database '{}': {}",
+                database_name,
+                err
+            )));
         }
 
-        if let Err(reason) = db::create_database_file(
+        if let Err(err) = db::create_database_file(
             database_name,
             &self.db_file_path(database_name)
         ) {
-            return Err(DatabaseOperationError(
-                format!("{}: {}", err_message, reason)
-            ));
-        }
-
-        if let Err(err) = Logger::log_event(
-            &format!("Created database '{}'", database_name),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG),
-        ) {
-            eprintln!("{}", err);
+            return Err(DatabaseOperationError(format!(
+                "Failed to create database '{}': {}",
+                database_name,
+                err
+            )));
         }
 
         Ok(format!("Created database '{}'", database_name))
@@ -103,22 +123,20 @@ impl DatabaseManager {
     pub fn delete_database(
         &self,
         database_name: &str,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
-        db::delete_database_file(
+        if let Err(err) = db::delete_database_file(
             database_name,
             &self.db_file_path(database_name)
-        )?;
-
-        if let Err(err) = Logger::log_event(
-            &format!("Deleted database '{}'", database_name),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
-            eprintln!("{}", err);
+            return Err(DatabaseOperationError(format!(
+                "Failed to delete database '{}': {}",
+                database_name,
+                err
+            )));
         }
         
-        Ok("Deleted database".to_string())
+        Ok(format!("Deleted database '{}'", database_name))
     }
 
     /// Changes description of a database

@@ -23,26 +23,6 @@ const LOGS_DIR_PATH: &str = "./logs";
 pub const DB_EVENTS_LOG: &str = "db_events.log";
 pub const ERRORS_LOG: &str = "errors.log";
 
-#[derive(Debug)]
-pub enum DatabaseEventSource {
-    System,
-    DatabaseManager,
-    Database,
-    Collection,
-    Document,
-}
-
-#[derive(Debug)]
-pub enum DatabaseEvent {
-    Test,
-    Error,
-    Connected,
-    Disconnected,
-    Created,
-    Deleted,
-    Updated,
-}
-
 /// Database event log to write to log file.
 struct DatabaseEventLog {
     created: DateTime<Local>,
@@ -71,26 +51,37 @@ impl DatabaseEventLog {
 /// Error log to write to log file.
 struct ErrorLog {
     created: DateTime<Local>,
+    error_type: ErrorLogType,
     content: String,
 }
 
 impl ErrorLog {
     fn format(&self) -> String {
         format!(
-            "[{}] {}\n",
+            "[{}] [{:?}] {}\n",
             self.created.format("%F %X%.3f %:z"),
+            self.error_type,
             self.content
         )
     }
 }
 
 impl ErrorLog {
-    fn from(content: &str) -> Self {
+    fn from(error_type: ErrorLogType, content: &str) -> Self {
         Self {
             created: Local::now(),
+            error_type,
             content: String::from(content),
         }
     }
+}
+
+/// Type of error log.
+/// Can be error or warning.
+#[derive(Debug)]
+pub enum ErrorLogType {
+    Error,
+    Warning,
 }
 
 /// Logger that logs all events to log files.
@@ -121,12 +112,13 @@ impl Logger {
 
     /// Logs error to log file.
     pub fn log_error(
+        error_type: ErrorLogType,
         content: &str,
         dir_path: &Path,
         file_path: &Path,
     ) -> Result<(), LogError>
     {
-        let log = ErrorLog::from(content).format();
+        let log = ErrorLog::from(error_type, content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(dir_path) {
             return Err(LogError::CreateDir(e.to_string()));
@@ -274,7 +266,7 @@ mod tests {
 
     #[test]
     fn test_log_error() {
-        let log = ErrorLog::from("test").format();
+        let log = ErrorLog::from(ErrorLogType::Error, "test").format();
 
         let dir = tempdir().unwrap();
         let file_path = dir.path().join("test.log");

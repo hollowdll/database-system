@@ -139,7 +139,7 @@ pub fn run(config: Config) {
                 create_database_menu(engine.api());
             },
             "/delete db" => {
-                delete_database_menu(engine.api().db_manager(), &mut connected_database);
+                delete_database_menu(engine.api(), &mut connected_database);
             },
             "/connect db" => {
                 connect_database_menu(engine.api().db_manager(), &mut connected_database);
@@ -349,7 +349,7 @@ fn create_database_menu(api: &EngineApi) {
 
 /// Show menu to delete a database.
 fn delete_database_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &mut Option<String>
 ) {
     let database_name = match ask_user_input("Database name:") {
@@ -366,7 +366,7 @@ fn delete_database_menu(
 
     match confirm.as_str() {
         CONFIRM_OPTION_YES => {
-            match database_manager.delete_database(&database_name) {
+            match api.delete_db(&database_name) {
                 Ok(message) => {
                     // Disconnect database if it is connected
                     if let Some(connected_database_name) = connected_database {
@@ -376,7 +376,7 @@ fn delete_database_menu(
                     }
                     println!("{message}");
                 },
-                Err(e) => eprintln!("Error occurred: {e}"),
+                Err(e) => eprintln!("[Error] {e}"),
             }
         },
         _ => return println!("Canceled database deletion"),

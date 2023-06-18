@@ -3,11 +3,6 @@
 use crate::{
     DatabaseManager,
     db::error::DatabaseOperationError,
-    logging::{
-        Logger,
-        DB_EVENTS_LOG,
-        ERRORS_LOG,
-    },
 };
 
 /// Engine API that provides methods to do database operations.
@@ -50,25 +45,11 @@ impl EngineApi {
     {
         match self.db_manager().create_database(db_name) {
             Ok(result) => {
-                if let Err(e) = Logger::log_event(
-                    &result,
-                    &self.db_manager().logs_dir_path(),
-                    &self.db_manager().logs_dir_path().join(DB_EVENTS_LOG)
-                ) {
-                    eprintln!("{}", e);
-                }
-
+                self.db_manager().log_event(&result);
                 return Ok(result)
             },
             Err(err) => {
-                if let Err(e) = Logger::log_error(
-                    &err.0,
-                    &self.db_manager().logs_dir_path(),
-                    &self.db_manager().logs_dir_path().join(ERRORS_LOG)
-                ) {
-                    eprintln!("{}", e);
-                }
-                
+                self.db_manager().log_error(&err.0);
                 return Err(err)
             }
         }
@@ -80,9 +61,18 @@ impl EngineApi {
     pub fn delete_db(
         &self,
         db_name: &str,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> Result<String, DatabaseOperationError>
     {
-        Err(DatabaseOperationError("error".to_string()))
+        match self.db_manager().delete_database(db_name) {
+            Ok(result) => {
+                self.db_manager().log_event(&result);
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
     }
 }
 
