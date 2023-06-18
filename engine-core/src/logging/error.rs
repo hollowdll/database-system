@@ -20,7 +20,7 @@ impl fmt::Display for LogError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "[Error] Logging error: {}",
+            "Logging error: {}",
             match self {
                 LogError::CreateDir(message) => format!("Failed to create logs directory: {}", message),
                 LogError::CreateFile(message) => format!("Failed to create log file: {}", message),

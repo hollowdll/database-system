@@ -66,18 +66,18 @@ impl DatabaseManager {
         return path
     }
 
-    /// Logs events with configured logs directory to log file.
+    /// Attempts to log events with configured logs directory to log file.
     pub fn log_event(&self, content: &str) {
         if let Err(e) = Logger::log_event(
             content,
             &self.logs_dir_path(),
             &self.logs_dir_path().join(DB_EVENTS_LOG)
         ) {
-            eprintln!("{}", e);
+            eprintln!("[Error] {}", e);
         }
     }
 
-    /// Logs errors with configured logs directory to log file.
+    /// Attempts to log errors with configured logs directory to log file.
     pub fn log_error(&self, content: &str) {
         if let Err(e) = Logger::log_error(
             ErrorLogType::Error,
@@ -85,7 +85,7 @@ impl DatabaseManager {
             &self.logs_dir_path(),
             &self.logs_dir_path().join(ERRORS_LOG)
         ) {
-            eprintln!("{}", e);
+            eprintln!("[Error] {}", e);
         }
     }
 }
@@ -144,22 +144,20 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         description: &str,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
-        db::change_database_description(
+        if let Err(err) = db::change_database_description(
             description,
             &self.db_file_path(database_name)
-        )?;
-
-        if let Err(err) = Logger::log_event(
-            &format!("Changed description of database '{}'", database_name),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
-            eprintln!("{}", err);
+            return Err(DatabaseOperationError(format!(
+                "Failed to change description of database '{}': {}",
+                database_name,
+                err
+            )));
         }
 
-        Ok("Changed database description".to_string())
+        Ok(format!("Changed description of database '{}'", database_name))
     }
 
     /// Creates a new collection to a database
@@ -167,26 +165,25 @@ impl DatabaseManager {
         &self,
         collection_name: &str,
         database_name: &str,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
-        db::create_collection_to_database_file(
+        if let Err(err) = db::create_collection_to_database_file(
             collection_name,
             &self.db_file_path(database_name)
-        )?;
-
-        if let Err(err) = Logger::log_event(
-            &format!(
-                "Created collection '{}' to database '{}'",
-                collection_name,
-                database_name
-            ),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
-            eprintln!("{}", err);
+            return Err(DatabaseOperationError(format!(
+                "Failed to create collection '{}' to database '{}': {}",
+                collection_name,
+                database_name,
+                err
+            )));
         }
 
-        Ok("Created collection".to_string())
+        Ok(format!(
+            "Created collection '{}' to database '{}'",
+            collection_name,
+            database_name
+        ))
     }
 
     /// Deletes a collection from a database
@@ -194,26 +191,25 @@ impl DatabaseManager {
         &self,
         collection_name: &str,
         database_name: &str,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
-        db::delete_collection_from_database_file(
+        if let Err(err) = db::delete_collection_from_database_file(
             collection_name,
             &self.db_file_path(database_name)
-        )?;
-
-        if let Err(err) = Logger::log_event(
-            &format!(
-                "Deleted collection '{}' from database '{}'",
-                collection_name,
-                database_name
-            ),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
-            eprintln!("{}", err);
+            return Err(DatabaseOperationError(format!(
+                "Failed to delete collection '{}' from database '{}': {}",
+                collection_name,
+                database_name,
+                err
+            )));
         }
 
-        Ok("Deleted collection".to_string())
+        Ok(format!(
+            "Deleted collection '{}' from database '{}'",
+            collection_name,
+            database_name
+        ))
     }
 
     /// Finds all databases
@@ -260,7 +256,7 @@ impl DatabaseManager {
         database_name: &str,
         collection_name: &str,
         data: Vec<InputDataField>,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
@@ -271,35 +267,34 @@ impl DatabaseManager {
                 data_field.data_type()
             ) {
                 Ok(converted_value) => converted_value,
-                Err(err) => return Err(format!(
+                Err(err) => return Err(DatabaseOperationError(format!(
                     "Data type '{}' is not valid: {}",
                     data_field.data_type(),
                     err
-                ).into()),
+                ))),
             };
 
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        db::create_document_to_collection(
+        if let Err(err) = db::create_document_to_collection(
             &self.db_file_path(database_name),
             collection_name,
             document_data
-        )?;
-
-        if let Err(err) = Logger::log_event(
-            &format!(
-                "Created document to collection '{}' in database '{}'",
-                collection_name,
-                database_name
-            ),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG),
         ) {
-            eprintln!("{}", err);
+            return Err(DatabaseOperationError(format!(
+                "Failed to create document to collection '{}' in database '{}': {}",
+                collection_name,
+                database_name,
+                err
+            )));
         }
 
-        Ok("Created document".to_string())
+        Ok(format!(
+            "Created document to collection '{}' in database '{}'",
+            collection_name,
+            database_name
+        ))
     }
 
     /// Deletes a document from database
