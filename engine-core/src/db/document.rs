@@ -15,9 +15,7 @@ use crate::db::{
     },
     Database,
     DocumentCollection,
-    database_file_path,
     write_database_json,
-    create_databases_dir_if_not_exists,
 };
 use crate::constants::{
     DB_NOT_FOUND,

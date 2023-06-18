@@ -16,13 +16,14 @@ use crate::{
         DB_FILE_EXTENSION,
     },
     InputDataField,
-};
-use crate::db::{
-    self,
-    DataType,
-    FormattedDatabase,
-    FormattedDocumentCollection,
-    FormattedDocument,
+    db::{
+        self,
+        DataType,
+        FormattedDatabase,
+        FormattedDocumentCollection,
+        FormattedDocument,
+        error::DatabaseOperationError,
+    },
 };
 
 /// Database manager that manages all databases
@@ -51,7 +52,7 @@ impl DatabaseManager {
         &self.db_dir_path
     }
 
-    fn logs_dir_path(&self) -> &Path {
+    pub fn logs_dir_path(&self) -> &Path {
         &self.logs_dir_path
     }
 
@@ -68,14 +69,24 @@ impl DatabaseManager {
     pub fn create_database(
         &self,
         database_name: &str,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
-        db::create_databases_dir_if_not_exists(&self.db_dir_path())?;
+        let err_message = format!("Failed to create database '{}'", database_name);
 
-        db::create_database_file(
+        if let Err(reason) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(
+                format!("{}: {}", err_message, reason)
+            ));
+        }
+
+        if let Err(reason) = db::create_database_file(
             database_name,
             &self.db_file_path(database_name)
-        )?;
+        ) {
+            return Err(DatabaseOperationError(
+                format!("{}: {}", err_message, reason)
+            ));
+        }
 
         if let Err(err) = Logger::log_event(
             &format!("Created database '{}'", database_name),
@@ -85,7 +96,7 @@ impl DatabaseManager {
             eprintln!("{}", err);
         }
 
-        Ok("Created database".to_string())
+        Ok(format!("Created database '{}'", database_name))
     }
 
     /// Deletes a database
@@ -189,14 +200,14 @@ impl DatabaseManager {
 
     /// Finds all databases
     pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
-        db::create_databases_dir_if_not_exists(&self.db_dir_path())?;
+        db::create_db_dir_if_not_exists(&self.db_dir_path())?;
 
         return db::find_all_databases(&self.db_dir_path())
     }
 
     /// Finds a database
     pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
-        db::create_databases_dir_if_not_exists(&self.db_dir_path())?;
+        db::create_db_dir_if_not_exists(&self.db_dir_path())?;
 
         return db::find_database(database_name, &self.db_dir_path())
     }

@@ -25,14 +25,10 @@ pub use crate::db::{
     collection::*,
     document::*,
 };
-
-/// Gets database file path.
-pub fn database_file_path(database_name: &str) -> PathBuf {
-    PathBuf::from(&format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"))
-}
+use self::error::DatabaseError;
 
 /// Creates databases directory if it doesn't exist
-pub fn create_databases_dir_if_not_exists(path: &Path) -> io::Result<()> {
+pub fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
     if !path.is_dir() {
         fs::create_dir(path)?;
     }
@@ -71,19 +67,11 @@ mod tests {
     use tempfile::tempdir;
 
     #[test]
-    fn test_database_file_path() {
-        let database_name = "test_database_file_path";
-        let file_path = PathBuf::from(&format!("{DB_DIR_PATH}/{database_name}.{DB_FILE_EXTENSION}"));
-
-        assert_eq!(file_path, database_file_path(database_name));
-    }
-
-    #[test]
-    fn test_create_databases_dir_if_not_exists() {
+    fn test_create_db_dir_if_not_exists() {
         let base_dir = tempdir().unwrap();
         let new_dir = base_dir.path().join("test");
 
-        assert!(create_databases_dir_if_not_exists(new_dir.as_path()).is_ok());
+        assert!(create_db_dir_if_not_exists(new_dir.as_path()).is_ok());
         assert!(new_dir.is_dir());
 
         base_dir.close().expect("Failed to clean up tempdir before dropping.");

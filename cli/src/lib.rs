@@ -11,6 +11,7 @@ use std::{
 use engine_core::{
     self,
     DatabaseManager,
+    EngineApi,
     db::{
         DataType,
         FormattedDocument,
@@ -71,7 +72,7 @@ pub fn run(config: Config) {
     loop {
         let mut connected_database_name: String = NO_CONNECTED_DATABASE.to_string();
 
-        refresh_connected_database(engine.database_manager(), &mut connected_database);
+        refresh_connected_database(engine.api().db_manager(), &mut connected_database);
 
         if let Some(name) = &connected_database {
             connected_database_name = format!("Connected database: {}", name);
@@ -132,43 +133,43 @@ pub fn run(config: Config) {
                 display_program_version(config.version, engine.version());
             },
             "/databases" => {
-                list_all_databases(engine.database_manager());
+                list_all_databases(engine.api().db_manager());
             },
             "/create db" => {
-                create_database_menu(engine.database_manager());
+                create_database_menu(engine.api());
             },
             "/delete db" => {
-                delete_database_menu(engine.database_manager(), &mut connected_database);
+                delete_database_menu(engine.api().db_manager(), &mut connected_database);
             },
             "/connect db" => {
-                connect_database_menu(engine.database_manager(), &mut connected_database);
+                connect_database_menu(engine.api().db_manager(), &mut connected_database);
             },
             "/change db desc" => {
-                change_database_description_menu(engine.database_manager(), &connected_database)
+                change_database_description_menu(engine.api().db_manager(), &connected_database)
             },
             "/collections" => {
-                list_collections_of_connected_database(engine.database_manager(), &connected_database);
+                list_collections_of_connected_database(engine.api().db_manager(), &connected_database);
             },
             "/create collection" => {
-                create_collection_menu(engine.database_manager(), &connected_database);
+                create_collection_menu(engine.api().db_manager(), &connected_database);
             },
             "/delete collection" => {
-                delete_collection_menu(engine.database_manager(), &connected_database);
+                delete_collection_menu(engine.api().db_manager(), &connected_database);
             },
             "/documents" => {
-                list_documents_of_collection(engine.database_manager(), &connected_database);
+                list_documents_of_collection(engine.api().db_manager(), &connected_database);
             },
             "/get document" => {
-                list_document(engine.database_manager(), &connected_database);
+                list_document(engine.api().db_manager(), &connected_database);
             },
             "/create document" => {
-                create_document_menu(engine.database_manager(), &connected_database);
+                create_document_menu(engine.api().db_manager(), &connected_database);
             },
             "/delete document" => {
-                delete_document_menu(engine.database_manager(), &connected_database);
+                delete_document_menu(engine.api().db_manager(), &connected_database);
             },
             "/create test documents" => {
-                create_test_documents(engine.database_manager(), &connected_database);
+                create_test_documents(engine.api().db_manager(), &connected_database);
             },
             _ => {
                 println!("No such command found!");
@@ -334,15 +335,15 @@ fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
 }
 
 /// Show menu to create a new database.
-fn create_database_menu(database_manager: &DatabaseManager) {
+fn create_database_menu(api: &EngineApi) {
     let database_name = match ask_user_input("Database name:") {
         Ok(database_name) => database_name,
         Err(_) => return,
     };
 
-    match database_manager.create_database(&database_name) {
+    match api.create_db(&database_name) {
         Ok(message) => println!("{}", message),
-        Err(e) => eprintln!("Failed to create database: {e}"),
+        Err(err) => eprintln!("[Error] {}", err),
     }
 }
 

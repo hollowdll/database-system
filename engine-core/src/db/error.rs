@@ -109,13 +109,13 @@ impl Error for ConvertError {}
 /// Example of a database operation failure is when
 /// the system fails to create or delete a database.
 #[derive(Debug)]
-pub struct DatabaseOperationError(String);
+pub struct DatabaseOperationError(pub String);
 
 impl fmt::Display for DatabaseOperationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Database operation failed: {}",
+            "{}",
             self.0
         )
     }
