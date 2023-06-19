@@ -11,10 +11,7 @@ use std::{
 };
 use crate::{
     logging::*,
-    constants::{
-        DB_EVENT_LOG_ERROR,
-        DB_FILE_EXTENSION,
-    },
+    constants::DB_FILE_EXTENSION,
     InputDataField,
     db::{
         self,
@@ -212,44 +209,6 @@ impl DatabaseManager {
         ))
     }
 
-    /// Finds all databases
-    pub fn find_all_databases(&self) -> io::Result<Vec<FormattedDatabase>> {
-        db::create_db_dir_if_not_exists(&self.db_dir_path())?;
-
-        return db::find_all_databases(&self.db_dir_path())
-    }
-
-    /// Finds a database
-    pub fn find_database(&self, database_name: &str) -> io::Result<Option<FormattedDatabase>> {
-        db::create_db_dir_if_not_exists(&self.db_dir_path())?;
-
-        return db::find_database(database_name, &self.db_dir_path())
-    }
-
-    /// Finds all collections of a database
-    pub fn find_all_collections_of_database(
-        &self,
-        database_name: &str,
-    ) -> io::Result<Vec<FormattedDocumentCollection>>
-    {
-        return db::find_all_collections_of_database(
-            &self.db_file_path(database_name)
-        )
-    }
-
-    /// Finds a collection in a database
-    pub fn find_collection(
-        &self,
-        collection_name: &str,
-        database_name: &str,
-    ) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
-    {
-        return db::find_collection(
-            collection_name,
-            &self.db_file_path(database_name)
-        )
-    }
-
     /// Creates a new document to a collection
     pub fn create_document(
         &self,
@@ -302,22 +261,93 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         document_id: &u64,
-    ) -> Result<String, Box<dyn Error>>
+    ) -> Result<String, DatabaseOperationError>
     {
-        db::delete_document(&self.db_file_path(database_name), document_id)?;
-
-        if let Err(e) = Logger::log_event(
-            &format!(
-                "Deleted document with ID '{}' from database '{}'",
-                document_id, database_name
-            ),
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG), 
+        if let Err(err) = db::delete_document(
+            &self.db_file_path(database_name),
+            document_id
         ) {
-            eprintln!("{}: {e}", DB_EVENT_LOG_ERROR);
+            return Err(DatabaseOperationError(format!(
+                "Failed to delete document with ID '{}' from database '{}': {}",
+                document_id,
+                database_name,
+                err
+            )));
         }
 
-        Ok("Deleted document".to_string())
+        Ok(format!(
+            "Deleted document with ID '{}' from database '{}'",
+            document_id,
+            database_name
+        ))
+    }
+
+    /// Finds all databases
+    pub fn find_all_databases(
+        &self,
+    ) -> Result<Vec<FormattedDatabase>, DatabaseOperationError>
+    {
+        if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to find all databases: {}",
+                err
+            )));
+        }
+
+        match db::find_all_databases(&self.db_dir_path()) {
+            Ok(databases) => return Ok(databases),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find all databases: {}",
+                err
+            ))),
+        }
+    }
+
+    /// Finds a database
+    pub fn find_database(
+        &self,
+        database_name: &str,
+    ) -> Result<Option<FormattedDatabase>, DatabaseOperationError>
+    {
+        if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to find all databases: {}",
+                err
+            )));
+        }
+
+        match db::find_database(database_name, &self.db_dir_path()) {
+            Ok(database) => return Ok(database),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find all databases: {}",
+                err
+            ))),
+        }
+    }
+
+
+    /// Finds all collections of a database
+    pub fn find_all_collections_of_database(
+        &self,
+        database_name: &str,
+    ) -> io::Result<Vec<FormattedDocumentCollection>>
+    {
+        return db::find_all_collections_of_database(
+            &self.db_file_path(database_name)
+        )
+    }
+
+    /// Finds a collection in a database
+    pub fn find_collection(
+        &self,
+        collection_name: &str,
+        database_name: &str,
+    ) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
+    {
+        return db::find_collection(
+            collection_name,
+            &self.db_file_path(database_name)
+        )
     }
 
     /// Finds all documents of collection

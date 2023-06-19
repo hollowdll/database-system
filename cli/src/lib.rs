@@ -341,7 +341,7 @@ fn create_database_menu(api: &EngineApi) {
         Err(_) => return,
     };
 
-    match api.create_db(&database_name) {
+    match api.create_database(&database_name) {
         Ok(message) => println!("{}", message),
         Err(err) => eprintln!("[Error] {}", err),
     }
@@ -366,7 +366,7 @@ fn delete_database_menu(
 
     match confirm.as_str() {
         CONFIRM_OPTION_YES => {
-            match api.delete_db(&database_name) {
+            match api.delete_database(&database_name) {
                 Ok(message) => {
                     // Disconnect database if it is connected
                     if let Some(connected_database_name) = connected_database {

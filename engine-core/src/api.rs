@@ -2,7 +2,10 @@
 
 use crate::{
     DatabaseManager,
-    db::error::DatabaseOperationError,
+    db::{
+        error::DatabaseOperationError,
+        FormattedDatabase,
+    },
     InputDataField,
 };
 
@@ -39,7 +42,7 @@ impl EngineApi {
     /// Requests `DatabaseManager` to create a database.
     /// 
     /// Forwards results to the calling client.
-    pub fn create_db(
+    pub fn create_database(
         &self,
         db_name: &str,
     ) -> Result<String, DatabaseOperationError>
@@ -59,7 +62,7 @@ impl EngineApi {
     /// Requests `DatabaseManager` to delete a database.
     /// 
     /// Forwards results to the calling client.
-    pub fn delete_db(
+    pub fn delete_database(
         &self,
         db_name: &str,
     ) -> Result<String, DatabaseOperationError>
@@ -79,7 +82,7 @@ impl EngineApi {
     /// Requests `DatabaseManager` to change the description of a database.
     /// 
     /// Forwards results to the calling client.
-    pub fn change_db_description(
+    pub fn change_database_description(
         &self,
         db_name: &str,
         description: &str,
@@ -165,6 +168,73 @@ impl EngineApi {
         ) {
             Ok(result) => {
                 self.db_manager().log_event(&result);
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
+    /// Requests `DatabaseManager` to delete a document.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn delete_document(
+        &self,
+        db_name: &str,
+        document_id: &u64,
+    ) -> Result<String, DatabaseOperationError>
+    {
+        match self.db_manager().delete_document(
+            db_name,
+            document_id
+        ) {
+            Ok(result) => {
+                self.db_manager().log_event(&result);
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
+    /// Requests `DatabaseManager` to find all databases.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_all_databases(
+        &self,
+    ) -> Result<Vec<FormattedDatabase>, DatabaseOperationError>
+    {
+        match self.db_manager().find_all_databases() {
+            Ok(result) => {
+                let message = "Fetched all databases";
+                self.db_manager().log_event(message);
+                
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
+    /// Requests `DatabaseManager` to find a database.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_database(
+        &self,
+        db_name: &str,
+    ) -> Result<Option<FormattedDatabase>, DatabaseOperationError>
+    {
+        match self.db_manager().find_database(db_name) {
+            Ok(result) => {
+                let message = format!("Fetched database '{}'", db_name);
+                self.db_manager().log_event(&message);
+
                 return Ok(result)
             },
             Err(err) => {
