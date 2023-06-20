@@ -5,6 +5,8 @@ use crate::{
     db::{
         error::DatabaseOperationError,
         FormattedDatabase,
+        FormattedDocumentCollection,
+        FormattedDocument,
     },
     InputDataField,
 };
@@ -235,6 +237,58 @@ impl EngineApi {
                 let message = format!("Fetched database '{}'", db_name);
                 self.db_manager().log_event(&message);
 
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
+    /// Requests `DatabaseManager` to find all collections from a database.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_all_collections(
+        &self,
+        db_name: &str,
+    ) -> Result<Vec<FormattedDocumentCollection>, DatabaseOperationError>
+    {
+        match self.db_manager().find_all_collections(db_name) {
+            Ok(result) => {
+                let message = format!(
+                    "Fetched all collections from database '{}'",
+                    db_name
+                );
+                self.db_manager().log_event(&message);
+                
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
+    /// Requests `DatabaseManager` to find a collection from a database.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_collection(
+        &self,
+        collection_name: &str,
+        db_name: &str,
+    ) -> Result<Option<FormattedDocumentCollection>, DatabaseOperationError>
+    {
+        match self.db_manager().find_collection(collection_name, db_name) {
+            Ok(result) => {
+                let message = format!(
+                    "Fetched collection '{}' from database '{}'",
+                    collection_name,
+                    db_name
+                );
+                self.db_manager().log_event(&message);
+                
                 return Ok(result)
             },
             Err(err) => {

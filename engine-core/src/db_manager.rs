@@ -164,7 +164,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, DatabaseOperationError>
     {
-        if let Err(err) = db::create_collection_to_database_file(
+        if let Err(err) = db::create_collection_to_db_file(
             collection_name,
             &self.db_file_path(database_name)
         ) {
@@ -190,7 +190,7 @@ impl DatabaseManager {
         database_name: &str,
     ) -> Result<String, DatabaseOperationError>
     {
-        if let Err(err) = db::delete_collection_from_database_file(
+        if let Err(err) = db::delete_collection_from_db_file(
             collection_name,
             &self.db_file_path(database_name)
         ) {
@@ -236,7 +236,7 @@ impl DatabaseManager {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        if let Err(err) = db::create_document_to_collection(
+        if let Err(err) = db::create_document(
             &self.db_file_path(database_name),
             collection_name,
             document_data
@@ -282,7 +282,7 @@ impl DatabaseManager {
         ))
     }
 
-    /// Finds all databases
+    /// Finds all databases.
     pub fn find_all_databases(
         &self,
     ) -> Result<Vec<FormattedDatabase>, DatabaseOperationError>
@@ -303,7 +303,7 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds a database
+    /// Finds a database.
     pub fn find_database(
         &self,
         database_name: &str,
@@ -325,39 +325,53 @@ impl DatabaseManager {
         }
     }
 
-
-    /// Finds all collections of a database
-    pub fn find_all_collections_of_database(
+    /// Finds all collections from a database.
+    pub fn find_all_collections(
         &self,
         database_name: &str,
-    ) -> io::Result<Vec<FormattedDocumentCollection>>
+    ) -> Result<Vec<FormattedDocumentCollection>, DatabaseOperationError>
     {
-        return db::find_all_collections_of_database(
+        match db::find_all_collections_from_db_file(
             &self.db_file_path(database_name)
-        )
+        ) {
+            Ok(collections) => return Ok(collections),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find all collections of database '{}': {}",
+                database_name,
+                err
+            ))),
+        }
     }
 
-    /// Finds a collection in a database
+    /// Finds a collection from a database.
     pub fn find_collection(
         &self,
         collection_name: &str,
         database_name: &str,
-    ) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
+    ) -> Result<Option<FormattedDocumentCollection>, DatabaseOperationError>
     {
-        return db::find_collection(
+        match db::find_collection_from_db_file(
             collection_name,
             &self.db_file_path(database_name)
-        )
+        ) {
+            Ok(collection) => return Ok(collection),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find collection '{}' from database '{}': {}",
+                collection_name,
+                database_name,
+                err
+            ))),
+        }
     }
 
-    /// Finds all documents of collection
-    pub fn find_all_documents_of_collection(
+    /// Finds all documents from collection.
+    pub fn find_all_documents(
         &self,
         database_name: &str,
         collection_name: &str,
     ) -> io::Result<Vec<FormattedDocument>>
     {
-        return db::find_all_documents_of_collection(
+        return db::find_all_documents_from_collection(
             &self.db_file_path(database_name),
             collection_name
         )

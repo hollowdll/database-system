@@ -75,7 +75,7 @@ impl FormattedDocumentCollection {
 
 
 /// Writes a new collection to a database file.
-pub fn create_collection_to_database_file(
+pub fn create_collection_to_db_file(
     collection_name: &str,
     file_path: &Path,
 ) -> Result<(), Box<dyn Error>>
@@ -104,7 +104,7 @@ pub fn create_collection_to_database_file(
 }
 
 /// Deletes a collection from a database file.
-pub fn delete_collection_from_database_file(
+pub fn delete_collection_from_db_file(
     collection_name: &str,
     file_path: &Path
 ) -> Result<(), Box<dyn Error>>
@@ -138,8 +138,8 @@ pub fn delete_collection_from_database_file(
     }
 }
 
-/// Finds all collections of a database.
-pub fn find_all_collections_of_database(
+/// Finds all collections from a database file.
+pub fn find_all_collections_from_db_file(
     file_path: &Path
 ) -> io::Result<Vec<FormattedDocumentCollection>>
 {
@@ -161,8 +161,8 @@ pub fn find_all_collections_of_database(
     Ok(collections)
 }
 
-/// Finds a collection in a database file.
-pub fn find_collection(
+/// Finds a collection from a database file.
+pub fn find_collection_from_db_file(
     collection_name: &str,
     file_path: &Path
 ) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
@@ -210,7 +210,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write(json.as_bytes()).is_ok());
-        assert!(create_collection_to_database_file(
+        assert!(create_collection_to_db_file(
             collection_name,
             file_path.as_path()
         ).is_ok());
@@ -236,7 +236,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write(json.as_bytes()).is_ok());
-        assert!(delete_collection_from_database_file(
+        assert!(delete_collection_from_db_file(
             collection_name,
             file_path.as_path()
         ).is_ok());
@@ -260,7 +260,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
         assert!(file.write(json.as_bytes()).is_ok());
 
-        let collections = find_all_collections_of_database(&file_path).unwrap();
+        let collections = find_all_collections_from_db_file(&file_path).unwrap();
         assert_eq!(
             collections.get(0),
             Some(&FormattedDocumentCollection::from(collection_name))
@@ -283,7 +283,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
         assert!(file.write(json.as_bytes()).is_ok());
 
-        let collection = find_collection(collection_name, &file_path).unwrap();
+        let collection = find_collection_from_db_file(collection_name, &file_path).unwrap();
         assert!(collection.is_some());
         assert_eq!(collection.unwrap().name(), collection_name);
 

@@ -507,7 +507,7 @@ fn list_collections_of_connected_database(
     }
 
     // find all collections and list them
-    let collections = match database_manager.find_all_collections_of_database(connected_database_name) {
+    let collections = match database_manager.find_all_collections(connected_database_name) {
         Ok(collections) => collections,
         Err(e) => return eprintln!("Error occurred: {e}"),
     };
@@ -625,7 +625,7 @@ fn list_documents_of_collection(
         return;
     }
 
-    let documents = match database_manager.find_all_documents_of_collection(
+    let documents = match database_manager.find_all_documents(
         connected_database_name,
         &collection_name,
     ) {

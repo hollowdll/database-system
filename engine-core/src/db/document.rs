@@ -130,7 +130,7 @@ impl fmt::Display for DataType {
 
 
 /// Creates a document to a collection
-pub fn create_document_to_collection(
+pub fn create_document(
     file_path: &Path,
     collection_name: &str, 
     data: HashMap<String, DataType>,
@@ -258,8 +258,8 @@ pub fn delete_document(
     }
 }
 
-/// Finds all documents of a collection
-pub fn find_all_documents_of_collection(
+/// Finds all documents from a collection
+pub fn find_all_documents_from_collection(
     file_path: &Path,
     collection_name: &str
 ) -> io::Result<Vec<FormattedDocument>>
@@ -370,7 +370,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write(json.as_bytes()).is_ok());
-        assert!(create_document_to_collection(
+        assert!(create_document(
             &file_path,
             collection_name,
             data
@@ -444,7 +444,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
         assert!(file.write(json.as_bytes()).is_ok());
 
-        let documents = find_all_documents_of_collection(
+        let documents = find_all_documents_from_collection(
             &file_path,
             collection_name
         ).unwrap();
