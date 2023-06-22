@@ -72,7 +72,7 @@ pub fn run(config: Config) {
     loop {
         let mut connected_database_name: String = NO_CONNECTED_DATABASE.to_string();
 
-        refresh_connected_database(engine.api().db_manager(), &mut connected_database);
+        refresh_connected_database(engine.api(), &mut connected_database);
 
         if let Some(name) = &connected_database {
             connected_database_name = format!("Connected database: {}", name);
@@ -133,7 +133,7 @@ pub fn run(config: Config) {
                 display_program_version(config.version, engine.version());
             },
             "/databases" => {
-                list_all_databases(engine.api().db_manager());
+                list_all_databases(engine.api());
             },
             "/create db" => {
                 create_database_menu(engine.api());
@@ -142,34 +142,34 @@ pub fn run(config: Config) {
                 delete_database_menu(engine.api(), &mut connected_database);
             },
             "/connect db" => {
-                connect_database_menu(engine.api().db_manager(), &mut connected_database);
+                connect_database_menu(engine.api(), &mut connected_database);
             },
             "/change db desc" => {
-                change_database_description_menu(engine.api().db_manager(), &connected_database)
+                change_database_description_menu(engine.api(), &connected_database)
             },
             "/collections" => {
-                list_collections_of_connected_database(engine.api().db_manager(), &connected_database);
+                list_collections_of_connected_database(engine.api(), &connected_database);
             },
             "/create collection" => {
-                create_collection_menu(engine.api().db_manager(), &connected_database);
+                create_collection_menu(engine.api(), &connected_database);
             },
             "/delete collection" => {
-                delete_collection_menu(engine.api().db_manager(), &connected_database);
+                delete_collection_menu(engine.api(), &connected_database);
             },
             "/documents" => {
-                list_documents_of_collection(engine.api().db_manager(), &connected_database);
+                list_documents_of_collection(engine.api(), &connected_database);
             },
             "/get document" => {
-                list_document(engine.api().db_manager(), &connected_database);
+                list_document(engine.api(), &connected_database);
             },
             "/create document" => {
-                create_document_menu(engine.api().db_manager(), &connected_database);
+                create_document_menu(engine.api(), &connected_database);
             },
             "/delete document" => {
-                delete_document_menu(engine.api().db_manager(), &connected_database);
+                delete_document_menu(engine.api(), &connected_database);
             },
             "/create test documents" => {
-                create_test_documents(engine.api().db_manager(), &connected_database);
+                create_test_documents(engine.api(), &connected_database);
             },
             _ => {
                 println!("No such command found!");
@@ -221,7 +221,7 @@ fn display_formatted_document(document: &FormattedDocument) {
 
 /// If connected database doesn't exists anymore, reset it to `None`.
 fn refresh_connected_database(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &mut Option<String>
 ) {
     let connected_database_name = match connected_database {
@@ -229,23 +229,23 @@ fn refresh_connected_database(
         None => return,
     };
 
-    match database_manager.find_database(connected_database_name) {
+    match api.find_database(connected_database_name) {
         Ok(result) => {
             if result.is_none() {
                 connected_database.take();   
             }
         },
-        Err(e) => eprintln!("Error occurred while trying to find connected database: {e}"),
+        Err(e) => eprintln!("[Error] {e}"),
     }
 }
 
 /// Checks if connected database exists.
 fn database_exists(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database_name: &str,
 ) -> bool
 {
-    match database_manager.find_database(connected_database_name) {
+    match api.find_database(connected_database_name) {
         Ok(result) => {
             if result.is_none() {
                 println!("Cannot find database '{connected_database_name}'");
@@ -253,7 +253,7 @@ fn database_exists(
             }
         },
         Err(e) => {
-            eprintln!("Error occurred while trying to find connected database: {e}");
+            eprintln!("[Error] {e}");
             return false;
         },
     }
@@ -263,12 +263,12 @@ fn database_exists(
 
 /// Checks if collection exists.
 fn collection_exists(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     collection_name: &str,
     connected_database_name: &str,
 ) -> bool
 {
-    match database_manager.find_collection(collection_name, connected_database_name) {
+    match api.find_collection(collection_name, connected_database_name) {
         Ok(result) => {
             if result.is_none() {
                 println!("Cannot find collection '{collection_name}'");
@@ -276,7 +276,7 @@ fn collection_exists(
             }
         },
         Err(e) => {
-            eprintln!("Error occurred while trying to find collection: {e}");
+            eprintln!("[Error] {e}");
             return false;
         },
     }
@@ -385,7 +385,7 @@ fn delete_database_menu(
 
 /// Show menu to connect to a database.
 fn connect_database_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &mut Option<String>
 ) {
     let database_name = match ask_user_input("Database name:") {
@@ -393,24 +393,24 @@ fn connect_database_menu(
         Err(_) => return,
     };
 
-    match database_manager.find_database(&database_name) {
+    match api.find_database(&database_name) {
         Ok(result) => {
             if result.is_some() {
                 connected_database.replace(database_name);
                 println!("Connected to database");
             } else {
-                println!("Failed to connect to database. It might not exist.");
+                println!("Failed to connect to database. Database does not exist.");
             }
         },
-        Err(e) => eprintln!("Error occurred: {e}"),
+        Err(e) => eprintln!("[Error] {e}"),
     }
 }
 
 /// List all databases and display information about them.
-fn list_all_databases(database_manager: &DatabaseManager) {
-    let databases = match database_manager.find_all_databases() {
+fn list_all_databases(api: &EngineApi) {
+    let databases = match api.find_all_databases() {
         Ok(databases) => databases,
-        Err(e) => return eprintln!("Error occurred while trying to find databases: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     };
 
     println!("\nNumber of databases: {}", databases.len());
@@ -431,7 +431,7 @@ fn list_all_databases(database_manager: &DatabaseManager) {
 /// Show menu to create a new collection
 /// to the connected database
 fn create_collection_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>
 ) {
     let connected_database_name = match connected_database {
@@ -444,20 +444,20 @@ fn create_collection_menu(
         Err(_) => return,
     };
 
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
 
-    match database_manager.create_collection(&collection_name, connected_database_name) {
+    match api.create_collection(&collection_name, connected_database_name) {
         Ok(message) => println!("{message}"),
-        Err(e) => return eprintln!("Error occurred: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     }
 }
 
 /// Show menu to delete a collection
 /// from the connected database
 fn delete_collection_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>
 ) {
     let connected_database_name = match connected_database {
@@ -479,12 +479,12 @@ fn delete_collection_menu(
 
     match confirm.as_str() {
         CONFIRM_OPTION_YES => {
-            if !database_exists(database_manager, connected_database_name) {
+            if !database_exists(api, connected_database_name) {
                 return;
             }
-            match database_manager.delete_collection(&collection_name, connected_database_name) {
+            match api.delete_collection(&collection_name, connected_database_name) {
                 Ok(message) => println!("{message}"),
-                Err(e) => return eprintln!("Error occurred: {e}"),
+                Err(e) => return eprintln!("[Error] {e}"),
             }
         },
         _ => return println!("Canceled collection deletion"),
@@ -494,7 +494,7 @@ fn delete_collection_menu(
 
 /// List all collections of the connected database
 fn list_collections_of_connected_database(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -502,14 +502,14 @@ fn list_collections_of_connected_database(
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
 
     // find all collections and list them
-    let collections = match database_manager.find_all_collections(connected_database_name) {
+    let collections = match api.find_all_collections(connected_database_name) {
         Ok(collections) => collections,
-        Err(e) => return eprintln!("Error occurred: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     };
 
     println!("\nNumber of collections: {}", collections.len());
@@ -521,7 +521,7 @@ fn list_collections_of_connected_database(
 
 /// Show menu to change database description
 fn change_database_description_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -534,20 +534,20 @@ fn change_database_description_menu(
         Err(_) => return,
     };
 
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
 
     // Change description of connected database
-    match database_manager.change_database_description(connected_database_name, &description) {
+    match api.change_database_description(connected_database_name, &description) {
         Ok(message) => println!("{message}"),
-        Err(e) => return eprintln!("Error occurred: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     }
 }
 
 /// Show menu to create a new document to a collection
 fn create_document_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -560,7 +560,7 @@ fn create_document_menu(
         Err(_) => return,
     };
 
-    if !collection_exists(database_manager, &collection_name, connected_database_name) {
+    if !collection_exists(api, &collection_name, connected_database_name) {
         return;
     }
 
@@ -594,19 +594,19 @@ fn create_document_menu(
         }
     }
 
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
 
-    match database_manager.create_document(connected_database_name, &collection_name, data) {
+    match api.create_document(connected_database_name, &collection_name, data) {
         Ok(message) => println!("{message}"),
-        Err(e) => return eprintln!("Error occurred: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     }
 }
 
 /// List all documents of a collection
 fn list_documents_of_collection(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -618,19 +618,19 @@ fn list_documents_of_collection(
         Err(_) => return,
     };
 
-    if !collection_exists(database_manager, &collection_name, connected_database_name) {
+    if !collection_exists(api, &collection_name, connected_database_name) {
         return;
     }
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
 
-    let documents = match database_manager.find_all_documents(
+    let documents = match api.find_all_documents(
         connected_database_name,
         &collection_name,
     ) {
         Ok(documents) => documents,
-        Err(e) => return eprintln!("Error occurred: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     };
 
     println!("\nNumber of documents: {}", documents.len());
@@ -642,7 +642,7 @@ fn list_documents_of_collection(
 
 /// Lists document of a database
 fn list_document(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -658,16 +658,16 @@ fn list_document(
         Err(e) => return eprintln!("Invalid document ID: {e}"),
     };
 
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
 
-    let result = match database_manager.find_document_by_id(
+    let result = match api.find_document_by_id(
         &document_id,
         connected_database_name
     ) {
         Ok(result) => result,
-        Err(e) => return eprintln!("Error occurred: {e}"),
+        Err(e) => return eprintln!("[Error] {e}"),
     };
 
     match result {
@@ -681,7 +681,7 @@ fn list_document(
 
 /// Show menu to delete a document
 fn delete_document_menu(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -707,12 +707,12 @@ fn delete_document_menu(
 
     match confirm.as_str() {
         CONFIRM_OPTION_YES => {
-            if !database_exists(database_manager, connected_database_name) {
+            if !database_exists(api, connected_database_name) {
                 return;
             }
-            match database_manager.delete_document(connected_database_name, &document_id) {
+            match api.delete_document(connected_database_name, &document_id) {
                 Ok(message) => println!("{message}"),
-                Err(e) => return eprintln!("Error occurred: {e}"),
+                Err(e) => return eprintln!("[Error] {e}"),
             }
         },
         _ => return println!("Canceled document deletion"),
@@ -721,7 +721,7 @@ fn delete_document_menu(
 
 /// Creates test documents to a collection
 fn create_test_documents(
-    database_manager: &DatabaseManager,
+    api: &EngineApi,
     connected_database: &Option<String>,
 ) {
     let connected_database_name = match connected_database {
@@ -734,11 +734,11 @@ fn create_test_documents(
         Err(_) => return,
     };
 
-    if !collection_exists(database_manager, &collection_name, connected_database_name) {
+    if !collection_exists(api, &collection_name, connected_database_name) {
         return;
     }
     
-    if !database_exists(database_manager, connected_database_name) {
+    if !database_exists(api, connected_database_name) {
         return;
     }
     
@@ -750,9 +750,9 @@ fn create_test_documents(
 
         data.push(InputDataField::from(&field, data_type, &value));
 
-        match database_manager.create_document(connected_database_name, &collection_name, data) {
+        match api.create_document(connected_database_name, &collection_name, data) {
             Ok(message) => println!("{message}"),
-            Err(e) => eprintln!("Error occurred: {e}"),
+            Err(e) => eprintln!("[Error] {e}"),
         }
     }
 }

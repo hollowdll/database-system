@@ -219,7 +219,7 @@ pub fn delete_document_from_collection(
 }
 */
 
-/// Deletes a document from database by document id.
+/// Deletes a document from a database by document id.
 /// 
 /// Goes through all collections until id is found.
 pub fn delete_document(
@@ -288,7 +288,7 @@ pub fn find_all_documents_from_collection(
     Ok(documents)
 }
 
-/// Finds a document from a database by its id.
+/// Finds a document from a database by document id.
 /// 
 /// Returns the document if it was found.
 pub fn find_document_by_id(

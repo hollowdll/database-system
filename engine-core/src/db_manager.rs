@@ -1,13 +1,11 @@
 // This file contains database manager related code
 
 use std::{
-    io,
     collections::HashMap,
     path::{
         Path,
         PathBuf,
     },
-    error::Error,
 };
 use crate::{
     logging::*,
@@ -369,12 +367,20 @@ impl DatabaseManager {
         &self,
         database_name: &str,
         collection_name: &str,
-    ) -> io::Result<Vec<FormattedDocument>>
+    ) -> Result<Vec<FormattedDocument>, DatabaseOperationError>
     {
-        return db::find_all_documents_from_collection(
+        match db::find_all_documents_from_collection(
             &self.db_file_path(database_name),
             collection_name
-        )
+        ) {
+            Ok(document) => return Ok(document),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find all documents from collection '{}' in database '{}': {}",
+                collection_name,
+                database_name,
+                err
+            ))),
+        }
     }
 
     /// Finds a document from a database by its id.
@@ -382,11 +388,19 @@ impl DatabaseManager {
         &self,
         document_id: &u64,
         database_name: &str,
-    ) -> Result<Option<FormattedDocument>, Box<dyn Error>>
+    ) -> Result<Option<FormattedDocument>, DatabaseOperationError>
     {
-        return db::find_document_by_id(
+        match db::find_document_by_id(
             document_id,
             &self.db_file_path(database_name)
-        )
+        ) {
+            Ok(document) => return Ok(document),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find document with ID '{}' from database '{}': {}",
+                document_id,
+                database_name,
+                err
+            ))),
+        }
     }
 }

@@ -297,5 +297,59 @@ impl EngineApi {
             }
         }
     }
+
+    /// Requests `DatabaseManager` to find all documents from a collection.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_all_documents(
+        &self,
+        collection_name: &str,
+        db_name: &str,
+    ) -> Result<Vec<FormattedDocument>, DatabaseOperationError>
+    {
+        match self.db_manager().find_all_documents(db_name, collection_name) {
+            Ok(result) => {
+                let message = format!(
+                    "Fetched all documents from collection '{}' in database '{}'",
+                    collection_name,
+                    db_name
+                );
+                self.db_manager().log_event(&message);
+                
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
+    /// Requests `DatabaseManager` to find a document from a database by document id.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_document_by_id(
+        &self,
+        document_id: &u64,
+        db_name: &str,
+    ) -> Result<Option<FormattedDocument>, DatabaseOperationError>
+    {
+        match self.db_manager().find_document_by_id(document_id, db_name) {
+            Ok(result) => {
+                let message = format!(
+                    "Fetched document with ID '{}' from database '{}'",
+                    document_id,
+                    db_name
+                );
+                self.db_manager().log_event(&message);
+                
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
 }
 
