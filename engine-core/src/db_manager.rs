@@ -55,10 +55,8 @@ impl DatabaseManager {
 
     /// Gets database file path.
     fn db_file_path(&self, db_name: &str) -> PathBuf {
-        let mut path = PathBuf::from(&self.db_dir_path().join(db_name));
-        path.set_extension(DB_FILE_EXTENSION);
-
-        return path
+        PathBuf::from(&self.db_dir_path()
+            .join(format!("{}.{}", db_name, DB_FILE_EXTENSION)))
     }
 
     /// Attempts to log events with configured logs directory to log file.

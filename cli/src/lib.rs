@@ -10,7 +10,6 @@ use std::{
 };
 use engine_core::{
     self,
-    DatabaseManager,
     EngineApi,
     db::{
         DataType,
