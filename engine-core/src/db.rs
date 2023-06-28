@@ -26,6 +26,13 @@ pub use crate::db::{
     document::*,
 };
 use self::error::DatabaseError;
+use prost::Message;
+
+/// This module contains Protocol Buffers types.
+pub mod pb {
+    // Include generated Rust code from compiled .proto files.
+    include!(concat!(env!("OUT_DIR"), "/pb.rs"));
+}
 
 /// Creates databases directory if it doesn't exist
 pub fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
