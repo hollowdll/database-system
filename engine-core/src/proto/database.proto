@@ -16,15 +16,16 @@ message Collection {
 }
 
 message Document {
-    enum DataType {
-        DOCUMENTID = 0;
-        INT32 = 1;
-        INT64 = 2;
-        DECIMAL = 3;
-        BOOL = 4;
-        TEXT = 5;
+    message DataType {
+        oneof DataType {
+            int32 int32 = 1;
+            int64 int64 = 2;
+            double decimal = 3;
+            bool bool = 4;
+            string text = 5;
+        }
     }
 
-    DataType id = 1;
+    uint64 id = 1;
     map<string, DataType> data = 2;
 }
