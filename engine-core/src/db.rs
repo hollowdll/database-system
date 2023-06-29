@@ -3,14 +3,23 @@
 
 #![allow(unused)]
 
+pub mod database_pb;
+pub mod collection_pb;
+pub mod document_pb;
 pub mod database;
 pub mod collection;
 pub mod document;
 pub mod error;
 
+/// This module contains Protocol Buffers types.
+pub mod pb {
+    // Include generated code from compiled .proto files.
+    include!(concat!(env!("OUT_DIR"), "/pb.rs"));
+}
+
 use std::{
     fs::{self, OpenOptions},
-    io::{self, Write},
+    io::{self, Write, Cursor},
     path::{
         Path,
         PathBuf,
@@ -26,13 +35,11 @@ pub use crate::db::{
     document::*,
 };
 use self::error::DatabaseError;
-use prost::Message;
-
-/// This module contains Protocol Buffers types.
-pub mod pb {
-    // Include generated Rust code from compiled .proto files.
-    include!(concat!(env!("OUT_DIR"), "/pb.rs"));
-}
+use prost::{
+    Message,
+    EncodeError,
+    DecodeError,
+};
 
 /// Creates databases directory if it doesn't exist
 pub fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
@@ -52,6 +59,33 @@ fn write_database_json(database: &Database, file_path: &Path) -> io::Result<()> 
         .open(file_path)?;
 
     file.write(json.as_bytes())?;
+
+    Ok(())
+}
+
+/// Serializes database to a buffer.
+/// The buffer can be used to write the database to a file.
+fn serialize_database(database: &pb::Database) -> Result<Vec<u8>, EncodeError> {
+    let mut buf = Vec::new();
+    buf.reserve(database.encoded_len());
+    database.encode(&mut buf)?;
+
+    return Ok(buf)
+}
+
+/// Deserializes database from a buffer.
+fn deserialize_database(buf: &[u8]) -> Result<pb::Database, DecodeError> {
+    pb::Database::decode(&mut Cursor::new(buf))
+}
+
+/// Writes database buffer to a file.
+fn write_database_to_file(buf: &[u8], file_path: &Path) -> io::Result<()> {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .truncate(true)
+        .open(file_path)?;
+
+    file.write(buf)?;
 
     Ok(())
 }
