@@ -25,10 +25,6 @@ use std::{
         PathBuf,
     },
 };
-use crate::constants::{
-    DB_DIR_PATH,
-    DB_FILE_EXTENSION,
-};
 pub use crate::db::{
     database::*,
     collection::*,
@@ -40,6 +36,9 @@ use prost::{
     EncodeError,
     DecodeError,
 };
+
+/// Database file extension.
+pub const DB_FILE_EXTENSION: &str = "json";
 
 /// Creates databases directory if it doesn't exist
 pub fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
@@ -70,7 +69,7 @@ fn serialize_database(database: &pb::Database) -> Result<Vec<u8>, EncodeError> {
     buf.reserve(database.encoded_len());
     database.encode(&mut buf)?;
 
-    return Ok(buf)
+    Ok(buf)
 }
 
 /// Deserializes database from a buffer.

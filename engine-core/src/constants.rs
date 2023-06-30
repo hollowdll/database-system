@@ -10,4 +10,4 @@ pub const DOCUMENT_NOT_FOUND: &str = "Document was not found";
 pub const DB_DIR_PATH: &str = "./databases";
 
 // Database file extension
-pub const DB_FILE_EXTENSION: &str = "json";
+// pub const DB_FILE_EXTENSION: &str = "json";

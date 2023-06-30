@@ -9,7 +9,6 @@ use std::{
 };
 use crate::{
     logging::*,
-    constants::DB_FILE_EXTENSION,
     InputDataField,
     db::{
         self,
@@ -18,6 +17,7 @@ use crate::{
         FormattedDocumentCollection,
         FormattedDocument,
         error::DatabaseOperationError,
+        DB_FILE_EXTENSION,
     },
 };
 

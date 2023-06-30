@@ -13,12 +13,12 @@ use crate::db::{
     Database,
     Document,
     write_database_json,
+    DB_FILE_EXTENSION,
 };
 use crate::constants::{
     DB_NOT_FOUND,
     COLLECTION_NOT_FOUND,
     DB_DIR_PATH,
-    DB_FILE_EXTENSION,
 };
 
 /// Database document collection

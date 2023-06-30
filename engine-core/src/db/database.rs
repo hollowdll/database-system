@@ -10,11 +10,11 @@ use crate::{
         error::DatabaseError,
         DocumentCollection,
         write_database_json,
+        DB_FILE_EXTENSION,
     },
     constants::{
         DB_NOT_FOUND,
         DB_EXISTS,
-        DB_FILE_EXTENSION,
         DB_DIR_PATH,
     },
 };
