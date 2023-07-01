@@ -173,7 +173,7 @@ fn write_log_file(file_path: &Path, content: &str) -> io::Result<()> {
         .append(true)
         .open(file_path)?;
 
-    file.write(content.as_bytes())?;
+    file.write_all(content.as_bytes())?;
 
     Ok(())
 }

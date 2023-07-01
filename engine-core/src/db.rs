@@ -57,7 +57,7 @@ fn write_database_json(database: &Database, file_path: &Path) -> io::Result<()> 
         .truncate(true)
         .open(file_path)?;
 
-    file.write(json.as_bytes())?;
+    file.write_all(json.as_bytes())?;
 
     Ok(())
 }
@@ -84,7 +84,7 @@ fn write_database_to_file(buf: &[u8], file_path: &Path) -> io::Result<()> {
         .truncate(true)
         .open(file_path)?;
 
-    file.write(buf)?;
+    file.write_all(buf)?;
 
     Ok(())
 }
