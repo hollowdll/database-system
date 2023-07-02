@@ -15,6 +15,7 @@ use crate::db::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
+    FormattedDocumentCollection,
     DB_FILE_EXTENSION,
 };
 
@@ -75,4 +76,87 @@ pub fn create_collection_to_db_file(
         Ok(()) => return Ok(()),
         Err(e) => return Err(e.into()),
     }
+}
+
+/// Deletes a collection from a database.
+/// 
+/// Writes the modified database to a file.
+pub fn delete_collection_from_db_file(
+    collection_name: &str,
+    file_path: &Path
+) -> Result<(), Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let mut found = false;
+
+    if collection_exists(&database, collection_name) {
+        found = true;
+    }
+
+    if !found {
+        return Err(Box::new(CollectionError::NotFound));
+    }
+
+    database
+        .collections_mut()
+        .retain(|collection| collection.name() != collection_name);
+    let buf = serialize_database(&database)?;
+
+    match write_database_to_file(&buf, file_path) {
+        Ok(()) => return Ok(()),
+        Err(e) => return Err(e.into()),
+    }
+}
+
+/// Finds all collections from a database file.
+/// 
+/// Returns the found collections.
+pub fn find_all_collections_from_db_file(
+    file_path: &Path
+) -> Result<Vec<FormattedDocumentCollection>, Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+
+    let mut collections = Vec::new();
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    for collection in database.collections() {
+        let formatted_collection = FormattedDocumentCollection::from(
+            collection.name()
+        );
+        
+        collections.push(formatted_collection);
+    }
+    
+    Ok(collections)
+}
+
+/// Finds a collection from a database file.
+/// 
+/// Returns the found collection.
+pub fn find_collection_from_db_file(
+    collection_name: &str,
+    file_path: &Path
+) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    if collection_exists(&database, collection_name) {
+        let formatted_collection = FormattedDocumentCollection::from(
+            collection_name
+        );
+
+        return Ok(Some(formatted_collection));
+    }
+
+    Ok(None)
 }
