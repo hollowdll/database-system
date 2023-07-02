@@ -15,7 +15,6 @@ use crate::db::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-    FormattedDocumentCollection,
     DB_FILE_EXTENSION,
 };
 
@@ -41,6 +40,30 @@ impl From<&str> for pb::Collection {
         }
     }
 }
+
+/// Collection data transfer object (DTO).
+/// 
+/// Exposes collection data that clients can use.
+#[derive(Debug, PartialEq)]
+pub struct CollectionDto {
+    name: String,
+}
+
+impl CollectionDto {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
+impl From<&str> for CollectionDto {
+    fn from(name: &str) -> Self {
+        Self {
+            name: String::from(name),
+        }
+    }
+}
+
+
 
 /// Checks if a collection exists in a database.
 fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
@@ -117,7 +140,7 @@ pub fn delete_collection_from_db_file(
 /// Returns the found collections.
 pub fn find_all_collections_from_db_file(
     file_path: &Path
-) -> Result<Vec<FormattedDocumentCollection>, Box<dyn Error>>
+) -> Result<Vec<CollectionDto>, Box<dyn Error>>
 {
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
@@ -127,11 +150,11 @@ pub fn find_all_collections_from_db_file(
     let mut database = deserialize_database(&fs::read(file_path)?)?;
 
     for collection in database.collections() {
-        let formatted_collection = FormattedDocumentCollection::from(
+        let collection_dto = CollectionDto::from(
             collection.name()
         );
         
-        collections.push(formatted_collection);
+        collections.push(collection_dto);
     }
     
     Ok(collections)
@@ -143,7 +166,7 @@ pub fn find_all_collections_from_db_file(
 pub fn find_collection_from_db_file(
     collection_name: &str,
     file_path: &Path
-) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
+) -> Result<Option<CollectionDto>, Box<dyn Error>>
 {
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
@@ -151,11 +174,11 @@ pub fn find_collection_from_db_file(
 
     let mut database = deserialize_database(&fs::read(file_path)?)?;
     if collection_exists(&database, collection_name) {
-        let formatted_collection = FormattedDocumentCollection::from(
+        let collection_dto = CollectionDto::from(
             collection_name
         );
 
-        return Ok(Some(formatted_collection));
+        return Ok(Some(collection_dto));
     }
 
     Ok(None)

@@ -12,7 +12,6 @@ use crate::db::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-    FormattedDatabase,
     DB_FILE_EXTENSION,
 };
 
@@ -59,6 +58,44 @@ impl From<(&str, &str)> for pb::Database {
         }
     }
 }
+
+/// Database data transfer object (DTO).
+/// 
+/// Exposes database data than clients can use.
+/// 
+/// `size` = database file size in bytes.
+#[derive(Debug, PartialEq)]
+pub struct DatabaseDto {
+    name: String,
+    description: String,
+    size: u64,
+}
+
+impl DatabaseDto {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn description(&self) -> &str {
+        &self.description
+    }
+
+    pub fn size(&self) -> &u64 {
+        &self.size
+    }
+}
+
+impl From<(String, String, u64)> for DatabaseDto {
+    fn from((name, description, size): (String, String, u64)) -> Self {
+        Self {
+            name,
+            description,
+            size,
+        }
+    }
+}
+
+
 
 /// Creates a database file and writes initial data to it.
 pub fn create_database_file(
@@ -116,7 +153,7 @@ pub fn change_database_description(
 /// Finds all databases from a directory.
 pub fn find_all_databases(
     dir_path: &Path
-) -> io::Result<Vec<FormattedDatabase>>
+) -> io::Result<Vec<DatabaseDto>>
 {
     let mut databases = Vec::new();
 
@@ -136,13 +173,13 @@ pub fn find_all_databases(
                         },
                     };
 
-                    let formatted_database = FormattedDatabase::from(
+                    let database_dto = DatabaseDto::from((
                         database.name,
                         database.description,
                         entry.metadata()?.len()
-                    );
+                    ));
                     
-                    databases.push(formatted_database);
+                    databases.push(database_dto);
                 }
             }
         }
@@ -155,7 +192,7 @@ pub fn find_all_databases(
 pub fn find_database(
     db_name: &str,
     dir_path: &Path
-) -> io::Result<Option<FormattedDatabase>>
+) -> io::Result<Option<DatabaseDto>>
 {
     let mut error_message = "";
     
@@ -168,13 +205,13 @@ pub fn find_database(
                 let database = deserialize_database(&fs::read(path)?)?;
 
                 if database.name() == db_name {
-                    let formatted_database = FormattedDatabase::from(
+                    let database_dto = DatabaseDto::from((
                         database.name,
                         database.description,
                         entry.metadata()?.len()
-                    );
+                    ));
 
-                    return Ok(Some(formatted_database));
+                    return Ok(Some(database_dto));
                 }
             }
         }
