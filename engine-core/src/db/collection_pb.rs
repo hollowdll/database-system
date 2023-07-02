@@ -66,7 +66,7 @@ impl From<&str> for CollectionDto {
 
 
 /// Checks if a collection exists in a database.
-fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
+pub fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
     for collection in db.collections() {
         return collection.name() == collection_name
     }
@@ -87,6 +87,7 @@ pub fn create_collection_to_db_file(
     }
 
     let mut database = deserialize_database(&fs::read(file_path)?)?;
+    // If collection already exists
     if collection_exists(&database, collection_name) {
         return Err(Box::new(CollectionError::Exists));
     }
@@ -114,13 +115,8 @@ pub fn delete_collection_from_db_file(
     }
 
     let mut database = deserialize_database(&fs::read(file_path)?)?;
-    let mut found = false;
 
-    if collection_exists(&database, collection_name) {
-        found = true;
-    }
-
-    if !found {
+    if !collection_exists(&database, collection_name) {
         return Err(Box::new(CollectionError::NotFound));
     }
 

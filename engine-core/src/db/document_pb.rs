@@ -12,11 +12,13 @@ use crate::db::{
     error::{
         DatabaseError,
         CollectionError,
+        DocumentError,
     },
     pb,
     serialize_database,
     deserialize_database,
     write_database_to_file,
+    collection_pb::collection_exists,
     DB_FILE_EXTENSION,
 };
 
@@ -170,3 +172,45 @@ pub fn create_document_to_db_file(
 
     Err(Box::new(CollectionError::NotFound))
 }
+
+/// Deletes a document from a collection by document id.
+/// 
+/// Writes the modified database to a file.
+pub fn delete_document_from_db_file(
+    file_path: &Path,
+    document_id: &u64,
+    collection_name: &str,
+) -> Result<(), Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    for collection in database.collections_mut() {
+        if collection.name() == collection_name {
+            if let Some(document) = collection
+                .documents()
+                .iter()
+                .find(|document| document.id() == document_id)
+            {
+                collection
+                    .documents_mut()
+                    .retain(|document| document.id() != document_id);
+                let buf = serialize_database(&database)?;
+
+                match write_database_to_file(&buf, file_path) {
+                    Ok(()) => return Ok(()),
+                    Err(e) => return Err(e.into()),
+                }
+            } else {
+                return Err(Box::new(DocumentError::NotFound));
+            }
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
+
+
