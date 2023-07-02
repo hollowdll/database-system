@@ -18,7 +18,6 @@ use crate::db::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-    collection_pb::collection_exists,
     DB_FILE_EXTENSION,
 };
 
@@ -50,13 +49,13 @@ impl pb::Document {
 /// Exposes document data that clients can use.
 #[derive(Debug)]
 pub struct DocumentDto {
-    id: DataType,
+    id: u64,
     collection: String,
-    data: HashMap<String, DataType>,
+    data: HashMap<String, pb::document::DataType>,
 }
 
 impl DocumentDto {
-    pub fn id(&self) -> &DataType {
+    pub fn id(&self) -> &u64 {
         &self.id
     }
 
@@ -64,15 +63,15 @@ impl DocumentDto {
         &self.collection
     }
 
-    pub fn data(&self) -> &HashMap<String, DataType> {
+    pub fn data(&self) -> &HashMap<String, pb::document::DataType> {
         &self.data
     }
 }
 
-impl From<(DataType, String, HashMap<String, DataType>)> for DocumentDto {
+impl From<(u64, String, HashMap<String, pb::document::DataType>)> for DocumentDto {
     fn from(
         (id, collection, data):
-        (DataType, String, HashMap<String, DataType>)
+        (u64, String, HashMap<String, pb::document::DataType>)
     ) -> Self
     {
         Self {
@@ -213,4 +212,72 @@ pub fn delete_document_from_db_file(
     Err(Box::new(CollectionError::NotFound))
 }
 
+/// Finds all documents from a collection.
+/// 
+/// Returns the found documents.
+pub fn find_all_documents_from_collection(
+    file_path: &Path,
+    collection_name: &str
+) -> Result<Vec<DocumentDto>, Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
 
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let mut documents = Vec::new();
+
+    for collection in database.collections.into_iter() {
+        if collection.name() == collection_name {
+            for document in collection.documents.into_iter() {
+                let document_dto = DocumentDto::from((
+                    document.id,
+                    collection.name.to_string(),
+                    document.data,
+                ));
+
+                documents.push(document_dto)
+            }
+
+            return Ok(documents);
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
+
+/// Finds a document from a collection by document id.
+/// 
+/// Returns the found document.
+pub fn find_document_from_collection_by_id(
+    file_path: &Path,
+    document_id: &u64,
+    collection_name: &str,
+) -> Result<Option<DocumentDto>, Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    for collection in database.collections.into_iter() {
+        if collection.name() == collection_name {
+            for document in collection.documents.into_iter() {
+                if document.id() == document_id {
+                    let document_dto = DocumentDto::from((
+                        document.id,
+                        collection.name,
+                        document.data,
+                    ));
+    
+                    return Ok(Some(document_dto));
+                }
+            }
+
+            return Ok(None);
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
