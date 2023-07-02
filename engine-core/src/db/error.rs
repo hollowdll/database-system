@@ -106,8 +106,8 @@ impl Error for ConvertError {}
 
 /// Error type for database operation failures.
 /// 
-/// Example of a database operation failure is when
-/// the system fails to create or delete a database.
+/// This error can occur, for example, when the systems fails
+/// to create or find a database.
 #[derive(Debug)]
 pub struct DatabaseOperationError(pub String);
 

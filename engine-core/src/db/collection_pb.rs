@@ -85,8 +85,8 @@ pub fn create_collection_to_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
+    
     // If collection already exists
     if collection_exists(&database, collection_name) {
         return Err(Box::new(CollectionError::Exists));
@@ -113,7 +113,6 @@ pub fn delete_collection_from_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
 
     if !collection_exists(&database, collection_name) {
@@ -141,7 +140,6 @@ pub fn find_all_collections_from_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut collections = Vec::new();
     let mut database = deserialize_database(&fs::read(file_path)?)?;
 
@@ -167,8 +165,8 @@ pub fn find_collection_from_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
+
     if collection_exists(&database, collection_name) {
         let collection_dto = CollectionDto::from(
             collection_name

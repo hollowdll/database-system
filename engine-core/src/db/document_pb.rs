@@ -136,7 +136,6 @@ pub fn create_document_to_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
     let mut collection_index = None;
 
@@ -184,7 +183,6 @@ pub fn delete_document_from_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
 
     for collection in database.collections_mut() {
@@ -223,7 +221,6 @@ pub fn find_all_documents_from_collection(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
     let mut documents = Vec::new();
 
@@ -258,7 +255,6 @@ pub fn find_document_from_collection_by_id(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-
     let mut database = deserialize_database(&fs::read(file_path)?)?;
 
     for collection in database.collections.into_iter() {

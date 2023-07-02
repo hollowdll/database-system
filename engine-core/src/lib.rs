@@ -5,6 +5,7 @@
 pub mod logging;
 pub mod db;
 mod db_manager;
+mod db_manager_pb;
 mod input_data;
 pub mod constants;
 mod api;
