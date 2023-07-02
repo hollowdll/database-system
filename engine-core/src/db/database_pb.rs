@@ -61,7 +61,7 @@ impl From<(&str, &str)> for pb::Database {
 
 /// Database data transfer object (DTO).
 /// 
-/// Exposes database data than clients can use.
+/// Exposes database data that clients can use.
 /// 
 /// `size` = database file size in bytes.
 #[derive(Debug, PartialEq)]
@@ -151,6 +151,8 @@ pub fn change_database_description(
 }
 
 /// Finds all databases from a directory.
+/// 
+/// Returns the found databases.
 pub fn find_all_databases(
     dir_path: &Path
 ) -> io::Result<Vec<DatabaseDto>>
@@ -189,6 +191,8 @@ pub fn find_all_databases(
 }
 
 /// Finds a database from a directory.
+/// 
+/// Returns the found database.
 pub fn find_database(
     db_name: &str,
     dir_path: &Path
