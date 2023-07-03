@@ -1,5 +1,6 @@
 // Engine API module
 
+
 use crate::{
     DatabaseManager,
     db::{
@@ -8,7 +9,8 @@ use crate::{
         FormattedDocumentCollection,
         FormattedDocument,
     },
-    InputDataField,
+    DocumentInputDataField,
+    db_manager_pb,
 };
 
 /// Engine API that provides methods to do database operations.
@@ -16,12 +18,12 @@ use crate::{
 /// Logs system errors and events before forwarding data to clients.
 #[derive(PartialEq, Debug)]
 pub struct EngineApi {
-    db_manager: DatabaseManager,
+    db_manager: db_manager_pb::DatabaseManager,
 }
 
 impl EngineApi {
     /// Builds a new instance of Engine API.
-    pub fn build(db_manager: DatabaseManager) -> EngineApi {
+    pub fn build(db_manager: db_manager_pb::DatabaseManager) -> EngineApi {
         EngineApi {
             db_manager,
         }
@@ -30,16 +32,17 @@ impl EngineApi {
 
 impl EngineApi {
     /// Returns an immutable reference to `DatabaseManager`.
-    pub fn db_manager(&self) -> &DatabaseManager {
+    pub fn db_manager(&self) -> &db_manager_pb::DatabaseManager {
         &self.db_manager
     }
 
     /// Returns a mutable reference to `DatabaseManager`.
-    pub fn db_manager_mut(&mut self) -> &mut DatabaseManager {
+    pub fn db_manager_mut(&mut self) -> &mut db_manager_pb::DatabaseManager {
         &mut self.db_manager
     }
 }
 
+/* Disabled
 impl EngineApi {
     /// Requests `DatabaseManager` to create a database.
     /// 
@@ -160,7 +163,7 @@ impl EngineApi {
         &self,
         collection_name: &str,
         db_name: &str,
-        data: Vec<InputDataField>,
+        data: Vec<DocumentInputDataField>,
     ) -> Result<String, DatabaseOperationError>
     {
         match self.db_manager().create_document(
@@ -352,4 +355,4 @@ impl EngineApi {
         }
     }
 }
-
+*/

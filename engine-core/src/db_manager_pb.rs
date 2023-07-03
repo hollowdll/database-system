@@ -11,11 +11,11 @@ use std::{
 };
 use crate::{
     logging::*,
-    InputDataField,
+    DocumentInputDataField,
     db::{
         self,
         error::DatabaseOperationError,
-        pb,
+        pb::document::DataType,
         database_pb::*,
         collection_pb::*,
         document_pb::*,
@@ -86,4 +86,182 @@ impl DatabaseManager {
     }
 }
 
+impl DatabaseManager {
+    /// Creates a new database.
+    pub fn create_database(
+        &self,
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(
+                format!("Failed to create databases directory: {}", err)
+            ));
+        }
 
+        if let Err(err) = create_database_file(
+            db_name,
+            &self.db_file_path(db_name)
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to create database '{}': {}",
+                db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Deletes a database.
+    pub fn delete_database(
+        &self,
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = delete_database_file(
+            &self.db_file_path(db_name)
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to delete database '{}': {}",
+                db_name,
+                err
+            )));
+        }
+        
+        Ok(())
+    }
+
+    /// Changes description of a database.
+    pub fn change_database_description(
+        &self,
+        db_name: &str,
+        description: &str,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = change_database_description(
+            description,
+            &self.db_file_path(db_name)
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to change description of database '{}': {}",
+                db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Creates a new collection to a database.
+    pub fn create_collection(
+        &self,
+        collection_name: &str,
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = create_collection_to_db_file(
+            collection_name,
+            &self.db_file_path(db_name)
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to create collection '{}' to database '{}': {}",
+                collection_name,
+                db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Deletes a collection from a database.
+    pub fn delete_collection(
+        &self,
+        collection_name: &str,
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = delete_collection_from_db_file(
+            collection_name,
+            &self.db_file_path(db_name)
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to delete collection '{}' from database '{}': {}",
+                collection_name,
+                db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Creates a new document to a collection
+    pub fn create_document(
+        &self,
+        db_name: &str,
+        collection_name: &str,
+        input_data: Vec<DocumentInputDataField>,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        let mut document_data: HashMap<String, DataType> = HashMap::new();
+
+        // convert input data to correct document data types
+        for data_field in input_data {
+            let converted_value = match data_field.parse_to_document_data_type(
+                data_field.value(),
+                data_field.data_type()
+            ) {
+                Ok(converted_value) => converted_value,
+                Err(err) => return Err(DatabaseOperationError(format!(
+                    "Data type '{}' is not valid: {}",
+                    data_field.data_type(),
+                    err
+                ))),
+            };
+
+            document_data.insert(data_field.field().to_string(), converted_value);
+        }
+
+        if let Err(err) = create_document_to_db_file(
+            &self.db_file_path(db_name),
+            collection_name,
+            document_data
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to create document to collection '{}' in database '{}': {}",
+                collection_name,
+                db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Deletes a document from a collection.
+    pub fn delete_document(
+        &self,
+        db_name: &str,
+        document_id: &u64,
+        collection_name: &str,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = delete_document_from_db_file(
+            &self.db_file_path(db_name),
+            document_id,
+            collection_name,
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to delete document with ID '{}' from collection '{}' in database '{}': {}",
+                document_id,
+                collection_name,
+                db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+}

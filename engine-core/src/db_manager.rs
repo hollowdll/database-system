@@ -9,10 +9,10 @@ use std::{
 };
 use crate::{
     logging::*,
-    InputDataField,
+    DocumentInputDataField,
     db::{
         self,
-        DataType,
+        pb::document::data_type::DataType,
         FormattedDatabase,
         FormattedDocumentCollection,
         FormattedDocument,
@@ -205,19 +205,20 @@ impl DatabaseManager {
         ))
     }
 
+    /*
     /// Creates a new document to a collection
     pub fn create_document(
         &self,
         database_name: &str,
         collection_name: &str,
-        data: Vec<InputDataField>,
+        data: Vec<DocumentInputDataField>,
     ) -> Result<String, DatabaseOperationError>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
         // convert input data to correct document data types
         for data_field in data {
-            let converted_value = match data_field.convert_to_document_data_type(
+            let converted_value = match data_field.parse_to_document_data_type(
                 data_field.value(),
                 data_field.data_type()
             ) {
@@ -251,6 +252,7 @@ impl DatabaseManager {
             database_name
         ))
     }
+    */
 
     /// Deletes a document from database
     pub fn delete_document(

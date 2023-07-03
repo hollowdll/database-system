@@ -15,6 +15,7 @@ use crate::db::{
         DocumentError,
     },
     pb,
+    pb::document::DataType,
     serialize_database,
     deserialize_database,
     write_database_to_file,
@@ -26,7 +27,7 @@ impl pb::Document {
         &self.id
     }
 
-    pub fn data(&self) -> &HashMap<String, pb::document::DataType> {
+    pub fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
 }
@@ -51,7 +52,7 @@ impl pb::Document {
 pub struct DocumentDto {
     id: u64,
     collection: String,
-    data: HashMap<String, pb::document::DataType>,
+    data: HashMap<String, DataType>,
 }
 
 impl DocumentDto {
@@ -63,15 +64,15 @@ impl DocumentDto {
         &self.collection
     }
 
-    pub fn data(&self) -> &HashMap<String, pb::document::DataType> {
+    pub fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
 }
 
-impl From<(u64, String, HashMap<String, pb::document::DataType>)> for DocumentDto {
+impl From<(u64, String, HashMap<String, DataType>)> for DocumentDto {
     fn from(
         (id, collection, data):
-        (u64, String, HashMap<String, pb::document::DataType>)
+        (u64, String, HashMap<String, DataType>)
     ) -> Self
     {
         Self {
@@ -82,6 +83,7 @@ impl From<(u64, String, HashMap<String, pb::document::DataType>)> for DocumentDt
     }
 }
 
+/* Disabled for now
 /// Data type for document fields
 #[derive(Debug, PartialEq, Clone)]
 pub enum DataType {
@@ -123,6 +125,7 @@ impl fmt::Display for DataType {
         )
     }
 }
+*/
 
 /// Creates a document to a collection.
 /// 
@@ -130,7 +133,7 @@ impl fmt::Display for DataType {
 pub fn create_document_to_db_file(
     file_path: &Path,
     collection_name: &str, 
-    data: HashMap<String, pb::document::DataType>,
+    data: HashMap<String, DataType>,
 ) -> Result<(), Box<dyn Error>>
 {
     if !file_path.is_file() {

@@ -15,7 +15,7 @@ use engine_core::{
         DataType,
         FormattedDocument,
     },
-    InputDataField,
+    DocumentInputDataField,
 };
 use constants::{
     NO_CONNECTED_DATABASE,
@@ -178,6 +178,8 @@ pub fn run(config: Config) {
         }
     }
 }
+
+
 
 /// Exit the program.
 fn exit_program() {
@@ -768,3 +770,4 @@ mod tests {
         assert_eq!(config.version, env!("CARGO_PKG_VERSION"));
     }
 }
+
