@@ -172,8 +172,8 @@ impl EngineApi {
     /// Forwards results to the calling client.
     pub fn create_document(
         &self,
-        collection_name: &str,
         db_name: &str,
+        collection_name: &str,
         data: Vec<DocumentInputDataField>,
     ) -> Result<(), DatabaseOperationError>
     {
@@ -330,8 +330,8 @@ impl EngineApi {
     /// Forwards results to the calling client.
     pub fn find_all_documents(
         &self,
-        collection_name: &str,
         db_name: &str,
+        collection_name: &str,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match self.db_manager().find_all_documents(db_name, collection_name) {

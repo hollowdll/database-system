@@ -177,3 +177,111 @@ pub fn find_collection_from_db_file(
 
     Ok(None)
 }
+
+
+
+/*
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{self, Write, Read};
+    use tempfile::tempdir;
+    use std::fs::File;
+
+    #[test]
+    fn test_create_collection_to_database_file() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write(json.as_bytes()).is_ok());
+        assert!(create_collection_to_db_file(
+            collection_name,
+            file_path.as_path()
+        ).is_ok());
+
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+
+    #[test]
+    fn test_delete_collection_from_database_file() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+    
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write(json.as_bytes()).is_ok());
+        assert!(delete_collection_from_db_file(
+            collection_name,
+            file_path.as_path()
+        ).is_ok());
+
+        let buf = fs::read_to_string(&file_path).unwrap();
+        assert_eq!(buf, expected_json);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+    
+    #[test]
+    fn test_find_all_collections_of_database() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let collections = find_all_collections_from_db_file(&file_path).unwrap();
+        assert_eq!(
+            collections.get(0),
+            Some(&FormattedDocumentCollection::from(collection_name))
+        );
+        assert!(collections.len() == 1);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+    
+    #[test]
+    fn test_find_collection() {
+        let mut database = Database::from("test");
+        let collection_name = "test_collection";
+        database.collections_mut().push(DocumentCollection::from(collection_name));
+        let json = serde_json::to_string_pretty(&database).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test.json");
+        let mut file = File::create(&file_path).unwrap();
+        assert!(file.write(json.as_bytes()).is_ok());
+
+        let collection = find_collection_from_db_file(collection_name, &file_path).unwrap();
+        assert!(collection.is_some());
+        assert_eq!(collection.unwrap().name(), collection_name);
+
+        drop(file);
+        dir.close().expect("Failed to clean up tempdir before dropping.");
+    }
+    
+}
+*/

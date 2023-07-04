@@ -62,9 +62,11 @@ pub fn run(config: Config) {
     let mut connected_database = config.connected_database;
     let help_message = "Write /help for all available commands";
 
-    println!("{}", "NOTE: This is an early version. Nothing is final.");
-    println!("Version: {}", config.version);
-    println!("\n{}\n", "Database Engine Project ");
+    println!("NOTE: This is an early version. Nothing is final.");
+    println!("The engine now uses Protocol Buffers for data storage.");
+    println!("It is much faster and more efficient than previously used JSON.");
+    println!("\nVersion: {}", config.version);
+    println!("{}\n", "Database engine CLI client");
     println!("{}", help_message);
 
     // Program main loop

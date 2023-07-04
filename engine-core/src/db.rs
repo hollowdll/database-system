@@ -6,9 +6,6 @@
 pub mod database_pb;
 pub mod collection_pb;
 pub mod document_pb;
-pub mod database;
-pub mod collection;
-pub mod document;
 pub mod error;
 
 /// This module contains Protocol Buffers types.
@@ -25,11 +22,6 @@ use std::{
         PathBuf,
     },
 };
-pub use crate::db::{
-    database::*,
-    collection::*,
-    document::*,
-};
 use self::error::DatabaseError;
 use prost::{
     Message,
@@ -38,26 +30,13 @@ use prost::{
 };
 
 /// Database file extension.
-pub const DB_FILE_EXTENSION: &str = "json";
+pub const DB_FILE_EXTENSION: &str = "db";
 
 /// Creates databases directory if it doesn't exist
 pub fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
     if !path.is_dir() {
         fs::create_dir(path)?;
     }
-
-    Ok(())
-}
-
-/// Writes database as JSON to database file
-fn write_database_json(database: &Database, file_path: &Path) -> io::Result<()> {
-    let json = serde_json::to_string_pretty(&database)?;
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(file_path)?;
-
-    file.write_all(json.as_bytes())?;
 
     Ok(())
 }
@@ -115,22 +94,5 @@ mod tests {
         assert!(new_dir.is_dir());
 
         base_dir.close().expect("Failed to clean up tempdir before dropping.");
-    }
-
-    #[test]
-    fn test_write_database_json() {
-        let database = Database::from("test");
-        let json = serde_json::to_string_pretty(&database).unwrap();
-
-        let dir = tempdir().unwrap();
-        let file_path = dir.path().join("test.json");
-        let file = File::create(&file_path).unwrap();
-
-        assert!(write_database_json(&database, &file_path).is_ok());
-        let buf = fs::read_to_string(&file_path).unwrap();
-        assert_eq!(buf, json);
-
-        drop(file);
-        dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }
