@@ -4,7 +4,6 @@
 
 pub mod logging;
 pub mod db;
-mod db_manager;
 mod db_manager_pb;
 mod input_data;
 pub mod constants;
@@ -14,7 +13,7 @@ use std::path::PathBuf;
 pub use api::EngineApi;
 use constants::DB_DIR_PATH;
 pub use serde_json;
-pub use db_manager::DatabaseManager;
+pub use db_manager_pb::DatabaseManager;
 pub use input_data::DocumentInputDataField;
 
 // Engine version
@@ -45,7 +44,7 @@ impl Config {
     /// Call this only once.
     pub fn build() -> Config {
         Config {
-            api: EngineApi::build(db_manager_pb::DatabaseManager::build(
+            api: EngineApi::build(DatabaseManager::build(
                 PathBuf::from(DB_DIR_PATH),
                 logging::get_logs_dir_path()
             )),

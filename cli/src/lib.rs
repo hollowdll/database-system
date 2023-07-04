@@ -566,7 +566,7 @@ fn create_document_menu(
     }
 
     // input data for the new document
-    let mut data: Vec<InputDataField> = Vec::new();
+    let mut data: Vec<DocumentInputDataField> = Vec::new();
     
     loop {
         println!("\n{}", "Insert new field");
@@ -584,7 +584,7 @@ fn create_document_menu(
             Err(_) => return,
         };
 
-        data.push(InputDataField::from(&field, &data_type, &value));
+        data.push(DocumentInputDataField::from(&field, &data_type, &value));
 
         let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
             Ok(confirm) => confirm,
@@ -744,12 +744,12 @@ fn create_test_documents(
     }
     
     for i in 1..=10 {
-        let mut data: Vec<InputDataField> = Vec::new();
+        let mut data: Vec<DocumentInputDataField> = Vec::new();
         let field = format!("field_{i}");
         let data_type = "Text";
         let value = format!("value_{i}");
 
-        data.push(InputDataField::from(&field, data_type, &value));
+        data.push(DocumentInputDataField::new(&field, data_type, &value));
 
         match api.create_document(connected_database_name, &collection_name, data) {
             Ok(message) => println!("{message}"),

@@ -10,7 +10,6 @@ use crate::{
         document_pb::DocumentDto,
     },
     DocumentInputDataField,
-    db_manager_pb,
 };
 
 /// Engine API that provides methods to do database operations.
@@ -18,12 +17,12 @@ use crate::{
 /// Logs system errors and events before forwarding data to clients.
 #[derive(PartialEq, Debug)]
 pub struct EngineApi {
-    db_manager: db_manager_pb::DatabaseManager,
+    db_manager: DatabaseManager,
 }
 
 impl EngineApi {
     /// Builds a new instance of Engine API.
-    pub fn build(db_manager: db_manager_pb::DatabaseManager) -> EngineApi {
+    pub fn build(db_manager: DatabaseManager) -> EngineApi {
         EngineApi {
             db_manager,
         }
@@ -32,12 +31,12 @@ impl EngineApi {
 
 impl EngineApi {
     /// Returns an immutable reference to `DatabaseManager`.
-    pub fn db_manager(&self) -> &db_manager_pb::DatabaseManager {
+    pub fn db_manager(&self) -> &DatabaseManager {
         &self.db_manager
     }
 
     /// Returns a mutable reference to `DatabaseManager`.
-    pub fn db_manager_mut(&mut self) -> &mut db_manager_pb::DatabaseManager {
+    pub fn db_manager_mut(&mut self) -> &mut DatabaseManager {
         &mut self.db_manager
     }
 }
