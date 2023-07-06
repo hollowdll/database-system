@@ -73,7 +73,9 @@ impl From<&str> for CollectionDto {
 /// Checks if a collection exists in a database.
 pub fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
     for collection in db.collections() {
-        return collection.name() == collection_name
+        if collection.name() == collection_name {
+            return true;
+        }
     }
 
     false
