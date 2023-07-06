@@ -30,6 +30,10 @@ impl pb::Collection {
     pub fn documents_mut(&mut self) -> &mut Vec<pb::Document> {
         &mut self.documents
     }
+
+    pub fn id_count(&self) -> &u64 {
+        &self.id_count
+    }
 }
 
 impl From<&str> for pb::Collection {
@@ -37,6 +41,7 @@ impl From<&str> for pb::Collection {
         Self {
             name: String::from(name),
             documents: Vec::new(),
+            id_count: 0,
         }
     }
 }

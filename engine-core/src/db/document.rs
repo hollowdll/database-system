@@ -36,10 +36,10 @@ impl pb::Document {
     /// Creates a new document.
     /// 
     /// Increments the database's `id_count` by 1 so each document gets a unique id.
-    pub fn new(database: &mut pb::Database) -> Self {
-        database.id_count += 1;
+    pub fn new(collection: &mut pb::Collection) -> Self {
+        collection.id_count += 1;
         Self {
-            id: database.id_count,
+            id: collection.id_count,
             data: HashMap::new(),
         }
     }
@@ -154,13 +154,13 @@ pub fn create_document_to_db_file(
     }
 
     if let Some(collection_index) = collection_index {
-        let mut document = pb::Document::new(&mut database);
-        document.data = data;
-
         if let Some(collection) = database
             .collections_mut()
             .get_mut(collection_index)
         {
+            let mut document = pb::Document::new(collection);
+            document.data = data;
+
             collection.documents_mut().push(document);
             let buf = serialize_database(&database)?;
 
