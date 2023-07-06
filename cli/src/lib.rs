@@ -13,7 +13,7 @@ use engine_core::{
     EngineApi,
     db::{
         pb::document::data_type::DataType,
-        document_pb::DocumentDto,
+        document::DocumentDto,
     },
     DocumentInputDataField,
 };

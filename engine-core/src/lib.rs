@@ -4,14 +4,14 @@
 
 pub mod logging;
 pub mod db;
-mod db_manager_pb;
+mod db_manager;
 mod input_data;
 mod api;
 
 use std::path::PathBuf;
 pub use api::EngineApi;
 pub use serde_json;
-pub use db_manager_pb::DatabaseManager;
+pub use db_manager::DatabaseManager;
 pub use input_data::DocumentInputDataField;
 
 const DB_DIR_PATH: &str = "./databases";

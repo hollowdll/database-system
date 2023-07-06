@@ -5,9 +5,9 @@ use crate::{
     DatabaseManager,
     db::{
         error::DatabaseOperationError,
-        database_pb::DatabaseDto,
-        collection_pb::CollectionDto,
-        document_pb::DocumentDto,
+        database::DatabaseDto,
+        collection::CollectionDto,
+        document::DocumentDto,
     },
     DocumentInputDataField,
 };

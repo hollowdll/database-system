@@ -3,9 +3,9 @@
 
 #![allow(unused)]
 
-pub mod database_pb;
-pub mod collection_pb;
-pub mod document_pb;
+pub mod database;
+pub mod collection;
+pub mod document;
 pub mod error;
 
 /// This module contains Protocol Buffers types.
