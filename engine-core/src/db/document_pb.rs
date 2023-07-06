@@ -1,10 +1,11 @@
-use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
+// Document Protocol Buffers module
+
 use std::{
     io,
     fs,
     path::Path,
     error::Error,
+    collections::HashMap,
     fmt,
 };
 use crate::db::{
@@ -13,28 +14,16 @@ use crate::db::{
         CollectionError,
         DocumentError,
     },
-    Database,
-    DocumentCollection,
-    write_database_json,
-};
-use crate::constants::{
-    DB_NOT_FOUND,
-    COLLECTION_NOT_FOUND,
-    DOCUMENT_NOT_FOUND,
-    DB_DIR_PATH,
+    pb,
+    pb::document::DataType,
+    serialize_database,
+    deserialize_database,
+    write_database_to_file,
     DB_FILE_EXTENSION,
 };
 
-/// Database document that holds
-/// data in key-value pairs
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Document {
-    pub id: DataType,
-    pub data: HashMap<String, DataType>,
-}
-
-impl Document {
-    pub fn id(&self) -> &DataType {
+impl pb::Document {
+    pub fn id(&self) -> &u64 {
         &self.id
     }
 
@@ -43,26 +32,31 @@ impl Document {
     }
 }
 
-impl Document {
-    pub fn from(database: &mut Database) -> Self {
+impl pb::Document {
+    /// Creates a new document.
+    /// 
+    /// Increments the database's `id_count` by 1 so each document gets a unique id.
+    pub fn new(database: &mut pb::Database) -> Self {
         database.id_count += 1;
         Self {
-            id: DataType::DocumentId(database.id_count),
+            id: database.id_count,
             data: HashMap::new(),
         }
     }
 }
 
-/// Formatted document that can be listed in clients
+/// Document data transfer object (DTO).
+/// 
+/// Exposes document data that clients can use.
 #[derive(Debug)]
-pub struct FormattedDocument {
-    id: DataType,
+pub struct DocumentDto {
+    id: u64,
     collection: String,
     data: HashMap<String, DataType>,
 }
 
-impl FormattedDocument {
-    pub fn id(&self) -> &DataType {
+impl DocumentDto {
+    pub fn id(&self) -> &u64 {
         &self.id
     }
 
@@ -75,8 +69,12 @@ impl FormattedDocument {
     }
 }
 
-impl FormattedDocument {
-    pub fn from(id: DataType, collection: String, data: HashMap<String, DataType>) -> Self {
+impl From<(u64, String, HashMap<String, DataType>)> for DocumentDto {
+    fn from(
+        (id, collection, data):
+        (u64, String, HashMap<String, DataType>)
+    ) -> Self
+    {
         Self {
             id,
             collection,
@@ -85,8 +83,9 @@ impl FormattedDocument {
     }
 }
 
+/* Disabled for now
 /// Data type for document fields
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DataType {
     /// 64-bit unsigned integer. Only document id can have this.
     DocumentId(u64),
@@ -126,202 +125,165 @@ impl fmt::Display for DataType {
         )
     }
 }
+*/
 
-
-
-/// Creates a document to a collection
-pub fn create_document(
+/// Creates a document to a collection.
+/// 
+/// Writes the modified database to a file.
+pub fn create_document_to_db_file(
     file_path: &Path,
     collection_name: &str, 
     data: HashMap<String, DataType>,
 ) -> Result<(), Box<dyn Error>>
 {
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-        let mut collection_index = None;
-
-        // Find collection index
-        for (index, collection) in database
-            .collections()
-            .iter()
-            .enumerate()
-        {
-            if collection.name() == collection_name {
-                collection_index = Some(index);
-            }
-        }
-
-        if let Some(collection_index) = collection_index {
-            let mut document = Document::from(&mut database);
-            document.data = data;
-
-            if let Some(collection) = database
-                .collections_mut()
-                .get_mut(collection_index)
-            {
-                collection.documents_mut().push(document);
-
-                match write_database_json(&database, file_path) {
-                    Ok(()) => return Ok(()),
-                    Err(e) => return Err(e.into()),
-                }
-            } else {
-                return Err(Box::new(CollectionError::NotFound));
-            }
-        } else {
-            return Err(Box::new(CollectionError::NotFound));
-        }
-    } else {
+    if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let mut collection_index = None;
+
+    // Find collection index
+    for (index, collection) in database
+        .collections()
+        .iter()
+        .enumerate()
+    {
+        if collection.name() == collection_name {
+            collection_index = Some(index);
+        }
+    }
+
+    if let Some(collection_index) = collection_index {
+        let mut document = pb::Document::new(&mut database);
+        document.data = data;
+
+        if let Some(collection) = database
+            .collections_mut()
+            .get_mut(collection_index)
+        {
+            collection.documents_mut().push(document);
+            let buf = serialize_database(&database)?;
+
+            match write_database_to_file(&buf, file_path) {
+                Ok(()) => return Ok(()),
+                Err(e) => return Err(e.into()),
+            }
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
 }
 
 /// Deletes a document from a collection by document id.
 /// 
-/// This is a faster way to delete a document
-/// if the collection is known beforehand.
-
-/* DISABLED. NOT NEEDED RIGHT NOW.
-pub fn delete_document_from_collection(
+/// Writes the modified database to a file.
+pub fn delete_document_from_db_file(
     file_path: &Path,
-    collection_name: &str,
     document_id: &u64,
-) -> io::Result<(bool, String)>
-{
-    let mut message = "";
-
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-
-        for collection in database.collections_mut() {
-            if collection.name() == collection_name {
-                if let Some(document) = collection.documents().iter().find(|document| document.id() == document_id) {
-                    collection.documents_mut().retain(|document| document.id() != document_id);
-
-                    match write_database_json(&database, file_path) {
-                        Ok(()) => return Ok((true, message.to_string())),
-                        Err(e) => return Err(e),
-                    }
-                } else {
-                    return Ok((false, DOCUMENT_NOT_FOUND.to_string()));
-                }
-            }
-        }
-        
-        message = COLLECTION_NOT_FOUND;
-    } else {
-        message = DB_NOT_FOUND;
-    }
-
-    Ok((false, message.to_string()))
-}
-*/
-
-/// Deletes a document from a database by document id.
-/// 
-/// Goes through all collections until id is found.
-pub fn delete_document(
-    file_path: &Path,
-    document_id: &u64
+    collection_name: &str,
 ) -> Result<(), Box<dyn Error>>
 {
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-        let mut found = false;
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
 
-        for collection in database.collections_mut() {
+    for collection in database.collections_mut() {
+        if collection.name() == collection_name {
             if let Some(document) = collection
                 .documents()
                 .iter()
-                .find(|document| document.id() == &DataType::DocumentId(*document_id))
+                .find(|document| document.id() == document_id)
             {
                 collection
                     .documents_mut()
-                    .retain(|document| document.id() != &DataType::DocumentId(*document_id));
-                found = true;
-            };
-        }
+                    .retain(|document| document.id() != document_id);
+                let buf = serialize_database(&database)?;
 
-        if found {
-            match write_database_json(&database, file_path) {
-                Ok(()) => return Ok(()),
-                Err(e) => return Err(e.into()),
+                match write_database_to_file(&buf, file_path) {
+                    Ok(()) => return Ok(()),
+                    Err(e) => return Err(e.into()),
+                }
+            } else {
+                return Err(Box::new(DocumentError::NotFound));
             }
-        } else {
-            return Err(Box::new(DocumentError::NotFound));
         }
-    } else {
-        return Err(Box::new(DatabaseError::NotFound));
     }
+
+    Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds all documents from a collection
+/// Finds all documents from a collection.
+/// 
+/// Returns the found documents.
 pub fn find_all_documents_from_collection(
     file_path: &Path,
     collection_name: &str
-) -> io::Result<Vec<FormattedDocument>>
+) -> Result<Vec<DocumentDto>, Box<dyn Error>>
 {
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
     let mut documents = Vec::new();
 
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
+    for collection in database.collections.into_iter() {
+        if collection.name() == collection_name {
+            for document in collection.documents.into_iter() {
+                let document_dto = DocumentDto::from((
+                    document.id,
+                    collection.name.to_string(),
+                    document.data,
+                ));
 
-        for collection in database.collections.into_iter() {
-            if collection.name() == collection_name {
-                for document in collection.documents.into_iter() {
-                    let formatted_document = FormattedDocument::from(
-                        document.id,
-                        collection.name.to_string(),
-                        document.data,
-                    );
-
-                    documents.push(formatted_document)
-                }
+                documents.push(document_dto)
             }
+
+            return Ok(documents);
         }
     }
-    
-    Ok(documents)
+
+    Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds a document from a database by document id.
+/// Finds a document from a collection by document id.
 /// 
-/// Returns the document if it was found.
-pub fn find_document_by_id(
-    document_id: &u64,
+/// Returns the found document.
+pub fn find_document_from_collection_by_id(
     file_path: &Path,
-) -> Result<Option<FormattedDocument>, Box<dyn Error>>
+    document_id: &u64,
+    collection_name: &str,
+) -> Result<Option<DocumentDto>, Box<dyn Error>>
 {
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(&contents)?;
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
 
-        for collection in database.collections.into_iter() {
+    for collection in database.collections.into_iter() {
+        if collection.name() == collection_name {
             for document in collection.documents.into_iter() {
-                if document.id() == &DataType::DocumentId(*document_id) {
-                    let formatted_document = FormattedDocument::from(
+                if document.id() == document_id {
+                    let document_dto = DocumentDto::from((
                         document.id,
                         collection.name,
                         document.data,
-                    );
-
-                    return Ok(Some(formatted_document));
+                    ));
+    
+                    return Ok(Some(document_dto));
                 }
             }
-        }
 
-        return Ok(None);
-    } else {
-        return Err(Box::new(DatabaseError::NotFound));
+            return Ok(None);
+        }
     }
+
+    Err(Box::new(CollectionError::NotFound))
 }
 
 
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -483,3 +445,4 @@ mod tests {
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }
+*/

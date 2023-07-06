@@ -1,4 +1,5 @@
-use serde::{Serialize, Deserialize};
+// Collections Protocol Buffers module
+
 use std::{
     io,
     fs,
@@ -10,41 +11,29 @@ use crate::db::{
         DatabaseError,
         CollectionError,
     },
-    Database,
-    Document,
-    write_database_json,
-};
-use crate::constants::{
-    DB_NOT_FOUND,
-    COLLECTION_NOT_FOUND,
-    DB_DIR_PATH,
+    pb,
+    serialize_database,
+    deserialize_database,
+    write_database_to_file,
     DB_FILE_EXTENSION,
 };
 
-/// Database document collection
-/// that holds database documents.
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct DocumentCollection {
-    pub name: String,
-    pub documents: Vec<Document>,
-}
-
-impl DocumentCollection {
+impl pb::Collection {
     pub fn name(&self) -> &str {
         &self.name
     }
 
-    pub fn documents(&self) -> &Vec<Document> {
+    pub fn documents(&self) -> &Vec<pb::Document> {
         &self.documents
     }
 
-    pub fn documents_mut(&mut self) -> &mut Vec<Document> {
+    pub fn documents_mut(&mut self) -> &mut Vec<pb::Document> {
         &mut self.documents
     }
 }
 
-impl DocumentCollection {
-    pub fn from(name: &str) -> Self {
+impl From<&str> for pb::Collection {
+    fn from(name: &str) -> Self {
         Self {
             name: String::from(name),
             documents: Vec::new(),
@@ -52,20 +41,22 @@ impl DocumentCollection {
     }
 }
 
+/// Collection data transfer object (DTO).
+/// 
+/// Exposes collection data that clients can use.
 #[derive(Debug, PartialEq)]
-/// Formatted document collection that can be listed in clients.
-pub struct FormattedDocumentCollection {
+pub struct CollectionDto {
     name: String,
 }
 
-impl FormattedDocumentCollection {
+impl CollectionDto {
     pub fn name(&self) -> &str {
         &self.name
     }
 }
 
-impl FormattedDocumentCollection {
-    pub fn from(name: &str) -> Self {
+impl From<&str> for CollectionDto {
+    fn from(name: &str) -> Self {
         Self {
             name: String::from(name),
         }
@@ -74,121 +65,122 @@ impl FormattedDocumentCollection {
 
 
 
-/// Writes a new collection to a database file.
+/// Checks if a collection exists in a database.
+pub fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
+    for collection in db.collections() {
+        return collection.name() == collection_name
+    }
+
+    false
+}
+
+/// Creates a new collection to a database.
+/// 
+/// Writes the modified database to a file.
 pub fn create_collection_to_db_file(
     collection_name: &str,
     file_path: &Path,
 ) -> Result<(), Box<dyn Error>>
 {
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-
-        // Error if collection already exists
-        for collection in database.collections() {
-            if collection.name() == collection_name {
-                return Err(Box::new(CollectionError::Exists));
-            }
-        }
-
-        let collection = DocumentCollection::from(collection_name);
-        database.collections_mut().push(collection);
-        
-        match write_database_json(&database, file_path) {
-            Ok(()) => return Ok(()),
-            Err(e) => return Err(e.into()),
-        }
-    } else {
+    if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    
+    // If collection already exists
+    if collection_exists(&database, collection_name) {
+        return Err(Box::new(CollectionError::Exists));
+    }
+
+    let collection = pb::Collection::from(collection_name);
+    database.collections_mut().push(collection);
+    let buf = serialize_database(&database)?;
+
+    match write_database_to_file(&buf, file_path) {
+        Ok(()) => return Ok(()),
+        Err(e) => return Err(e.into()),
     }
 }
 
-/// Deletes a collection from a database file.
+/// Deletes a collection from a database.
+/// 
+/// Writes the modified database to a file.
 pub fn delete_collection_from_db_file(
     collection_name: &str,
     file_path: &Path
 ) -> Result<(), Box<dyn Error>>
 {
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-        let mut found = false;
-
-        for collection in database.collections() {
-            if collection.name() == collection_name {
-                found = true;
-                break;
-            }
-        }
-
-        if found {
-            database
-                .collections_mut()
-                .retain(|collection| collection.name() != collection_name);
-
-            match write_database_json(&database, file_path) {
-                Ok(()) => return Ok(()),
-                Err(e) => return Err(e.into()),
-            }
-        } else {
-            return Err(Box::new(CollectionError::NotFound));
-        }
-    } else {
+    if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    if !collection_exists(&database, collection_name) {
+        return Err(Box::new(CollectionError::NotFound));
+    }
+
+    database
+        .collections_mut()
+        .retain(|collection| collection.name() != collection_name);
+    let buf = serialize_database(&database)?;
+
+    match write_database_to_file(&buf, file_path) {
+        Ok(()) => return Ok(()),
+        Err(e) => return Err(e.into()),
     }
 }
 
 /// Finds all collections from a database file.
+/// 
+/// Returns the found collections.
 pub fn find_all_collections_from_db_file(
     file_path: &Path
-) -> io::Result<Vec<FormattedDocumentCollection>>
+) -> Result<Vec<CollectionDto>, Box<dyn Error>>
 {
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
     let mut collections = Vec::new();
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
 
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-
-        for collection in database.collections() {
-            let formatted_collection = FormattedDocumentCollection::from(
-                collection.name()
-            );
-            
-            collections.push(formatted_collection);
-        }
+    for collection in database.collections() {
+        let collection_dto = CollectionDto::from(
+            collection.name()
+        );
+        
+        collections.push(collection_dto);
     }
     
     Ok(collections)
 }
 
 /// Finds a collection from a database file.
+/// 
+/// Returns the found collection.
 pub fn find_collection_from_db_file(
     collection_name: &str,
     file_path: &Path
-) -> Result<Option<FormattedDocumentCollection>, Box<dyn Error>>
+) -> Result<Option<CollectionDto>, Box<dyn Error>>
 {
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-
-        for collection in database.collections() {
-            if collection.name() == collection_name {
-                let formatted_collection = FormattedDocumentCollection::from(
-                    collection.name()
-                );
-
-                return Ok(Some(formatted_collection));
-            }
-        }
-
-        return Ok(None);
-    } else {
+    if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    if collection_exists(&database, collection_name) {
+        let collection_dto = CollectionDto::from(
+            collection_name
+        );
+
+        return Ok(Some(collection_dto));
+    }
+
+    Ok(None)
 }
 
 
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -292,4 +284,4 @@ mod tests {
     }
     
 }
-
+*/

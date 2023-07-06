@@ -12,10 +12,10 @@ use engine_core::{
     self,
     EngineApi,
     db::{
-        DataType,
-        FormattedDocument,
+        pb::document::data_type::DataType,
+        document_pb::DocumentDto,
     },
-    InputDataField,
+    DocumentInputDataField,
 };
 use constants::{
     NO_CONNECTED_DATABASE,
@@ -62,9 +62,11 @@ pub fn run(config: Config) {
     let mut connected_database = config.connected_database;
     let help_message = "Write /help for all available commands";
 
-    println!("{}", "NOTE: This is an early version. Nothing is final.");
-    println!("Version: {}", config.version);
-    println!("\n{}\n", "Database Engine Project ");
+    println!("NOTE: This is an early version. Nothing is final.");
+    println!("The engine now uses Protocol Buffers for data storage.");
+    println!("It is much faster and more efficient than previously used JSON.");
+    println!("\nVersion: {}", config.version);
+    println!("{}\n", "Database engine CLI client");
     println!("{}", help_message);
 
     // Program main loop
@@ -179,6 +181,8 @@ pub fn run(config: Config) {
     }
 }
 
+
+
 /// Exit the program.
 fn exit_program() {
     println!("Exiting...");
@@ -191,7 +195,7 @@ fn display_program_version(client_version: &str, engine_version: &str) {
     println!("Engine version: {}", engine_version);
 }
 
-/// Display connected database.
+/// Displays connected database.
 fn display_connection_status(connected_database: &Option<String>) {
     match connected_database {
         Some(database_name) => println!("Connected database: {database_name}"),
@@ -199,17 +203,17 @@ fn display_connection_status(connected_database: &Option<String>) {
     }
 }
 
-/// Display formatted document in more readable format
-fn display_formatted_document(document: &FormattedDocument) {
+/// Displays document in a more readable format.
+fn display_document(document: &DocumentDto) {
     println!("{}\n  [DocumentId] _id: {}", "{", document.id());
     for (key, value) in document.data().iter() {
         // Get data type and value
-        let (data_type, field_value) = match value {
-            DataType::Int32(value) => ("Int32", value.to_string()),
-            DataType::Int64(value) => ("Int64", value.to_string()),
-            DataType::Decimal(value) => ("Decimal", value.to_string()),
-            DataType::Bool(value) => ("Bool", value.to_string()),
-            DataType::Text(value) => ("Text", format!("\"{}\"", value)),
+        let (data_type, field_value) = match &value.data_type {
+            Some(DataType::Int32(value)) => ("Int32", value.to_string()),
+            Some(DataType::Int64(value)) => ("Int64", value.to_string()),
+            Some(DataType::Decimal(value)) => ("Decimal", value.to_string()),
+            Some(DataType::Bool(value)) => ("Bool", value.to_string()),
+            Some(DataType::Text(value)) => ("Text", format!("\"{}\"", value)),
             _ => return eprintln!("Invalid document data type"),
         };
 
@@ -341,7 +345,7 @@ fn create_database_menu(api: &EngineApi) {
     };
 
     match api.create_database(&database_name) {
-        Ok(message) => println!("{}", message),
+        Ok(()) => println!("Database created"),
         Err(err) => eprintln!("[Error] {}", err),
     }
 }
@@ -366,19 +370,19 @@ fn delete_database_menu(
     match confirm.as_str() {
         CONFIRM_OPTION_YES => {
             match api.delete_database(&database_name) {
-                Ok(message) => {
+                Ok(()) => {
                     // Disconnect database if it is connected
                     if let Some(connected_database_name) = connected_database {
                         if connected_database_name == &database_name {
                             connected_database.take();
                         }
                     }
-                    println!("{message}");
+                    println!("Database deleted");
                 },
                 Err(e) => eprintln!("[Error] {e}"),
             }
         },
-        _ => return println!("Canceled database deletion"),
+        _ => return println!("Canceled action"),
     }
 }
 
@@ -448,7 +452,7 @@ fn create_collection_menu(
     }
 
     match api.create_collection(&collection_name, connected_database_name) {
-        Ok(message) => println!("{message}"),
+        Ok(()) => println!("Collection created"),
         Err(e) => return eprintln!("[Error] {e}"),
     }
 }
@@ -482,11 +486,11 @@ fn delete_collection_menu(
                 return;
             }
             match api.delete_collection(&collection_name, connected_database_name) {
-                Ok(message) => println!("{message}"),
+                Ok(()) => println!("Collection deleted"),
                 Err(e) => return eprintln!("[Error] {e}"),
             }
         },
-        _ => return println!("Canceled collection deletion"),
+        _ => return println!("Canceled action"),
     }
 
 }
@@ -539,7 +543,7 @@ fn change_database_description_menu(
 
     // Change description of connected database
     match api.change_database_description(connected_database_name, &description) {
-        Ok(message) => println!("{message}"),
+        Ok(()) => println!("Database description changed"),
         Err(e) => return eprintln!("[Error] {e}"),
     }
 }
@@ -564,7 +568,7 @@ fn create_document_menu(
     }
 
     // input data for the new document
-    let mut data: Vec<InputDataField> = Vec::new();
+    let mut data: Vec<DocumentInputDataField> = Vec::new();
     
     loop {
         println!("\n{}", "Insert new field");
@@ -582,7 +586,7 @@ fn create_document_menu(
             Err(_) => return,
         };
 
-        data.push(InputDataField::from(&field, &data_type, &value));
+        data.push(DocumentInputDataField::new(&field, &data_type, &value));
 
         let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
             Ok(confirm) => confirm,
@@ -598,7 +602,7 @@ fn create_document_menu(
     }
 
     match api.create_document(connected_database_name, &collection_name, data) {
-        Ok(message) => println!("{message}"),
+        Ok(()) => println!("Document created"),
         Err(e) => return eprintln!("[Error] {e}"),
     }
 }
@@ -635,7 +639,7 @@ fn list_documents_of_collection(
     println!("\nNumber of documents: {}", documents.len());
 
     for document in documents {
-        display_formatted_document(&document);
+        display_document(&document);
     }
 }
 
@@ -647,6 +651,10 @@ fn list_document(
     let connected_database_name = match connected_database {
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE),
+    };
+    let collection_name = match ask_user_input_inline("Collection: ") {
+        Ok(collection_name) => collection_name,
+        Err(_) => return,
     };
     let document_id = match ask_user_input_inline("Document ID: ") {
         Ok(id) => id,
@@ -663,7 +671,8 @@ fn list_document(
 
     let result = match api.find_document_by_id(
         &document_id,
-        connected_database_name
+        connected_database_name,
+        &collection_name,
     ) {
         Ok(result) => result,
         Err(e) => return eprintln!("[Error] {e}"),
@@ -672,9 +681,9 @@ fn list_document(
     match result {
         Some(document) => {
             println!("Collection: {}", document.collection());
-            display_formatted_document(&document);
+            display_document(&document);
         },
-        None => return println!("Document with this ID was not found"),
+        None => return println!("Document with this ID was not found from this collection"),
     }
 }
 
@@ -687,7 +696,10 @@ fn delete_document_menu(
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
-
+    let collection_name = match ask_user_input_inline("Collection: ") {
+        Ok(collection_name) => collection_name,
+        Err(_) => return,
+    };
     let document_id = match ask_user_input_inline("Document ID: ") {
         Ok(document_id) => document_id,
         Err(_) => return,
@@ -709,12 +721,12 @@ fn delete_document_menu(
             if !database_exists(api, connected_database_name) {
                 return;
             }
-            match api.delete_document(connected_database_name, &document_id) {
-                Ok(message) => println!("{message}"),
+            match api.delete_document(connected_database_name, &document_id, &collection_name) {
+                Ok(()) => println!("Document deleted"),
                 Err(e) => return eprintln!("[Error] {e}"),
             }
         },
-        _ => return println!("Canceled document deletion"),
+        _ => return println!("Canceled action"),
     }
 }
 
@@ -742,15 +754,15 @@ fn create_test_documents(
     }
     
     for i in 1..=10 {
-        let mut data: Vec<InputDataField> = Vec::new();
+        let mut data: Vec<DocumentInputDataField> = Vec::new();
         let field = format!("field_{i}");
         let data_type = "Text";
         let value = format!("value_{i}");
 
-        data.push(InputDataField::from(&field, data_type, &value));
+        data.push(DocumentInputDataField::new(&field, data_type, &value));
 
         match api.create_document(connected_database_name, &collection_name, data) {
-            Ok(message) => println!("{message}"),
+            Ok(()) => println!("Document created"),
             Err(e) => eprintln!("[Error] {e}"),
         }
     }
@@ -768,3 +780,4 @@ mod tests {
         assert_eq!(config.version, env!("CARGO_PKG_VERSION"));
     }
 }
+

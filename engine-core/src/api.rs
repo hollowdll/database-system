@@ -1,14 +1,15 @@
 // Engine API module
 
+
 use crate::{
     DatabaseManager,
     db::{
         error::DatabaseOperationError,
-        FormattedDatabase,
-        FormattedDocumentCollection,
-        FormattedDocument,
+        database_pb::DatabaseDto,
+        collection_pb::CollectionDto,
+        document_pb::DocumentDto,
     },
-    InputDataField,
+    DocumentInputDataField,
 };
 
 /// Engine API that provides methods to do database operations.
@@ -47,12 +48,13 @@ impl EngineApi {
     pub fn create_database(
         &self,
         db_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().create_database(db_name) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!("Created database '{}'", db_name);
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -67,12 +69,13 @@ impl EngineApi {
     pub fn delete_database(
         &self,
         db_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().delete_database(db_name) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!("Deleted database '{}'", db_name);
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -88,15 +91,16 @@ impl EngineApi {
         &self,
         db_name: &str,
         description: &str,
-    ) -> Result<String, DatabaseOperationError>
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().change_database_description(
             db_name,
             description
         ) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!("Changed description of database '{}'", db_name);
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -112,15 +116,20 @@ impl EngineApi {
         &self,
         collection_name: &str,
         db_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().create_collection(
             collection_name,
             db_name
         ) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!(
+                    "Created collection '{}' to database '{}'",
+                    collection_name,
+                    db_name
+                );
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -136,15 +145,20 @@ impl EngineApi {
         &self,
         collection_name: &str,
         db_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().delete_collection(
             collection_name,
             db_name
         ) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!(
+                    "Deleted collection '{}' from database '{}'",
+                    collection_name,
+                    db_name
+                );
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -158,19 +172,24 @@ impl EngineApi {
     /// Forwards results to the calling client.
     pub fn create_document(
         &self,
-        collection_name: &str,
         db_name: &str,
-        data: Vec<InputDataField>,
-    ) -> Result<String, DatabaseOperationError>
+        collection_name: &str,
+        data: Vec<DocumentInputDataField>,
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().create_document(
             db_name,
             collection_name,
             data
         ) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!(
+                    "Created document to collection '{}' in database '{}'",
+                    collection_name,
+                    db_name
+                );
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -186,15 +205,23 @@ impl EngineApi {
         &self,
         db_name: &str,
         document_id: &u64,
-    ) -> Result<String, DatabaseOperationError>
+        collection_name: &str,
+    ) -> Result<(), DatabaseOperationError>
     {
         match self.db_manager().delete_document(
             db_name,
-            document_id
+            document_id,
+            collection_name,
         ) {
-            Ok(result) => {
-                self.db_manager().log_event(&result);
-                return Ok(result)
+            Ok(()) => {
+                let content = format!(
+                    "Deleted document with ID '{}' from collection '{}' in database '{}'",
+                    document_id,
+                    collection_name,
+                    db_name
+                );
+                self.db_manager().log_event(&content);
+                return Ok(())
             },
             Err(err) => {
                 self.db_manager().log_error(&err.0);
@@ -208,12 +235,12 @@ impl EngineApi {
     /// Forwards results to the calling client.
     pub fn find_all_databases(
         &self,
-    ) -> Result<Vec<FormattedDatabase>, DatabaseOperationError>
+    ) -> Result<Vec<DatabaseDto>, DatabaseOperationError>
     {
         match self.db_manager().find_all_databases() {
             Ok(result) => {
-                let message = "Fetched all databases";
-                self.db_manager().log_event(message);
+                let content = "Fetched all databases";
+                self.db_manager().log_event(content);
                 
                 return Ok(result)
             },
@@ -230,12 +257,12 @@ impl EngineApi {
     pub fn find_database(
         &self,
         db_name: &str,
-    ) -> Result<Option<FormattedDatabase>, DatabaseOperationError>
+    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
         match self.db_manager().find_database(db_name) {
             Ok(result) => {
-                let message = format!("Fetched database '{}'", db_name);
-                self.db_manager().log_event(&message);
+                let content = format!("Fetched database '{}'", db_name);
+                self.db_manager().log_event(&content);
 
                 return Ok(result)
             },
@@ -252,15 +279,15 @@ impl EngineApi {
     pub fn find_all_collections(
         &self,
         db_name: &str,
-    ) -> Result<Vec<FormattedDocumentCollection>, DatabaseOperationError>
+    ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
     {
         match self.db_manager().find_all_collections(db_name) {
             Ok(result) => {
-                let message = format!(
+                let content = format!(
                     "Fetched all collections from database '{}'",
                     db_name
                 );
-                self.db_manager().log_event(&message);
+                self.db_manager().log_event(&content);
                 
                 return Ok(result)
             },
@@ -278,16 +305,16 @@ impl EngineApi {
         &self,
         collection_name: &str,
         db_name: &str,
-    ) -> Result<Option<FormattedDocumentCollection>, DatabaseOperationError>
+    ) -> Result<Option<CollectionDto>, DatabaseOperationError>
     {
         match self.db_manager().find_collection(collection_name, db_name) {
             Ok(result) => {
-                let message = format!(
+                let content = format!(
                     "Fetched collection '{}' from database '{}'",
                     collection_name,
                     db_name
                 );
-                self.db_manager().log_event(&message);
+                self.db_manager().log_event(&content);
                 
                 return Ok(result)
             },
@@ -303,18 +330,18 @@ impl EngineApi {
     /// Forwards results to the calling client.
     pub fn find_all_documents(
         &self,
-        collection_name: &str,
         db_name: &str,
-    ) -> Result<Vec<FormattedDocument>, DatabaseOperationError>
+        collection_name: &str,
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match self.db_manager().find_all_documents(db_name, collection_name) {
             Ok(result) => {
-                let message = format!(
+                let content = format!(
                     "Fetched all documents from collection '{}' in database '{}'",
                     collection_name,
                     db_name
                 );
-                self.db_manager().log_event(&message);
+                self.db_manager().log_event(&content);
                 
                 return Ok(result)
             },
@@ -332,16 +359,18 @@ impl EngineApi {
         &self,
         document_id: &u64,
         db_name: &str,
-    ) -> Result<Option<FormattedDocument>, DatabaseOperationError>
+        collection_name: &str,
+    ) -> Result<Option<DocumentDto>, DatabaseOperationError>
     {
-        match self.db_manager().find_document_by_id(document_id, db_name) {
+        match self.db_manager().find_document_by_id(document_id, db_name, collection_name) {
             Ok(result) => {
-                let message = format!(
-                    "Fetched document with ID '{}' from database '{}'",
+                let content = format!(
+                    "Fetched document with ID '{}' from collection '{}' in database '{}'",
                     document_id,
+                    collection_name,
                     db_name
                 );
-                self.db_manager().log_event(&message);
+                self.db_manager().log_event(&content);
                 
                 return Ok(result)
             },
@@ -352,4 +381,3 @@ impl EngineApi {
         }
     }
 }
-

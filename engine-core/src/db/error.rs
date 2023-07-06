@@ -74,9 +74,9 @@ impl fmt::Display for DocumentError {
 
 impl Error for DocumentError {}
 
-/// Error type for data type conversion errors.
+/// Error type for document data type parse errors.
 #[derive(Debug)]
-pub enum ConvertError {
+pub enum ParseError {
     Unknown,
     Int32,
     Int64,
@@ -85,29 +85,29 @@ pub enum ConvertError {
     Text,
 }
 
-impl fmt::Display for ConvertError {
+impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "Failed to convert data into {}",
+            "Failed to parse data into {}",
             match self {
-                ConvertError::Unknown => "an unknown type. The specified type does not exist",
-                ConvertError::Int32 => "'Int32'",
-                ConvertError::Int64 => "'Int64'",
-                ConvertError::Decimal => "'Decimal'",
-                ConvertError::Bool => "'Bool'",
-                ConvertError::Text => "'Text'",
+                ParseError::Unknown => "an unknown type. The specified type does not exist",
+                ParseError::Int32 => "'Int32'",
+                ParseError::Int64 => "'Int64'",
+                ParseError::Decimal => "'Decimal'",
+                ParseError::Bool => "'Bool'",
+                ParseError::Text => "'Text'",
             }
         )
     }
 }
 
-impl Error for ConvertError {}
+impl Error for ParseError {}
 
 /// Error type for database operation failures.
 /// 
-/// Example of a database operation failure is when
-/// the system fails to create or delete a database.
+/// This error can occur, for example, when the systems fails
+/// to create or find a database.
 #[derive(Debug)]
 pub struct DatabaseOperationError(pub String);
 
@@ -115,7 +115,7 @@ impl fmt::Display for DatabaseOperationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}",
+            "Database operation failed: {}",
             self.0
         )
     }

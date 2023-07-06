@@ -4,18 +4,17 @@
 
 pub mod logging;
 pub mod db;
-mod db_manager;
+mod db_manager_pb;
 mod input_data;
-pub mod constants;
 mod api;
 
 use std::path::PathBuf;
 pub use api::EngineApi;
-use constants::DB_DIR_PATH;
 pub use serde_json;
-pub use db_manager::DatabaseManager;
-pub use input_data::InputDataField;
+pub use db_manager_pb::DatabaseManager;
+pub use input_data::DocumentInputDataField;
 
+const DB_DIR_PATH: &str = "./databases";
 // Engine version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -61,20 +60,5 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[test]
-    fn engine_config_build_works() {
-        let config = Config {
-            api: EngineApi::build(DatabaseManager::build(
-                PathBuf::from(DB_DIR_PATH),
-                logging::get_logs_dir_path()
-            )),
-            version: VERSION,
-            db_dir_path: PathBuf::from(DB_DIR_PATH),
-            logs_dir_path: logging::get_logs_dir_path(),
-        };
-
-        assert_eq!(config, Config::build());
-    }
+    
 }

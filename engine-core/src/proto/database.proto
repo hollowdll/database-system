@@ -1,0 +1,31 @@
+// Database Protocol Buffers schema
+
+syntax = "proto3";
+package pb;
+
+message Database {
+    string name = 1;
+    string description = 2;
+    repeated Collection collections = 3;
+    uint64 id_count = 4;
+}
+
+message Collection {
+    string name = 1;
+    repeated Document documents = 2;
+}
+
+message Document {
+    message DataType {
+        oneof DataType {
+            int32 int32 = 1;
+            int64 int64 = 2;
+            double decimal = 3;
+            bool bool = 4;
+            string text = 5;
+        }
+    }
+
+    uint64 id = 1;
+    map<string, DataType> data = 2;
+}

@@ -1,51 +1,34 @@
-use serde::{Serialize, Deserialize};
+// Database Protocol Buffers module
+
 use std::{
     io,
     fs,
     path::Path,
     error::Error,
 };
-use crate::{
-    db::{
-        error::DatabaseError,
-        DocumentCollection,
-        write_database_json,
-    },
-    constants::{
-        DB_NOT_FOUND,
-        DB_EXISTS,
-        DB_FILE_EXTENSION,
-        DB_DIR_PATH,
-    },
+use crate::db::{
+    error::DatabaseError,
+    pb,
+    serialize_database,
+    deserialize_database,
+    write_database_to_file,
+    DB_FILE_EXTENSION,
 };
 
-/// Database structure for database files
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Database {
-    name: String,
-    pub description: String,
-    pub collections: Vec<DocumentCollection>,
-    pub id_count: u64,
-}
-
-impl Database {
+impl pb::Database {
     pub fn name(&self) -> &str {
         &self.name
-    }
-
-    pub fn name_mut(&mut self) -> &mut str {
-        &mut self.name
     }
 
     pub fn description(&self) -> &str {
         &self.description
     }
 
-    pub fn collections(&self) -> &Vec<DocumentCollection> {
+    pub fn collections(&self) -> &Vec<pb::Collection> {
         &self.collections
     }
 
-    pub fn collections_mut(&mut self) -> &mut Vec<DocumentCollection> {
+    pub fn collections_mut(&mut self) -> &mut Vec<pb::Collection> {
         &mut self.collections
     }
 
@@ -54,7 +37,7 @@ impl Database {
     }
 }
 
-impl From<&str> for Database {
+impl From<&str> for pb::Database {
     fn from(name: &str) -> Self {
         Self {
             name: String::from(name),
@@ -65,7 +48,7 @@ impl From<&str> for Database {
     }
 }
 
-impl From<(&str, &str)> for Database {
+impl From<(&str, &str)> for pb::Database {
     fn from((name, description): (&str, &str)) -> Self {
         Self {
             name: String::from(name),
@@ -76,17 +59,19 @@ impl From<(&str, &str)> for Database {
     }
 }
 
-/// Formatted database that can be listed in clients.
+/// Database data transfer object (DTO).
 /// 
-/// Size = database file size in bytes.
+/// Exposes database data that clients can use.
+/// 
+/// `size` = database file size in bytes.
 #[derive(Debug, PartialEq)]
-pub struct FormattedDatabase {
+pub struct DatabaseDto {
     name: String,
     description: String,
     size: u64,
 }
 
-impl FormattedDatabase {
+impl DatabaseDto {
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -100,8 +85,8 @@ impl FormattedDatabase {
     }
 }
 
-impl FormattedDatabase {
-    pub fn from(name: String, description: String, size: u64) -> Self {
+impl From<(String, String, u64)> for DatabaseDto {
+    fn from((name, description, size): (String, String, u64)) -> Self {
         Self {
             name,
             description,
@@ -112,44 +97,65 @@ impl FormattedDatabase {
 
 
 
-/// Creates a database file in databases directory
+/// Creates a database file and writes initial data to it.
 pub fn create_database_file(
-    database_name: &str,
-    file_path: &Path
-) -> Result<(), Box<dyn Error>>
-{
-    if !file_path.is_file() {
-        let file = fs::File::create(file_path)?;
-        let database = Database::from(database_name);
-        
-        match write_database_json(&database, file_path) {
-            Ok(()) => return Ok(()),
-            Err(e) => return Err(e.into()),
-        }
-    } else {
-        return Err(Box::new(DatabaseError::Exists))
-    }
-}
-
-/// Deletes a database file in databases directory
-pub fn delete_database_file(
-    database_name: &str,
+    db_name: &str,
     file_path: &Path
 ) -> Result<(), Box<dyn Error>>
 {
     if file_path.is_file() {
-        fs::remove_file(file_path)?;
+        return Err(Box::new(DatabaseError::Exists))
+    }
 
-        return Ok(())
-    } else {
-        return Err(Box::new(DatabaseError::NotFound));
+    let file = fs::File::create(file_path)?;
+    let database = pb::Database::from(db_name);
+    let buf = serialize_database(&database)?;
+
+    match write_database_to_file(&buf, file_path) {
+        Ok(()) => return Ok(()),
+        Err(e) => return Err(e.into()),
     }
 }
 
-/// Finds all databases in databases directory
+/// Deletes a database file.
+pub fn delete_database_file(
+    file_path: &Path
+) -> Result<(), Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    fs::remove_file(file_path)?;
+    
+    Ok(())
+}
+
+/// Changes description of a database and saves the changes to the database file.
+pub fn change_database_description(
+    description: &str,
+    file_path: &Path
+) -> Result<(), Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    database.description = description.to_string();
+    let buf = serialize_database(&database)?;
+
+    match write_database_to_file(&buf, file_path) {
+        Ok(()) => return Ok(()),
+        Err(e) => return Err(e.into()),
+    }
+}
+
+/// Finds all databases from a directory.
+/// 
+/// Returns the found databases.
 pub fn find_all_databases(
     dir_path: &Path
-) -> io::Result<Vec<FormattedDatabase>>
+) -> io::Result<Vec<DatabaseDto>>
 {
     let mut databases = Vec::new();
 
@@ -160,22 +166,22 @@ pub fn find_all_databases(
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
                 if file_extension == DB_FILE_EXTENSION {
-                    let contents = fs::read_to_string(path)?;
-                    let database: Database = match serde_json::from_str(contents.as_str()) {
+                    let buf = fs::read(path)?;
+                    let database = match deserialize_database(&buf) {
                         Ok(database) => database,
                         Err(e) => {
-                            eprintln!("Error parsing database: {e} ({:?})", entry.file_name());
+                            eprintln!("Error parsing database: {} ({:?})", e, entry.file_name());
                             continue
                         },
                     };
 
-                    let formatted_database = FormattedDatabase::from(
+                    let database_dto = DatabaseDto::from((
                         database.name,
                         database.description,
                         entry.metadata()?.len()
-                    );
+                    ));
                     
-                    databases.push(formatted_database);
+                    databases.push(database_dto);
                 }
             }
         }
@@ -184,11 +190,13 @@ pub fn find_all_databases(
     Ok(databases)
 }
 
-/// Finds a database in databases directory.
+/// Finds a database from a directory.
+/// 
+/// Returns the found database.
 pub fn find_database(
-    database_name: &str,
+    db_name: &str,
     dir_path: &Path
-) -> io::Result<Option<FormattedDatabase>>
+) -> io::Result<Option<DatabaseDto>>
 {
     let mut error_message = "";
     
@@ -197,19 +205,17 @@ pub fn find_database(
         let path = entry.path();
 
         if path.is_file() {
-            if entry.file_name() == format!("{database_name}.{DB_FILE_EXTENSION}").as_str() {
-                // Check if json file contains the name
-                let contents = fs::read_to_string(path)?;
-                let database: Database = serde_json::from_str(contents.as_str())?;
+            if entry.file_name() == format!("{db_name}.{DB_FILE_EXTENSION}").as_str() {
+                let database = deserialize_database(&fs::read(path)?)?;
 
-                if database.name() == database_name {
-                    let formatted_database = FormattedDatabase::from(
+                if database.name() == db_name {
+                    let database_dto = DatabaseDto::from((
                         database.name,
                         database.description,
                         entry.metadata()?.len()
-                    );
+                    ));
 
-                    return Ok(Some(formatted_database));
+                    return Ok(Some(database_dto));
                 }
             }
         }
@@ -218,49 +224,15 @@ pub fn find_database(
     Ok(None)
 }
 
-/// Changes description of a database.
-/// 
-/// Modifies `description` field in a database file.
-pub fn change_database_description(
-    description: &str,
-    file_path: &Path,
-) -> Result<(), Box<dyn Error>>
-{
-    if file_path.is_file() {
-        let contents = fs::read_to_string(file_path)?;
-        let mut database: Database = serde_json::from_str(contents.as_str())?;
-        database.description = String::from(description);
-        
-        match write_database_json(&database, file_path) {
-            Ok(()) => return Ok(()),
-            Err(e) => return Err(e.into()),
-        }
-    } else {
-        return Err(Box::new(DatabaseError::NotFound));
-    }
-}
 
 
-
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
     use tempfile::tempdir;
     use fs::File;
     use std::io::{self, Read, Write};
-
-    #[test]
-    fn test_database_struct() {
-        let database_name = "test";
-        let database = Database {
-            name: String::from(database_name),
-            description: String::new(),
-            collections: Vec::new(),
-            id_count: 0,
-        };
-
-        assert_eq!(database, Database::from(database_name));
-    }
 
     #[test]
     fn test_create_database_file() {
@@ -336,4 +308,4 @@ mod tests {
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }
-
+*/

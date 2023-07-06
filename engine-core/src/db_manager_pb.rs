@@ -1,4 +1,6 @@
-// This file contains database manager related code
+// Database manager Protocol Buffers
+
+#![allow(unused)]
 
 use std::{
     collections::HashMap,
@@ -9,15 +11,16 @@ use std::{
 };
 use crate::{
     logging::*,
-    constants::DB_FILE_EXTENSION,
-    InputDataField,
+    DocumentInputDataField,
     db::{
         self,
-        DataType,
-        FormattedDatabase,
-        FormattedDocumentCollection,
-        FormattedDocument,
         error::DatabaseOperationError,
+        pb::document::DataType,
+        database_pb::*,
+        collection_pb::*,
+        document_pb::*,
+        create_db_dir_if_not_exists,
+        DB_FILE_EXTENSION,
     },
 };
 
@@ -59,7 +62,7 @@ impl DatabaseManager {
             .join(format!("{}.{}", db_name, DB_FILE_EXTENSION)))
     }
 
-    /// Attempts to log events with configured logs directory to log file.
+    /// Attempts to log events to log file.
     pub fn log_event(&self, content: &str) {
         if let Err(e) = Logger::log_event(
             content,
@@ -70,7 +73,7 @@ impl DatabaseManager {
         }
     }
 
-    /// Attempts to log errors with configured logs directory to log file.
+    /// Attempts to log errors to log file.
     pub fn log_error(&self, content: &str) {
         if let Err(e) = Logger::log_error(
             ErrorLogType::Error,
@@ -84,140 +87,129 @@ impl DatabaseManager {
 }
 
 impl DatabaseManager {
-    /// Creates a new database 
+    /// Creates a new database.
     pub fn create_database(
         &self,
-        database_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationError(format!(
-                "Failed to create database '{}': {}",
-                database_name,
-                err
-            )));
+        if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(
+                format!("Failed to create databases directory: {}", err)
+            ));
         }
 
-        if let Err(err) = db::create_database_file(
-            database_name,
-            &self.db_file_path(database_name)
+        if let Err(err) = create_database_file(
+            db_name,
+            &self.db_file_path(db_name)
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create database '{}': {}",
-                database_name,
+                db_name,
                 err
             )));
         }
 
-        Ok(format!("Created database '{}'", database_name))
+        Ok(())
     }
 
-    /// Deletes a database
+    /// Deletes a database.
     pub fn delete_database(
         &self,
-        database_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = db::delete_database_file(
-            database_name,
-            &self.db_file_path(database_name)
+        if let Err(err) = delete_database_file(
+            &self.db_file_path(db_name)
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to delete database '{}': {}",
-                database_name,
+                db_name,
                 err
             )));
         }
         
-        Ok(format!("Deleted database '{}'", database_name))
+        Ok(())
     }
 
-    /// Changes description of a database
+    /// Changes description of a database.
     pub fn change_database_description(
         &self,
-        database_name: &str,
+        db_name: &str,
         description: &str,
-    ) -> Result<String, DatabaseOperationError>
+    ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = db::change_database_description(
+        if let Err(err) = change_database_description(
             description,
-            &self.db_file_path(database_name)
+            &self.db_file_path(db_name)
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to change description of database '{}': {}",
-                database_name,
+                db_name,
                 err
             )));
         }
 
-        Ok(format!("Changed description of database '{}'", database_name))
+        Ok(())
     }
 
-    /// Creates a new collection to a database
+    /// Creates a new collection to a database.
     pub fn create_collection(
         &self,
         collection_name: &str,
-        database_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = db::create_collection_to_db_file(
+        if let Err(err) = create_collection_to_db_file(
             collection_name,
-            &self.db_file_path(database_name)
+            &self.db_file_path(db_name)
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create collection '{}' to database '{}': {}",
                 collection_name,
-                database_name,
+                db_name,
                 err
             )));
         }
 
-        Ok(format!(
-            "Created collection '{}' to database '{}'",
-            collection_name,
-            database_name
-        ))
+        Ok(())
     }
 
-    /// Deletes a collection from a database
+    /// Deletes a collection from a database.
     pub fn delete_collection(
         &self,
         collection_name: &str,
-        database_name: &str,
-    ) -> Result<String, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = db::delete_collection_from_db_file(
+        if let Err(err) = delete_collection_from_db_file(
             collection_name,
-            &self.db_file_path(database_name)
+            &self.db_file_path(db_name)
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to delete collection '{}' from database '{}': {}",
                 collection_name,
-                database_name,
+                db_name,
                 err
             )));
         }
 
-        Ok(format!(
-            "Deleted collection '{}' from database '{}'",
-            collection_name,
-            database_name
-        ))
+        Ok(())
     }
 
     /// Creates a new document to a collection
     pub fn create_document(
         &self,
-        database_name: &str,
+        db_name: &str,
         collection_name: &str,
-        data: Vec<InputDataField>,
-    ) -> Result<String, DatabaseOperationError>
+        input_data: Vec<DocumentInputDataField>,
+    ) -> Result<(), DatabaseOperationError>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
         // convert input data to correct document data types
-        for data_field in data {
-            let converted_value = match data_field.convert_to_document_data_type(
+        for data_field in input_data {
+            let converted_value = match data_field.parse_to_document_data_type(
                 data_field.value(),
                 data_field.data_type()
             ) {
@@ -232,108 +224,99 @@ impl DatabaseManager {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        if let Err(err) = db::create_document(
-            &self.db_file_path(database_name),
+        if let Err(err) = create_document_to_db_file(
+            &self.db_file_path(db_name),
             collection_name,
             document_data
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create document to collection '{}' in database '{}': {}",
                 collection_name,
-                database_name,
+                db_name,
                 err
             )));
         }
 
-        Ok(format!(
-            "Created document to collection '{}' in database '{}'",
-            collection_name,
-            database_name
-        ))
+        Ok(())
     }
 
-    /// Deletes a document from database
+    /// Deletes a document from a collection.
     pub fn delete_document(
         &self,
-        database_name: &str,
+        db_name: &str,
         document_id: &u64,
-    ) -> Result<String, DatabaseOperationError>
+        collection_name: &str,
+    ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = db::delete_document(
-            &self.db_file_path(database_name),
-            document_id
+        if let Err(err) = delete_document_from_db_file(
+            &self.db_file_path(db_name),
+            document_id,
+            collection_name,
         ) {
             return Err(DatabaseOperationError(format!(
-                "Failed to delete document with ID '{}' from database '{}': {}",
+                "Failed to delete document with ID '{}' from collection '{}' in database '{}': {}",
                 document_id,
-                database_name,
+                collection_name,
+                db_name,
                 err
             )));
         }
 
-        Ok(format!(
-            "Deleted document with ID '{}' from database '{}'",
-            document_id,
-            database_name
-        ))
+        Ok(())
     }
 
     /// Finds all databases.
     pub fn find_all_databases(
         &self,
-    ) -> Result<Vec<FormattedDatabase>, DatabaseOperationError>
+    ) -> Result<Vec<DatabaseDto>, DatabaseOperationError>
     {
-        if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationError(format!(
-                "Failed to find all databases: {}",
-                err
-            )));
+        if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
+            return Err(DatabaseOperationError(
+                format!("Failed to create databases directory: {}", err)
+            ));
         }
 
-        match db::find_all_databases(&self.db_dir_path()) {
+        match find_all_databases(&self.db_dir_path()) {
             Ok(databases) => return Ok(databases),
-            Err(err) => return Err(DatabaseOperationError(format!(
-                "Failed to find all databases: {}",
-                err
-            ))),
+            Err(err) => return Err(DatabaseOperationError(
+                format!("Failed to find all databases: {}", err)
+            )),
         }
     }
 
     /// Finds a database.
     pub fn find_database(
         &self,
-        database_name: &str,
-    ) -> Result<Option<FormattedDatabase>, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
         if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationError(format!(
-                "Failed to find all databases: {}",
-                err
-            )));
+            return Err(DatabaseOperationError(
+                format!("Failed to create databases directory: {}", err)
+            ));
         }
 
-        match db::find_database(database_name, &self.db_dir_path()) {
+        match find_database(db_name, &self.db_dir_path()) {
             Ok(database) => return Ok(database),
-            Err(err) => return Err(DatabaseOperationError(format!(
-                "Failed to find all databases: {}",
-                err
-            ))),
+            Err(err) => return Err(DatabaseOperationError(
+                format!("Failed to find database '{}': {}", db_name, err)
+            )),
         }
     }
 
     /// Finds all collections from a database.
     pub fn find_all_collections(
         &self,
-        database_name: &str,
-    ) -> Result<Vec<FormattedDocumentCollection>, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
     {
-        match db::find_all_collections_from_db_file(
-            &self.db_file_path(database_name)
+        match find_all_collections_from_db_file(
+            &self.db_file_path(db_name)
         ) {
             Ok(collections) => return Ok(collections),
             Err(err) => return Err(DatabaseOperationError(format!(
-                "Failed to find all collections of database '{}': {}",
-                database_name,
+                "Failed to find all collections from database '{}': {}",
+                db_name,
                 err
             ))),
         }
@@ -343,60 +326,63 @@ impl DatabaseManager {
     pub fn find_collection(
         &self,
         collection_name: &str,
-        database_name: &str,
-    ) -> Result<Option<FormattedDocumentCollection>, DatabaseOperationError>
+        db_name: &str,
+    ) -> Result<Option<CollectionDto>, DatabaseOperationError>
     {
-        match db::find_collection_from_db_file(
+        match find_collection_from_db_file(
             collection_name,
-            &self.db_file_path(database_name)
+            &self.db_file_path(db_name)
         ) {
             Ok(collection) => return Ok(collection),
             Err(err) => return Err(DatabaseOperationError(format!(
                 "Failed to find collection '{}' from database '{}': {}",
                 collection_name,
-                database_name,
+                db_name,
                 err
             ))),
         }
     }
 
-    /// Finds all documents from collection.
+    /// Finds all documents from a collection.
     pub fn find_all_documents(
         &self,
-        database_name: &str,
+        db_name: &str,
         collection_name: &str,
-    ) -> Result<Vec<FormattedDocument>, DatabaseOperationError>
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
-        match db::find_all_documents_from_collection(
-            &self.db_file_path(database_name),
+        match find_all_documents_from_collection(
+            &self.db_file_path(db_name),
             collection_name
         ) {
             Ok(document) => return Ok(document),
             Err(err) => return Err(DatabaseOperationError(format!(
                 "Failed to find all documents from collection '{}' in database '{}': {}",
                 collection_name,
-                database_name,
+                db_name,
                 err
             ))),
         }
     }
 
-    /// Finds a document from a database by its id.
+    /// Finds a document from a collection by document id.
     pub fn find_document_by_id(
         &self,
         document_id: &u64,
-        database_name: &str,
-    ) -> Result<Option<FormattedDocument>, DatabaseOperationError>
+        db_name: &str,
+        collection_name: &str,
+    ) -> Result<Option<DocumentDto>, DatabaseOperationError>
     {
-        match db::find_document_by_id(
+        match find_document_from_collection_by_id(
+            &self.db_file_path(db_name),
             document_id,
-            &self.db_file_path(database_name)
+            collection_name,
         ) {
             Ok(document) => return Ok(document),
             Err(err) => return Err(DatabaseOperationError(format!(
-                "Failed to find document with ID '{}' from database '{}': {}",
+                "Failed to find document with ID '{}' from collection '{}' in database '{}': {}",
                 document_id,
-                database_name,
+                collection_name,
+                db_name,
                 err
             ))),
         }
