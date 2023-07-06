@@ -31,10 +31,6 @@ impl pb::Database {
     pub fn collections_mut(&mut self) -> &mut Vec<pb::Collection> {
         &mut self.collections
     }
-
-    pub fn id_count(&self) -> &u64 {
-        &self.id_count
-    }
 }
 
 impl From<&str> for pb::Database {
@@ -43,7 +39,6 @@ impl From<&str> for pb::Database {
             name: String::from(name),
             description: String::new(),
             collections: Vec::new(),
-            id_count: 0,
         }
     }
 }
@@ -54,7 +49,6 @@ impl From<(&str, &str)> for pb::Database {
             name: String::from(name),
             description: String::from(description),
             collections: Vec::new(),
-            id_count: 0,
         }
     }
 }

@@ -7,12 +7,12 @@ message Database {
     string name = 1;
     string description = 2;
     repeated Collection collections = 3;
-    uint64 id_count = 4;
 }
 
 message Collection {
-    string name = 1;
-    repeated Document documents = 2;
+    uint64 id_count = 1;
+    string name = 2;
+    repeated Document documents = 3;
 }
 
 message Document {
