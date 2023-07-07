@@ -22,6 +22,7 @@ use crate::db::{
     DB_FILE_EXTENSION,
 };
 
+// Implements methods for protobuf type
 impl pb::Document {
     pub fn id(&self) -> &u64 {
         &self.id

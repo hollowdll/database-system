@@ -1,4 +1,4 @@
-// CLI management system library
+// CLI client library
 
 // #![allow(unused)]
 
@@ -63,11 +63,10 @@ pub fn run(config: Config) {
     let help_message = "Write /help for all available commands";
 
     println!("NOTE: This is an early version. Nothing is final.");
-    println!("The engine now uses Protocol Buffers for data storage.");
-    println!("It is much faster and more efficient than previously used JSON.");
+    println!("The engine uses Protocol Buffers for storing data.");
     println!("\nVersion: {}", config.version);
-    println!("{}\n", "Database engine CLI client");
-    println!("{}", help_message);
+    println!("Database engine CLI client");
+    println!("\n{}", help_message);
 
     // Program main loop
     loop {
@@ -80,7 +79,7 @@ pub fn run(config: Config) {
         }
 
         let input_command = match ask_user_input(
-            &format!("<{connected_database_name}>\nEnter a command:")
+            &format!("\n<{}>\nEnter a command: ", connected_database_name)
         ) {
             Ok(input_command) => input_command,
             Err(_) => continue,
@@ -291,23 +290,6 @@ fn collection_exists(
 fn ask_user_input(text_to_ask: &str) -> io::Result<String> {
     let mut input = String::new();
 
-    println!("\n{}", text_to_ask);
-    if let Err(e) = io::stdin().read_line(&mut input) {
-        eprintln!("Failed to read line: {e}");
-        return Err(e);
-    }
-    let input = input.trim().to_string();
-
-    Ok(input)
-}
-
-/// Asks for user input and returns it trimmed.
-/// 
-/// This is inline version meaning that `text_to_ask`
-/// and input are in the same line.
-fn ask_user_input_inline(text_to_ask: &str) -> io::Result<String> {
-    let mut input = String::new();
-
     print!("{text_to_ask}");
     io::stdout().flush().expect("Unexpected I/O error");
     if let Err(e) = io::stdin().read_line(&mut input) {
@@ -337,9 +319,32 @@ fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
     Ok(confirm)
 }
 
+/// Show menu to connect to a database.
+fn connect_database_menu(
+    api: &EngineApi,
+    connected_database: &mut Option<String>
+) {
+    let database_name = match ask_user_input("Database name: ") {
+        Ok(database_name) => database_name,
+        Err(_) => return,
+    };
+
+    match api.find_database(&database_name) {
+        Ok(result) => {
+            if result.is_some() {
+                connected_database.replace(database_name);
+                println!("Connected to database");
+            } else {
+                println!("Failed to connect to database. Database does not exist.");
+            }
+        },
+        Err(e) => eprintln!("[Error] {e}"),
+    }
+}
+
 /// Show menu to create a new database.
 fn create_database_menu(api: &EngineApi) {
-    let database_name = match ask_user_input("Database name:") {
+    let database_name = match ask_user_input("Database name: ") {
         Ok(database_name) => database_name,
         Err(_) => return,
     };
@@ -355,7 +360,7 @@ fn delete_database_menu(
     api: &EngineApi,
     connected_database: &mut Option<String>
 ) {
-    let database_name = match ask_user_input("Database name:") {
+    let database_name = match ask_user_input("Database name: ") {
         Ok(database_name) => database_name,
         Err(_) => return,
     };
@@ -383,29 +388,6 @@ fn delete_database_menu(
             }
         },
         _ => return println!("Canceled action"),
-    }
-}
-
-/// Show menu to connect to a database.
-fn connect_database_menu(
-    api: &EngineApi,
-    connected_database: &mut Option<String>
-) {
-    let database_name = match ask_user_input("Database name:") {
-        Ok(database_name) => database_name,
-        Err(_) => return,
-    };
-
-    match api.find_database(&database_name) {
-        Ok(result) => {
-            if result.is_some() {
-                connected_database.replace(database_name);
-                println!("Connected to database");
-            } else {
-                println!("Failed to connect to database. Database does not exist.");
-            }
-        },
-        Err(e) => eprintln!("[Error] {e}"),
     }
 }
 
@@ -442,7 +424,7 @@ fn create_collection_menu(
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
     
-    let collection_name = match ask_user_input("Collection name:") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };
@@ -468,7 +450,7 @@ fn delete_collection_menu(
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
-    let collection_name = match ask_user_input("Collection name:") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };
@@ -532,7 +514,7 @@ fn change_database_description_menu(
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
-    let description = match ask_user_input("Description:") {
+    let description = match ask_user_input("Description: ") {
         Ok(description) => description,
         Err(_) => return,
     };
@@ -558,7 +540,7 @@ fn create_document_menu(
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
-    let collection_name = match ask_user_input("Collection name:") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };
@@ -573,15 +555,15 @@ fn create_document_menu(
     loop {
         println!("\n{}", "Insert new field");
 
-        let field = match ask_user_input_inline("Field name: ") {
+        let field = match ask_user_input("Field name: ") {
             Ok(field) => field,
             Err(_) => return,
         };
-        let data_type = match ask_user_input_inline("Data type: ") {
+        let data_type = match ask_user_input("Data type: ") {
             Ok(data_type) => data_type,
             Err(_) => return,
         };
-        let value = match ask_user_input_inline("Value: ") {
+        let value = match ask_user_input("Value: ") {
             Ok(value) => value,
             Err(_) => return,
         };
@@ -616,7 +598,7 @@ fn list_documents_of_collection(
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
-    let collection_name = match ask_user_input("Collection name:") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };
@@ -652,11 +634,11 @@ fn list_document(
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
-    let collection_name = match ask_user_input_inline("Collection: ") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };
-    let document_id = match ask_user_input_inline("Document ID: ") {
+    let document_id = match ask_user_input("Document ID: ") {
         Ok(id) => id,
         Err(_) => return,
     };
@@ -696,11 +678,11 @@ fn delete_document_menu(
         Some(database_name) => database_name,
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
-    let collection_name = match ask_user_input_inline("Collection: ") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };
-    let document_id = match ask_user_input_inline("Document ID: ") {
+    let document_id = match ask_user_input("Document ID: ") {
         Ok(document_id) => document_id,
         Err(_) => return,
     };
@@ -740,7 +722,7 @@ fn create_test_documents(
         None => return println!("{}", NO_CONNECTED_DATABASE),
     };
 
-    let collection_name = match ask_user_input("Collection name:") {
+    let collection_name = match ask_user_input("Collection: ") {
         Ok(collection_name) => collection_name,
         Err(_) => return,
     };

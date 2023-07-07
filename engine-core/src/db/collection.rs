@@ -18,6 +18,7 @@ use crate::db::{
     DB_FILE_EXTENSION,
 };
 
+// Implements methods for protobuf type
 impl pb::Collection {
     pub fn name(&self) -> &str {
         &self.name
