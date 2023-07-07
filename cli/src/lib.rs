@@ -93,33 +93,32 @@ pub fn run(config: Config) {
   /help                                List all available commands
   /q                                   Quit program
   /status                              Display currently connected database
-  /version                             Display software version
+  /version                             Display client and engine versions
 
   ** DATABASE COMMANDS **
 
-  /databases                           List all databases
+  /connect db                          Connect to a database
+  /get dbs                             List all databases
   /create db                           Create a new database
   /delete db                           Delete a database
-  /connect db                          Connect to a database
-  /change db desc                      Change description of connected database
+  /change db desc                      Change description of the connected database
 
   ** COLLECTION COMMANDS **
 
-  /collections                         List all collections of connected database
-  /create collection                   Create a new collection to the connected database
-  /delete collection                   Delete a collection from the connected database
+  /get cols                            List all collections of the connected database
+  /create col                          Creates a new collection to the connected database
+  /delete col                          Deletes a collection from the connected database
 
   ** DOCUMENT COMMANDS **
   
-  /documents                           List documents of a collection
-  /get document                        Fetch a document from a database by id and list it
-  /create document                     Create a new document to a collection
-  /delete document                     Delete a document from a database
-  (DISABLED) /delete doc col           Delete a document from a collection. This is faster if the collection is known beforehand.
+  /get docs                            List all documents of a collection
+  /get doc                             Fetch a document from a collection and list it
+  /create doc                          Create a new document to a collection
+  /delete doc                          Delete a document from a collection
 
   ** COMMANDS FOR TESTING **
 
-  /create test documents               Creates test documents to a collection
+  /create test docs                    Creates test documents to a collection
   
   More commands in the future...");
             },
@@ -132,7 +131,10 @@ pub fn run(config: Config) {
             "/version" => {
                 display_program_version(config.version, engine.version());
             },
-            "/databases" => {
+            "/connect db" => {
+                connect_database_menu(engine.api(), &mut connected_database);
+            },
+            "/get dbs" => {
                 list_all_databases(engine.api());
             },
             "/create db" => {
@@ -141,38 +143,35 @@ pub fn run(config: Config) {
             "/delete db" => {
                 delete_database_menu(engine.api(), &mut connected_database);
             },
-            "/connect db" => {
-                connect_database_menu(engine.api(), &mut connected_database);
-            },
             "/change db desc" => {
                 change_database_description_menu(engine.api(), &connected_database)
             },
-            "/collections" => {
+            "/get cols" => {
                 list_collections_of_connected_database(engine.api(), &connected_database);
             },
-            "/create collection" => {
+            "/create col" => {
                 create_collection_menu(engine.api(), &connected_database);
             },
-            "/delete collection" => {
+            "/delete col" => {
                 delete_collection_menu(engine.api(), &connected_database);
             },
-            "/documents" => {
+            "/get docs" => {
                 list_documents_of_collection(engine.api(), &connected_database);
             },
-            "/get document" => {
+            "/get doc" => {
                 list_document(engine.api(), &connected_database);
             },
-            "/create document" => {
+            "/create doc" => {
                 create_document_menu(engine.api(), &connected_database);
             },
-            "/delete document" => {
+            "/delete doc" => {
                 delete_document_menu(engine.api(), &connected_database);
             },
-            "/create test documents" => {
+            "/create test docs" => {
                 create_test_documents(engine.api(), &connected_database);
             },
             _ => {
-                println!("No such command found!");
+                println!("Command not found!");
                 println!("{}", help_message);
                 continue
             },
