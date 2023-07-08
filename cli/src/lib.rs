@@ -2,6 +2,10 @@
 
 // #![allow(unused)]
 
+mod database;
+mod collection;
+mod document;
+
 use std::{
     process,
     io::{self, Write},
@@ -22,7 +26,7 @@ const CONFIRM_OPTION_YES: &str = "Y";
 
 /// Configures program data
 pub struct Config {
-    engine_core_config: engine_core::Config,
+    engine: engine_core::Config,
     version: &'static str,
     connected_database: Option<String>,
 }
@@ -31,29 +35,16 @@ impl Config {
     /// Builds a new program configuration
     pub fn build() -> Self {
         Self {
-            engine_core_config: engine_core::Config::build(),
+            engine: engine_core::Config::build(),
             version: VERSION,
             connected_database: None,
         }
     }
 }
 
-/* Disabled
-/// Currently connected database
-struct ConnectedDatabase {
-    name: &'static str,
-}
-
-impl ConnectedDatabase {
-    fn name(&self) -> &str {
-        &self.name
-    }
-}
-*/
-
 /// Runs the program.
 pub fn run(config: Config) {
-    let engine = config.engine_core_config;
+    let engine = config.engine;
     let mut connected_database = config.connected_database;
     let help_message = "Write /help for all available commands";
 
