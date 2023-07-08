@@ -1,5 +1,3 @@
-// CLI client library
-
 // #![allow(unused)]
 
 mod database;
@@ -12,7 +10,6 @@ use std::{
 };
 use engine_core::{
     self,
-    EngineApi,
     db::{
         pb::document::data_type::DataType,
         document::DocumentDto,
@@ -21,51 +18,568 @@ use engine_core::{
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-const NO_CONNECTED_DATABASE: &str = "No connected database";
+const NO_CONNECTED_DB: &str = "No connected database";
 const CONFIRM_OPTION_YES: &str = "Y";
 
-/// Configures program data
+/// Program configuration.
 pub struct Config {
     engine: engine_core::Config,
     version: &'static str,
-    connected_database: Option<String>,
+    connected_db: Option<String>,
 }
 
 impl Config {
-    /// Builds a new program configuration
+    /// Builds a new program configuration.
     pub fn build() -> Self {
         Self {
             engine: engine_core::Config::build(),
             version: VERSION,
-            connected_database: None,
+            connected_db: None,
+        }
+    }
+}
+
+impl Config {
+    pub fn engine(&self) -> &engine_core::Config {
+        &self.engine
+    }
+
+    pub fn connected_db(&self) -> &Option<String> {
+        &self.connected_db
+    }
+
+    pub fn connected_db_mut(&mut self) -> &mut Option<String> {
+        &mut self.connected_db
+    }
+}
+
+/// Program structure.
+pub struct Cli {
+    config: Config,
+}
+
+impl Cli {
+    /// Builds program structure.
+    pub fn build() -> Self {
+        Self {
+            config: Config::build(),
+        }
+    }
+}
+
+impl Cli {
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+
+    pub fn config_mut(&mut self) -> &mut Config {
+        &mut self.config
+    }
+}
+
+impl Cli {
+    /// Displays the program version.
+    fn display_version(&self) {
+        println!("Client version: {}", &self.config.version);
+        println!("Engine version: {}", &self.config.engine.version());
+    }
+
+    /// Displays connected database.
+    fn display_connection_status(&self) {
+        match &self.config.connected_db {
+            Some(db_name) => println!("Connected database: {}", db_name),
+            None => println!("{}", NO_CONNECTED_DB),
+        }
+    }
+
+    /// If connected database doesn't exists anymore, reset it to `None`.
+    fn refresh_connected_db(&mut self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return,
+        };
+
+        match &self.config.engine.api().find_database(connected_db_name) {
+            Ok(result) => {
+                if result.is_none() {
+                    let _ = &self.config.connected_db.take();
+                }
+            },
+            Err(e) => eprintln!("[Error] Failed to find connected database: {e}"),
+        }
+    }
+
+    /// Checks if connected database exists.
+    fn database_exists(
+        &self,
+        connected_db_name: &str,
+    ) -> bool
+    {
+        match &self.config.engine.api().find_database(connected_db_name) {
+            Ok(result) => {
+                if result.is_none() {
+                    println!("Cannot find database '{connected_db_name}'");
+                    return false;
+                }
+            },
+            Err(e) => {
+                eprintln!("[Error] Failed to find connected database: {e}");
+                return false;
+            },
+        }
+
+        return true;
+    }
+
+    /// Checks if collection exists.
+    fn collection_exists(
+        &self,
+        collection_name: &str,
+        connected_db_name: &str,
+    ) -> bool
+    {
+        match &self.config.engine.api().find_collection(collection_name, connected_db_name) {
+            Ok(result) => {
+                if result.is_none() {
+                    println!("Cannot find collection '{collection_name}'");
+                    return false;
+                }
+            },
+            Err(e) => {
+                eprintln!("[Error] Failed to find collection: {e}");
+                return false;
+            },
+        }
+
+        return true;
+    }
+
+    /// Show menu to connect to a database.
+    fn connect_database_menu(&mut self) {
+        let db_name = match ask_user_input("Database name: ") {
+            Ok(db_name) => db_name,
+            Err(_) => return,
+        };
+
+        match &self.config.engine.api().find_database(&db_name) {
+            Ok(result) => {
+                if result.is_some() {
+                    let _ = &self.config.connected_db.replace(db_name);
+                    println!("Connected to database");
+                } else {
+                    println!("Failed to connect to database. Database does not exist.");
+                }
+            },
+            Err(e) => eprintln!("[Error] {e}"),
+        }
+    }
+
+    /// Show menu to create a new database.
+    fn create_database_menu(&self) {
+        let db_name = match ask_user_input("Database name: ") {
+            Ok(db_name) => db_name,
+            Err(_) => return,
+        };
+
+        match &self.config.engine.api().create_database(&db_name) {
+            Ok(()) => println!("Database created"),
+            Err(err) => eprintln!("[Error] {}", err),
+        }
+    }
+
+    /// Show menu to delete a database.
+    fn delete_database_menu(&mut self) {
+        let db_name = match ask_user_input("Database name: ") {
+            Ok(db_name) => db_name,
+            Err(_) => return,
+        };
+
+        let confirm = match ask_action_confirm(
+            &format!("Are you sure you want to delete database '{}'?", db_name)
+        ) {
+            Ok(confirm) => confirm,
+            Err(_) => return,
+        };
+
+        match confirm.as_str() {
+            CONFIRM_OPTION_YES => {
+                match &self.config.engine.api().delete_database(&db_name) {
+                    Ok(()) => {
+                        // Disconnect database if it is connected
+                        if let Some(connected_db_name) = &self.config.connected_db {
+                            if connected_db_name == &db_name {
+                                let _ = &self.config.connected_db.take();
+                            }
+                        }
+                        println!("Database deleted");
+                    },
+                    Err(e) => eprintln!("[Error] {e}"),
+                }
+            },
+            _ => return println!("Canceled action"),
+        }
+    }
+
+    /// List all databases and display information about them.
+    fn list_all_databases(&self) {
+        let databases = match self.config.engine.api().find_all_databases() {
+            Ok(databases) => databases,
+            Err(e) => return eprintln!("[Error] {e}"),
+        };
+
+        println!("\nNumber of databases: {}", databases.len());
+
+        for database in databases {
+            println!(
+    "
+    Name: {}
+    Size: {} bytes
+    Description: {}",
+            database.name(),
+            database.size(),
+            database.description(),
+            );
+        }
+    }
+
+    /// Show menu to create a new collection
+    /// to the connected database
+    fn create_collection_menu(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+        
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        match &self.config.engine.api().create_collection(&collection_name, connected_db_name) {
+            Ok(()) => println!("Collection created"),
+            Err(e) => return eprintln!("[Error] {e}"),
+        }
+    }
+
+    /// Show menu to delete a collection
+    /// from the connected database
+    fn delete_collection_menu(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+
+        let confirm = match ask_action_confirm(
+            &format!("Are you sure you want to delete collection '{}'?", collection_name)
+        ) {
+            Ok(confirm) => confirm,
+            Err(_) => return,
+        };
+
+        match confirm.as_str() {
+            CONFIRM_OPTION_YES => {
+                if !&self.database_exists(connected_db_name) {
+                    return;
+                }
+                match &self.config.engine.api().delete_collection(&collection_name, connected_db_name) {
+                    Ok(()) => println!("Collection deleted"),
+                    Err(e) => return eprintln!("[Error] {e}"),
+                }
+            },
+            _ => return println!("Canceled action"),
+        }
+
+    }
+
+    /// List all collections of the connected database
+    fn list_collections_of_connected_db(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        // find all collections and list them
+        let collections = match self
+            .config
+            .engine
+            .api()
+            .find_all_collections(connected_db_name)
+        {
+            Ok(collections) => collections,
+            Err(e) => return eprintln!("[Error] {e}"),
+        };
+
+        println!("\nNumber of collections: {}", collections.len());
+
+        for collection in collections {
+            println!("{}", collection.name());
+        }
+    }
+
+    /// Show menu to change database description
+    fn change_database_description_menu(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+
+        let description = match ask_user_input("Description: ") {
+            Ok(description) => description,
+            Err(_) => return,
+        };
+
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        // Change description of connected database
+        match &self.config.engine.api().change_database_description(connected_db_name, &description) {
+            Ok(()) => println!("Database description changed"),
+            Err(e) => return eprintln!("[Error] {e}"),
+        }
+    }
+
+    /// Show menu to create a new document to a collection
+    fn create_document_menu(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+
+        if !&self.collection_exists(&collection_name, connected_db_name) {
+            return;
+        }
+
+        // input data for the new document
+        let mut data: Vec<DocumentInputDataField> = Vec::new();
+        
+        loop {
+            println!("\n{}", "Insert new field");
+
+            let field = match ask_user_input("Field name: ") {
+                Ok(field) => field,
+                Err(_) => return,
+            };
+            let data_type = match ask_user_input("Data type: ") {
+                Ok(data_type) => data_type,
+                Err(_) => return,
+            };
+            let value = match ask_user_input("Value: ") {
+                Ok(value) => value,
+                Err(_) => return,
+            };
+
+            data.push(DocumentInputDataField::new(&field, &data_type, &value));
+
+            let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
+                Ok(confirm) => confirm,
+                Err(_) => return,
+            };
+            if confirm.as_str() == CONFIRM_OPTION_YES {
+                break;
+            }
+        }
+
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        match &self.config.engine.api().create_document(connected_db_name, &collection_name, data) {
+            Ok(()) => println!("Document created"),
+            Err(e) => return eprintln!("[Error] {e}"),
+        }
+    }
+
+    /// List all documents of a collection
+    fn list_documents_of_collection(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+
+        if !&self.collection_exists(&collection_name, connected_db_name) {
+            return;
+        }
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        let documents = match self.config.engine.api().find_all_documents(
+            connected_db_name,
+            &collection_name,
+        ) {
+            Ok(documents) => documents,
+            Err(e) => return eprintln!("[Error] {e}"),
+        };
+
+        println!("\nNumber of documents: {}", documents.len());
+
+        for document in documents {
+            display_document(&document);
+        }
+    }
+
+    /// Lists document of a database
+    fn list_document(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+        let document_id = match ask_user_input("Document ID: ") {
+            Ok(id) => id,
+            Err(_) => return,
+        };
+        let document_id: u64 = match document_id.parse() {
+            Ok(id) => id,
+            Err(e) => return eprintln!("Invalid document ID: {e}"),
+        };
+
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        let result = match self.config.engine.api().find_document_by_id(
+            &document_id,
+            connected_db_name,
+            &collection_name,
+        ) {
+            Ok(result) => result,
+            Err(e) => return eprintln!("[Error] {e}"),
+        };
+
+        match result {
+            Some(document) => {
+                println!("Collection: {}", document.collection());
+                display_document(&document);
+            },
+            None => return println!("Document with this ID was not found from this collection"),
+        }
+    }
+
+    /// Show menu to delete a document
+    fn delete_document_menu(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+        let document_id = match ask_user_input("Document ID: ") {
+            Ok(document_id) => document_id,
+            Err(_) => return,
+        };
+        let document_id: u64 = match document_id.parse() {
+            Ok(id) => id,
+            Err(e) => return eprintln!("Invalid document ID: {e}"),
+        };
+
+        let confirm = match ask_action_confirm(
+            &format!("Are you sure you want to delete document with ID '{}'?", document_id)
+        ) {
+            Ok(confirm) => confirm,
+            Err(_) => return,
+        };
+
+        match confirm.as_str() {
+            CONFIRM_OPTION_YES => {
+                if !&self.database_exists(connected_db_name) {
+                    return;
+                }
+                match &self.config.engine.api().delete_document(connected_db_name, &document_id, &collection_name) {
+                    Ok(()) => println!("Document deleted"),
+                    Err(e) => return eprintln!("[Error] {e}"),
+                }
+            },
+            _ => return println!("Canceled action"),
+        }
+    }
+
+    /// Creates test documents to a collection
+    fn create_test_documents(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+
+        if !&self.collection_exists(&collection_name, connected_db_name) {
+            return;
+        }
+        
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+        
+        for i in 1..=10 {
+            let mut data: Vec<DocumentInputDataField> = Vec::new();
+            let field = format!("field_{i}");
+            let data_type = "Text";
+            let value = format!("value_{i}");
+
+            data.push(DocumentInputDataField::new(&field, data_type, &value));
+
+            match &self.config.engine.api().create_document(connected_db_name, &collection_name, data) {
+                Ok(()) => println!("Document created"),
+                Err(e) => eprintln!("[Error] {e}"),
+            }
         }
     }
 }
 
 /// Runs the program.
-pub fn run(config: Config) {
-    let engine = config.engine;
-    let mut connected_database = config.connected_database;
+pub fn run(mut cli: Cli) {
     let help_message = "Write /help for all available commands";
 
     println!("NOTE: This is an early version. Nothing is final.");
     println!("The engine uses Protocol Buffers for storing data.");
-    println!("\nVersion: {}", config.version);
+    println!("\nVersion: {}", cli.config.version);
     println!("Database engine CLI client");
     println!("\n{}", help_message);
 
     // Program main loop
     loop {
-        let mut connected_database_name: String = NO_CONNECTED_DATABASE.to_string();
+        let mut connected_db_name = NO_CONNECTED_DB.to_string();
 
-        refresh_connected_database(engine.api(), &mut connected_database);
+        cli.refresh_connected_db();
 
-        if let Some(name) = &connected_database {
-            connected_database_name = format!("Connected database: {}", name);
+        if let Some(name) = cli.config.connected_db() {
+            connected_db_name = format!("Connected database: {}", name);
         }
 
         let input_command = match ask_user_input(
-            &format!("\n<{}>\nEnter a command: ", connected_database_name)
+            &format!("\n<{}>\nEnter a command: ", connected_db_name)
         ) {
             Ok(input_command) => input_command,
             Err(_) => continue,
@@ -76,85 +590,85 @@ pub fn run(config: Config) {
                 println!("\n{}", "All available commands:");
                 println!(
 "
-  /help                                List all available commands
-  /q                                   Quit program
-  /status                              Display currently connected database
-  /version                             Display client and engine versions
+/help                                List all available commands
+/q                                   Quit program
+/status                              Display currently connected database
+/version                             Display client and engine versions
 
-  ** DATABASE COMMANDS **
+** DATABASE COMMANDS **
 
-  /connect db                          Connect to a database
-  /get dbs                             List all databases
-  /create db                           Create a new database
-  /delete db                           Delete a database
-  /change db desc                      Change description of the connected database
+/connect db                          Connect to a database
+/get dbs                             List all databases
+/create db                           Create a new database
+/delete db                           Delete a database
+/change db desc                      Change description of the connected database
 
-  ** COLLECTION COMMANDS **
+** COLLECTION COMMANDS **
 
-  /get cols                            List all collections of the connected database
-  /create col                          Creates a new collection to the connected database
-  /delete col                          Deletes a collection from the connected database
+/get cols                            List all collections of the connected database
+/create col                          Creates a new collection to the connected database
+/delete col                          Deletes a collection from the connected database
 
-  ** DOCUMENT COMMANDS **
-  
-  /get docs                            List all documents of a collection
-  /get doc                             Fetch a document from a collection and list it
-  /create doc                          Create a new document to a collection
-  /delete doc                          Delete a document from a collection
+** DOCUMENT COMMANDS **
 
-  ** COMMANDS FOR TESTING **
+/get docs                            List all documents of a collection
+/get doc                             Fetch a document from a collection and list it
+/create doc                          Create a new document to a collection
+/delete doc                          Delete a document from a collection
 
-  /create test docs                    Creates test documents to a collection
-  
-  More commands in the future...");
+** COMMANDS FOR TESTING **
+
+/create test docs                    Creates test documents to a collection
+
+More commands in the future...");
             },
             "/q" => {
                 exit_program()
             },
             "/status" => {
-                display_connection_status(&connected_database);
+                cli.display_connection_status();
             },
             "/version" => {
-                display_program_version(config.version, engine.version());
+                cli.display_version();
             },
             "/connect db" => {
-                connect_database_menu(engine.api(), &mut connected_database);
+                cli.connect_database_menu();
             },
             "/get dbs" => {
-                list_all_databases(engine.api());
+                cli.list_all_databases();
             },
             "/create db" => {
-                create_database_menu(engine.api());
+                cli.create_database_menu();
             },
             "/delete db" => {
-                delete_database_menu(engine.api(), &mut connected_database);
+                cli.delete_database_menu();
             },
             "/change db desc" => {
-                change_database_description_menu(engine.api(), &connected_database)
+                cli.change_database_description_menu();
             },
             "/get cols" => {
-                list_collections_of_connected_database(engine.api(), &connected_database);
+                cli.list_collections_of_connected_db();
             },
             "/create col" => {
-                create_collection_menu(engine.api(), &connected_database);
+                cli.create_collection_menu();
             },
             "/delete col" => {
-                delete_collection_menu(engine.api(), &connected_database);
+                cli.delete_collection_menu();
             },
             "/get docs" => {
-                list_documents_of_collection(engine.api(), &connected_database);
+                cli.list_documents_of_collection();
             },
             "/get doc" => {
-                list_document(engine.api(), &connected_database);
+                cli.list_document();
             },
             "/create doc" => {
-                create_document_menu(engine.api(), &connected_database);
+                cli.create_document_menu();
             },
             "/delete doc" => {
-                delete_document_menu(engine.api(), &connected_database);
+                cli.delete_document_menu();
             },
             "/create test docs" => {
-                create_test_documents(engine.api(), &connected_database);
+                cli.create_test_documents();
             },
             _ => {
                 println!("Command not found!");
@@ -165,26 +679,10 @@ pub fn run(config: Config) {
     }
 }
 
-
-
 /// Exit the program.
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
-}
-
-/// Displays the program version.
-fn display_program_version(client_version: &str, engine_version: &str) {
-    println!("Client version: {}", client_version);
-    println!("Engine version: {}", engine_version);
-}
-
-/// Displays connected database.
-fn display_connection_status(connected_database: &Option<String>) {
-    match connected_database {
-        Some(database_name) => println!("Connected database: {database_name}"),
-        None => println!("{}", NO_CONNECTED_DATABASE),
-    }
 }
 
 /// Displays document in a more readable format.
@@ -204,71 +702,6 @@ fn display_document(document: &DocumentDto) {
         println!("  [{data_type}] \"{key}\": {field_value}");
     }
     println!("{}", "}");
-}
-
-/// If connected database doesn't exists anymore, reset it to `None`.
-fn refresh_connected_database(
-    api: &EngineApi,
-    connected_database: &mut Option<String>
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return,
-    };
-
-    match api.find_database(connected_database_name) {
-        Ok(result) => {
-            if result.is_none() {
-                connected_database.take();   
-            }
-        },
-        Err(e) => eprintln!("[Error] {e}"),
-    }
-}
-
-/// Checks if connected database exists.
-fn database_exists(
-    api: &EngineApi,
-    connected_database_name: &str,
-) -> bool
-{
-    match api.find_database(connected_database_name) {
-        Ok(result) => {
-            if result.is_none() {
-                println!("Cannot find database '{connected_database_name}'");
-                return false;
-            }
-        },
-        Err(e) => {
-            eprintln!("[Error] {e}");
-            return false;
-        },
-    }
-
-    return true;
-}
-
-/// Checks if collection exists.
-fn collection_exists(
-    api: &EngineApi,
-    collection_name: &str,
-    connected_database_name: &str,
-) -> bool
-{
-    match api.find_collection(collection_name, connected_database_name) {
-        Ok(result) => {
-            if result.is_none() {
-                println!("Cannot find collection '{collection_name}'");
-                return false;
-            }
-        },
-        Err(e) => {
-            eprintln!("[Error] {e}");
-            return false;
-        },
-    }
-
-    return true;
 }
 
 /// Asks for user input and returns it trimmed.
@@ -302,437 +735,6 @@ fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
     let confirm = confirm.trim().to_string();
 
     Ok(confirm)
-}
-
-/// Show menu to connect to a database.
-fn connect_database_menu(
-    api: &EngineApi,
-    connected_database: &mut Option<String>
-) {
-    let database_name = match ask_user_input("Database name: ") {
-        Ok(database_name) => database_name,
-        Err(_) => return,
-    };
-
-    match api.find_database(&database_name) {
-        Ok(result) => {
-            if result.is_some() {
-                connected_database.replace(database_name);
-                println!("Connected to database");
-            } else {
-                println!("Failed to connect to database. Database does not exist.");
-            }
-        },
-        Err(e) => eprintln!("[Error] {e}"),
-    }
-}
-
-/// Show menu to create a new database.
-fn create_database_menu(api: &EngineApi) {
-    let database_name = match ask_user_input("Database name: ") {
-        Ok(database_name) => database_name,
-        Err(_) => return,
-    };
-
-    match api.create_database(&database_name) {
-        Ok(()) => println!("Database created"),
-        Err(err) => eprintln!("[Error] {}", err),
-    }
-}
-
-/// Show menu to delete a database.
-fn delete_database_menu(
-    api: &EngineApi,
-    connected_database: &mut Option<String>
-) {
-    let database_name = match ask_user_input("Database name: ") {
-        Ok(database_name) => database_name,
-        Err(_) => return,
-    };
-
-    let confirm = match ask_action_confirm(
-        &format!("Are you sure you want to delete database '{}'?", database_name)
-    ) {
-        Ok(confirm) => confirm,
-        Err(_) => return,
-    };
-
-    match confirm.as_str() {
-        CONFIRM_OPTION_YES => {
-            match api.delete_database(&database_name) {
-                Ok(()) => {
-                    // Disconnect database if it is connected
-                    if let Some(connected_database_name) = connected_database {
-                        if connected_database_name == &database_name {
-                            connected_database.take();
-                        }
-                    }
-                    println!("Database deleted");
-                },
-                Err(e) => eprintln!("[Error] {e}"),
-            }
-        },
-        _ => return println!("Canceled action"),
-    }
-}
-
-/// List all databases and display information about them.
-fn list_all_databases(api: &EngineApi) {
-    let databases = match api.find_all_databases() {
-        Ok(databases) => databases,
-        Err(e) => return eprintln!("[Error] {e}"),
-    };
-
-    println!("\nNumber of databases: {}", databases.len());
-
-    for database in databases {
-        println!(
-"
-  Name: {}
-  Size: {} bytes
-  Description: {}",
-        database.name(),
-        database.size(),
-        database.description(),
-        );
-    }
-}
-
-/// Show menu to create a new collection
-/// to the connected database
-fn create_collection_menu(
-    api: &EngineApi,
-    connected_database: &Option<String>
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-    
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-
-    match api.create_collection(&collection_name, connected_database_name) {
-        Ok(()) => println!("Collection created"),
-        Err(e) => return eprintln!("[Error] {e}"),
-    }
-}
-
-/// Show menu to delete a collection
-/// from the connected database
-fn delete_collection_menu(
-    api: &EngineApi,
-    connected_database: &Option<String>
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-
-    let confirm = match ask_action_confirm(
-        &format!("Are you sure you want to delete collection '{}'?", collection_name)
-    ) {
-        Ok(confirm) => confirm,
-        Err(_) => return,
-    };
-
-    match confirm.as_str() {
-        CONFIRM_OPTION_YES => {
-            if !database_exists(api, connected_database_name) {
-                return;
-            }
-            match api.delete_collection(&collection_name, connected_database_name) {
-                Ok(()) => println!("Collection deleted"),
-                Err(e) => return eprintln!("[Error] {e}"),
-            }
-        },
-        _ => return println!("Canceled action"),
-    }
-
-}
-
-/// List all collections of the connected database
-fn list_collections_of_connected_database(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-
-    // find all collections and list them
-    let collections = match api.find_all_collections(connected_database_name) {
-        Ok(collections) => collections,
-        Err(e) => return eprintln!("[Error] {e}"),
-    };
-
-    println!("\nNumber of collections: {}", collections.len());
-
-    for collection in collections {
-        println!("{}", collection.name());
-    }
-}
-
-/// Show menu to change database description
-fn change_database_description_menu(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-
-    let description = match ask_user_input("Description: ") {
-        Ok(description) => description,
-        Err(_) => return,
-    };
-
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-
-    // Change description of connected database
-    match api.change_database_description(connected_database_name, &description) {
-        Ok(()) => println!("Database description changed"),
-        Err(e) => return eprintln!("[Error] {e}"),
-    }
-}
-
-/// Show menu to create a new document to a collection
-fn create_document_menu(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-
-    if !collection_exists(api, &collection_name, connected_database_name) {
-        return;
-    }
-
-    // input data for the new document
-    let mut data: Vec<DocumentInputDataField> = Vec::new();
-    
-    loop {
-        println!("\n{}", "Insert new field");
-
-        let field = match ask_user_input("Field name: ") {
-            Ok(field) => field,
-            Err(_) => return,
-        };
-        let data_type = match ask_user_input("Data type: ") {
-            Ok(data_type) => data_type,
-            Err(_) => return,
-        };
-        let value = match ask_user_input("Value: ") {
-            Ok(value) => value,
-            Err(_) => return,
-        };
-
-        data.push(DocumentInputDataField::new(&field, &data_type, &value));
-
-        let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
-            Ok(confirm) => confirm,
-            Err(_) => return,
-        };
-        if confirm.as_str() == CONFIRM_OPTION_YES {
-            break;
-        }
-    }
-
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-
-    match api.create_document(connected_database_name, &collection_name, data) {
-        Ok(()) => println!("Document created"),
-        Err(e) => return eprintln!("[Error] {e}"),
-    }
-}
-
-/// List all documents of a collection
-fn list_documents_of_collection(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-
-    if !collection_exists(api, &collection_name, connected_database_name) {
-        return;
-    }
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-
-    let documents = match api.find_all_documents(
-        connected_database_name,
-        &collection_name,
-    ) {
-        Ok(documents) => documents,
-        Err(e) => return eprintln!("[Error] {e}"),
-    };
-
-    println!("\nNumber of documents: {}", documents.len());
-
-    for document in documents {
-        display_document(&document);
-    }
-}
-
-/// Lists document of a database
-fn list_document(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-    let document_id = match ask_user_input("Document ID: ") {
-        Ok(id) => id,
-        Err(_) => return,
-    };
-    let document_id: u64 = match document_id.parse() {
-        Ok(id) => id,
-        Err(e) => return eprintln!("Invalid document ID: {e}"),
-    };
-
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-
-    let result = match api.find_document_by_id(
-        &document_id,
-        connected_database_name,
-        &collection_name,
-    ) {
-        Ok(result) => result,
-        Err(e) => return eprintln!("[Error] {e}"),
-    };
-
-    match result {
-        Some(document) => {
-            println!("Collection: {}", document.collection());
-            display_document(&document);
-        },
-        None => return println!("Document with this ID was not found from this collection"),
-    }
-}
-
-/// Show menu to delete a document
-fn delete_document_menu(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-    let document_id = match ask_user_input("Document ID: ") {
-        Ok(document_id) => document_id,
-        Err(_) => return,
-    };
-    let document_id: u64 = match document_id.parse() {
-        Ok(id) => id,
-        Err(e) => return eprintln!("Invalid document ID: {e}"),
-    };
-
-    let confirm = match ask_action_confirm(
-        &format!("Are you sure you want to delete document with ID '{}'?", document_id)
-    ) {
-        Ok(confirm) => confirm,
-        Err(_) => return,
-    };
-
-    match confirm.as_str() {
-        CONFIRM_OPTION_YES => {
-            if !database_exists(api, connected_database_name) {
-                return;
-            }
-            match api.delete_document(connected_database_name, &document_id, &collection_name) {
-                Ok(()) => println!("Document deleted"),
-                Err(e) => return eprintln!("[Error] {e}"),
-            }
-        },
-        _ => return println!("Canceled action"),
-    }
-}
-
-/// Creates test documents to a collection
-fn create_test_documents(
-    api: &EngineApi,
-    connected_database: &Option<String>,
-) {
-    let connected_database_name = match connected_database {
-        Some(database_name) => database_name,
-        None => return println!("{}", NO_CONNECTED_DATABASE),
-    };
-
-    let collection_name = match ask_user_input("Collection: ") {
-        Ok(collection_name) => collection_name,
-        Err(_) => return,
-    };
-
-    if !collection_exists(api, &collection_name, connected_database_name) {
-        return;
-    }
-    
-    if !database_exists(api, connected_database_name) {
-        return;
-    }
-    
-    for i in 1..=10 {
-        let mut data: Vec<DocumentInputDataField> = Vec::new();
-        let field = format!("field_{i}");
-        let data_type = "Text";
-        let value = format!("value_{i}");
-
-        data.push(DocumentInputDataField::new(&field, data_type, &value));
-
-        match api.create_document(connected_database_name, &collection_name, data) {
-            Ok(()) => println!("Document created"),
-            Err(e) => eprintln!("[Error] {e}"),
-        }
-    }
 }
 
 
