@@ -2,8 +2,6 @@
 
 // #![allow(unused)]
 
-mod constants;
-
 use std::{
     process,
     io::{self, Write},
@@ -17,13 +15,10 @@ use engine_core::{
     },
     DocumentInputDataField,
 };
-use constants::{
-    NO_CONNECTED_DATABASE,
-    CONFIRM_OPTION_YES,
-};
 
-// CLI version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+const NO_CONNECTED_DATABASE: &str = "No connected database";
+const CONFIRM_OPTION_YES: &str = "Y";
 
 /// Configures program data
 pub struct Config {
