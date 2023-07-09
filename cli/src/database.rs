@@ -47,7 +47,7 @@ impl Cli {
     }
 
     /// Show menu to connect to a database.
-    pub fn connect_database_menu(&mut self) {
+    pub fn connect_database(&mut self) {
         let db_name = match ask_user_input("Database name: ") {
             Ok(db_name) => db_name,
             Err(_) => return,
@@ -67,7 +67,7 @@ impl Cli {
     }
 
     /// Show menu to create a new database.
-    pub fn create_database_menu(&self) {
+    pub fn create_database(&self) {
         let db_name = match ask_user_input("Database name: ") {
             Ok(db_name) => db_name,
             Err(_) => return,
@@ -80,7 +80,7 @@ impl Cli {
     }
 
     /// Show menu to delete a database.
-    pub fn delete_database_menu(&mut self) {
+    pub fn delete_database(&mut self) {
         let db_name = match ask_user_input("Database name: ") {
             Ok(db_name) => db_name,
             Err(_) => return,
@@ -135,7 +135,7 @@ impl Cli {
     }
 
     /// Show menu to change database description.
-    pub fn change_database_description_menu(&self) {
+    pub fn change_database_description(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),

@@ -142,28 +142,28 @@ More commands in the future...");
                 cli.display_version();
             },
             "/connect db" => {
-                cli.connect_database_menu();
+                cli.connect_database();
             },
             "/get dbs" => {
                 cli.list_all_databases();
             },
             "/create db" => {
-                cli.create_database_menu();
+                cli.create_database();
             },
             "/delete db" => {
-                cli.delete_database_menu();
+                cli.delete_database();
             },
             "/change db desc" => {
-                cli.change_database_description_menu();
+                cli.change_database_description();
             },
             "/get cols" => {
-                cli.list_collections_of_connected_db();
+                cli.list_all_collections();
             },
             "/create col" => {
-                cli.create_collection_menu();
+                cli.create_collection();
             },
             "/delete col" => {
-                cli.delete_collection_menu();
+                cli.delete_collection();
             },
             "/get docs" => {
                 cli.list_documents();
@@ -212,7 +212,7 @@ fn ask_user_input(text_to_ask: &str) -> io::Result<String> {
 
 /// Asks user to confirm an action, such as delete action.
 /// 
-/// Returns input trimmed.
+/// Returns the input trimmed.
 fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
     let mut confirm = String::new();
 

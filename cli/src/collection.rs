@@ -30,9 +30,8 @@ impl Cli {
         return true;
     }
 
-    /// Show menu to create a new collection
-    /// to the connected database
-    pub fn create_collection_menu(&self) {
+    /// Show menu to create a new collection to the connected database.
+    pub fn create_collection(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -53,9 +52,8 @@ impl Cli {
         }
     }
 
-    /// Show menu to delete a collection
-    /// from the connected database
-    pub fn delete_collection_menu(&self) {
+    /// Show menu to delete a collection from the connected database.
+    pub fn delete_collection(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -88,8 +86,8 @@ impl Cli {
 
     }
 
-    /// List all collections of the connected database
-    pub fn list_collections_of_connected_db(&self) {
+    /// List all collections of the connected database.
+    pub fn list_all_collections(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -99,7 +97,6 @@ impl Cli {
             return;
         }
 
-        // find all collections and list them
         let collections = match self
             .config
             .engine
