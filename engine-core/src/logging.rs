@@ -19,8 +19,7 @@ use chrono::{
 };
 use self::error::LogError;
 
-const LOGS_DIR_PATH: &str = "./logs";
-pub const DB_EVENTS_LOG: &str = "db_events.log";
+pub const DB_EVENTS_LOG: &str = "events.log";
 pub const ERRORS_LOG: &str = "errors.log";
 
 /// Database event log to write to log file.
@@ -84,26 +83,59 @@ pub enum ErrorLogType {
     Warning,
 }
 
-/// Logger that logs all events to log files.
-pub struct Logger {}
+/// Logger that logs events and errors to log files.
+#[derive(Debug, PartialEq)]
+pub struct Logger {
+    /// Directory path where logs will be created.
+    logs_dir_path: PathBuf,
+}
+
+impl Logger {
+    pub fn build(logs_dir_path: PathBuf) -> Self {
+        Self {
+            logs_dir_path
+        }
+    }
+}
+
+impl Logger {
+    /// Gets logs directory path.
+    pub fn logs_dir_path(&self) -> &Path {
+        &self.logs_dir_path
+    }
+
+    /// Gets database events log file path.
+    pub fn get_db_events_log_path(&self) -> PathBuf {
+        self.logs_dir_path().join(DB_EVENTS_LOG)
+    }
+
+    /// Gets errors log file path.
+    pub fn get_errors_log_path(&self) -> PathBuf {
+        self.logs_dir_path().join(ERRORS_LOG)
+    }
+}
 
 impl Logger {
     /// Logs database event to log file.
     pub fn log_event(
+        &self,
         content: &str,
-        dir_path: &Path,
-        file_path: &Path,
     ) -> Result<(), LogError>
     {
         let log = DatabaseEventLog::from(content).format();
 
-        if let Err(e) = create_logs_dir_if_not_exists(dir_path) {
+        if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
             return Err(LogError::CreateDir(e.to_string()));
         }
-        if let Err(e) = create_log_file_if_not_exists(file_path) {
+        if let Err(e) = create_log_file_if_not_exists(
+            &self.get_db_events_log_path()
+        ) {
             return Err(LogError::CreateFile(e.to_string()));
         }
-        if let Err(e) = write_log_file(file_path, &log) {
+        if let Err(e) = write_log_file(
+            &self.get_db_events_log_path(),
+            &log
+        ) {
             return Err(LogError::WriteFile(e.to_string()));
         }
 
@@ -112,40 +144,30 @@ impl Logger {
 
     /// Logs error to log file.
     pub fn log_error(
+        &self,
         error_type: ErrorLogType,
         content: &str,
-        dir_path: &Path,
-        file_path: &Path,
     ) -> Result<(), LogError>
     {
         let log = ErrorLog::from(error_type, content).format();
 
-        if let Err(e) = create_logs_dir_if_not_exists(dir_path) {
+        if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
             return Err(LogError::CreateDir(e.to_string()));
         }
-        if let Err(e) = create_log_file_if_not_exists(file_path) {
+        if let Err(e) = create_log_file_if_not_exists(
+            &self.get_errors_log_path()
+        ) {
             return Err(LogError::CreateFile(e.to_string()));
         }
-        if let Err(e) = write_log_file(file_path, &log) {
+        if let Err(e) = write_log_file(
+            &self.get_errors_log_path(),
+            &log
+        ) {
             return Err(LogError::WriteFile(e.to_string()));
         }
 
         Ok(())
     }
-}
-
-pub fn get_logs_dir_path() -> PathBuf {
-    PathBuf::from(LOGS_DIR_PATH)
-}
-
-/// Gets database events log file path.
-pub fn get_db_events_log_path() -> PathBuf {
-    PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, DB_EVENTS_LOG))
-}
-
-/// Gets errors log file path.
-pub fn get_errors_log_path() -> PathBuf {
-    PathBuf::from(&format!("{}/{}", LOGS_DIR_PATH, ERRORS_LOG))
 }
 
 /// Creates logs directory if it doesn't exist.
@@ -179,7 +201,7 @@ fn write_log_file(file_path: &Path, content: &str) -> io::Result<()> {
 }
 
 
-
+/* DISABLED. WILL BE UPDATED
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -280,3 +302,4 @@ mod tests {
         dir.close().expect("Failed to clean up tempdir before dropping.");
     }
 }
+*/

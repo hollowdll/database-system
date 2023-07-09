@@ -10,11 +10,13 @@ mod api;
 
 use std::path::PathBuf;
 pub use api::EngineApi;
+use logging::Logger;
 pub use serde_json;
 pub use db_manager::DatabaseManager;
 pub use input_data::DocumentInputDataField;
 
 const DB_DIR_PATH: &str = "./databases";
+const LOGS_DIR_PATH: &str = "./logs";
 // Engine version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -45,13 +47,13 @@ impl Config {
         Config {
             api: EngineApi::build(DatabaseManager::build(
                 PathBuf::from(DB_DIR_PATH),
-                logging::get_logs_dir_path()
+                Logger::build(PathBuf::from(LOGS_DIR_PATH)),
             )),
             version: VERSION,
             // db_dir_path is hard coded for now.
             // Will be changed later to read from config file.
             db_dir_path: PathBuf::from(DB_DIR_PATH),
-            logs_dir_path: logging::get_logs_dir_path(),
+            logs_dir_path: PathBuf::from(LOGS_DIR_PATH),
         }
     }
 }

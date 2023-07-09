@@ -30,17 +30,15 @@ use crate::{
 pub struct DatabaseManager {
     /// Directory path where databases will be created.
     db_dir_path: PathBuf,
-
-    /// Directory path where logs will be created.
-    logs_dir_path: PathBuf,
+    logger: Logger,
 }
 
 impl DatabaseManager {
     /// Build a new database manager.
-    pub fn build(db_dir_path: PathBuf, logs_dir_path: PathBuf) -> Self {
+    pub fn build(db_dir_path: PathBuf, logger: Logger) -> Self {
         Self {
             db_dir_path,
-            logs_dir_path,
+            logger,
         }
     }
 }
@@ -51,11 +49,6 @@ impl DatabaseManager {
         &self.db_dir_path
     }
 
-    /// Gets logs directory path.
-    pub fn logs_dir_path(&self) -> &Path {
-        &self.logs_dir_path
-    }
-
     /// Gets database file path.
     fn db_file_path(&self, db_name: &str) -> PathBuf {
         PathBuf::from(&self.db_dir_path()
@@ -64,10 +57,8 @@ impl DatabaseManager {
 
     /// Attempts to log events to log file.
     pub fn log_event(&self, content: &str) {
-        if let Err(e) = Logger::log_event(
+        if let Err(e) = &self.logger.log_event(
             content,
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(DB_EVENTS_LOG)
         ) {
             eprintln!("[Error] {}", e);
         }
@@ -75,11 +66,9 @@ impl DatabaseManager {
 
     /// Attempts to log errors to log file.
     pub fn log_error(&self, content: &str) {
-        if let Err(e) = Logger::log_error(
+        if let Err(e) = &self.logger.log_error(
             ErrorLogType::Error,
             content,
-            &self.logs_dir_path(),
-            &self.logs_dir_path().join(ERRORS_LOG)
         ) {
             eprintln!("[Error] {}", e);
         }
