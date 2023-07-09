@@ -1,8 +1,11 @@
-// Database engine CLI management system
-// Under development!
-// Currently in prototyping phase.
+// Database engine CLI client
+
+use cli::{
+    Cli,
+    run,
+};
 
 fn main() {
-    let config = cli::Config::build();
-    cli::run(config);
+    let cli = Cli::build();
+    run(cli);
 }
