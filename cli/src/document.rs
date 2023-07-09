@@ -33,8 +33,8 @@ fn display_document(document: &DocumentDto) {
 }
 
 impl Cli {
-    /// Show menu to create a new document to a collection
-    pub fn create_document_menu(&self) {
+    /// Show menu to create a new document to a collection.
+    pub fn create_document(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -89,8 +89,48 @@ impl Cli {
         }
     }
 
-    /// List all documents of a collection
-    pub fn list_documents_of_collection(&self) {
+    /// Show menu to delete a document.
+    pub fn delete_document(&self) {
+        let connected_db_name = match &self.config.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+        let document_id = match ask_user_input("Document ID: ") {
+            Ok(document_id) => document_id,
+            Err(_) => return,
+        };
+        let document_id: u64 = match document_id.parse() {
+            Ok(id) => id,
+            Err(e) => return eprintln!("Invalid document ID: {e}"),
+        };
+
+        let confirm = match ask_action_confirm(
+            &format!("Are you sure you want to delete document with ID '{}'?", document_id)
+        ) {
+            Ok(confirm) => confirm,
+            Err(_) => return,
+        };
+
+        match confirm.as_str() {
+            CONFIRM_OPTION_YES => {
+                if !&self.database_exists(connected_db_name) {
+                    return;
+                }
+                match &self.config.engine.api().delete_document(connected_db_name, &document_id, &collection_name) {
+                    Ok(()) => println!("Document deleted"),
+                    Err(e) => return eprintln!("[Error] {e}"),
+                }
+            },
+            _ => return println!("Canceled action"),
+        }
+    }
+
+    /// Show menu to list documents of a collection.
+    pub fn list_documents(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -122,8 +162,8 @@ impl Cli {
         }
     }
 
-    /// Lists document of a database
-    pub fn list_document(&self) {
+    /// Show menu to list a single document of a collection.
+    pub fn list_single_document(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -163,47 +203,7 @@ impl Cli {
         }
     }
 
-    /// Show menu to delete a document
-    pub fn delete_document_menu(&self) {
-        let connected_db_name = match &self.config.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
-        };
-        let collection_name = match ask_user_input("Collection: ") {
-            Ok(collection_name) => collection_name,
-            Err(_) => return,
-        };
-        let document_id = match ask_user_input("Document ID: ") {
-            Ok(document_id) => document_id,
-            Err(_) => return,
-        };
-        let document_id: u64 = match document_id.parse() {
-            Ok(id) => id,
-            Err(e) => return eprintln!("Invalid document ID: {e}"),
-        };
-
-        let confirm = match ask_action_confirm(
-            &format!("Are you sure you want to delete document with ID '{}'?", document_id)
-        ) {
-            Ok(confirm) => confirm,
-            Err(_) => return,
-        };
-
-        match confirm.as_str() {
-            CONFIRM_OPTION_YES => {
-                if !&self.database_exists(connected_db_name) {
-                    return;
-                }
-                match &self.config.engine.api().delete_document(connected_db_name, &document_id, &collection_name) {
-                    Ok(()) => println!("Document deleted"),
-                    Err(e) => return eprintln!("[Error] {e}"),
-                }
-            },
-            _ => return println!("Canceled action"),
-        }
-    }
-
-    /// Creates test documents to a collection
+    /// Creates test documents to a collection.
     pub fn create_test_documents(&self) {
         let connected_db_name = match &self.config.connected_db {
             Some(db_name) => db_name,

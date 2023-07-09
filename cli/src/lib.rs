@@ -122,7 +122,7 @@ pub fn run(mut cli: Cli) {
   ** DOCUMENT COMMANDS **
 
   /get docs                    List all documents of a collection
-  /get doc                     Fetch a document from a collection and list it
+  /get doc                     List a single document of a collection
   /create doc                  Create a new document to a collection
   /delete doc                  Delete a document from a collection
 
@@ -166,16 +166,16 @@ More commands in the future...");
                 cli.delete_collection_menu();
             },
             "/get docs" => {
-                cli.list_documents_of_collection();
+                cli.list_documents();
             },
             "/get doc" => {
-                cli.list_document();
+                cli.list_single_document();
             },
             "/create doc" => {
-                cli.create_document_menu();
+                cli.create_document();
             },
             "/delete doc" => {
-                cli.delete_document_menu();
+                cli.delete_document();
             },
             "/create test docs" => {
                 cli.create_test_documents();
