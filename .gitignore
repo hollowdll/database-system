@@ -16,3 +16,5 @@
 # Database files
 **/databases/
 **/temp-databases/
+
+**/engine.config.json

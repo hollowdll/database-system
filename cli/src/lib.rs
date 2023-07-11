@@ -8,7 +8,14 @@ use std::{
     process,
     io::{self, Write},
 };
-use engine_core;
+use engine_core::{
+    self,
+    config::{
+        create_config_file_if_not_exists,
+        read_config_file,
+        deserialize_config_from_json
+    },
+};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NO_CONNECTED_DB: &str = "No connected database";
@@ -37,7 +44,10 @@ pub struct Cli<'a> {
 
 impl<'a> Cli<'a> {
     /// Builds program structure.
-    pub fn build(config: engine_core::Config, logger: &'a engine_core::Logger) -> Self {
+    pub fn build(
+        config: engine_core::config::Config,
+        logger: &'a engine_core::Logger
+    ) -> Self {
         Self {
             engine: engine_core::Engine::build(config, logger),
             version: VERSION,
@@ -224,6 +234,15 @@ fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
     let confirm = confirm.trim().to_string();
 
     Ok(confirm)
+}
+
+/// Loads configuration data from config file.
+pub fn load_config() -> io::Result<engine_core::config::Config> {
+    create_config_file_if_not_exists()?;
+    let contents = read_config_file()?;
+    let config = deserialize_config_from_json(&contents)?;
+
+    Ok(config)
 }
 
 
