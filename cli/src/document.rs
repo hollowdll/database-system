@@ -32,10 +32,10 @@ fn display_document(document: &DocumentDto) {
     println!("{}", "}");
 }
 
-impl Cli {
+impl<'a> Cli<'a> {
     /// Show menu to create a new document to a collection.
     pub fn create_document(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -83,7 +83,7 @@ impl Cli {
             return;
         }
 
-        match &self.config.engine.api().create_document(connected_db_name, &collection_name, data) {
+        match &self.engine.api().create_document(connected_db_name, &collection_name, data) {
             Ok(()) => println!("Document created"),
             Err(e) => return eprintln!("[Error] {e}"),
         }
@@ -91,7 +91,7 @@ impl Cli {
 
     /// Show menu to delete a document.
     pub fn delete_document(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -120,7 +120,7 @@ impl Cli {
                 if !&self.database_exists(connected_db_name) {
                     return;
                 }
-                match &self.config.engine.api().delete_document(connected_db_name, &document_id, &collection_name) {
+                match &self.engine.api().delete_document(connected_db_name, &document_id, &collection_name) {
                     Ok(()) => println!("Document deleted"),
                     Err(e) => return eprintln!("[Error] {e}"),
                 }
@@ -131,7 +131,7 @@ impl Cli {
 
     /// Show menu to list documents of a collection.
     pub fn list_documents(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -147,7 +147,7 @@ impl Cli {
             return;
         }
 
-        let documents = match self.config.engine.api().find_all_documents(
+        let documents = match self.engine.api().find_all_documents(
             connected_db_name,
             &collection_name,
         ) {
@@ -164,7 +164,7 @@ impl Cli {
 
     /// Show menu to list a single document of a collection.
     pub fn list_single_document(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -185,7 +185,7 @@ impl Cli {
             return;
         }
 
-        let result = match self.config.engine.api().find_document_by_id(
+        let result = match self.engine.api().find_document_by_id(
             &document_id,
             connected_db_name,
             &collection_name,
@@ -205,7 +205,7 @@ impl Cli {
 
     /// Creates test documents to a collection.
     pub fn create_test_documents(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -231,7 +231,7 @@ impl Cli {
 
             data.push(DocumentInputDataField::new(&field, data_type, &value));
 
-            match &self.config.engine.api().create_document(connected_db_name, &collection_name, data) {
+            match &self.engine.api().create_document(connected_db_name, &collection_name, data) {
                 Ok(()) => println!("Document created"),
                 Err(e) => eprintln!("[Error] {e}"),
             }

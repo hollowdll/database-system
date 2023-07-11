@@ -6,18 +6,18 @@ use crate::{
     NO_CONNECTED_DB,
 };
 
-impl Cli {
+impl<'a> Cli<'a> {
     /// Resets connected database to `None` if it doesn't exist anymore.
     pub fn refresh_connected_db(&mut self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return,
         };
 
-        match &self.config.engine.api().find_database(connected_db_name) {
+        match &self.engine.api().find_database(connected_db_name) {
             Ok(result) => {
                 if result.is_none() {
-                    let _ = &self.config.connected_db.take();
+                    let _ = &self.connected_db.take();
                 }
             },
             Err(e) => eprintln!("[Error] Failed to find connected database: {e}"),
@@ -30,7 +30,7 @@ impl Cli {
         connected_db_name: &str,
     ) -> bool
     {
-        match &self.config.engine.api().find_database(connected_db_name) {
+        match &self.engine.api().find_database(connected_db_name) {
             Ok(result) => {
                 if result.is_none() {
                     println!("Cannot find database '{connected_db_name}'");
@@ -53,10 +53,10 @@ impl Cli {
             Err(_) => return,
         };
 
-        match &self.config.engine.api().find_database(&db_name) {
+        match &self.engine.api().find_database(&db_name) {
             Ok(result) => {
                 if result.is_some() {
-                    let _ = &self.config.connected_db.replace(db_name);
+                    let _ = &self.connected_db.replace(db_name);
                     println!("Connected to database");
                 } else {
                     println!("Failed to connect to database. Database does not exist.");
@@ -73,7 +73,7 @@ impl Cli {
             Err(_) => return,
         };
 
-        match &self.config.engine.api().create_database(&db_name) {
+        match &self.engine.api().create_database(&db_name) {
             Ok(()) => println!("Database created"),
             Err(err) => eprintln!("[Error] {}", err),
         }
@@ -95,12 +95,12 @@ impl Cli {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                match &self.config.engine.api().delete_database(&db_name) {
+                match &self.engine.api().delete_database(&db_name) {
                     Ok(()) => {
                         // Disconnect database if it is connected
-                        if let Some(connected_db_name) = &self.config.connected_db {
+                        if let Some(connected_db_name) = &self.connected_db {
                             if connected_db_name == &db_name {
-                                let _ = &self.config.connected_db.take();
+                                let _ = &self.connected_db.take();
                             }
                         }
                         println!("Database deleted");
@@ -114,7 +114,7 @@ impl Cli {
 
     /// List all databases and display information about them.
     pub fn list_all_databases(&self) {
-        let databases = match self.config.engine.api().find_all_databases() {
+        let databases = match self.engine.api().find_all_databases() {
             Ok(databases) => databases,
             Err(e) => return eprintln!("[Error] {e}"),
         };
@@ -136,7 +136,7 @@ impl Cli {
 
     /// Show menu to change database description.
     pub fn change_database_description(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -151,7 +151,7 @@ impl Cli {
         }
 
         // Change description of connected database
-        match &self.config.engine.api().change_database_description(connected_db_name, &description) {
+        match &self.engine.api().change_database_description(connected_db_name, &description) {
             Ok(()) => println!("Database description changed"),
             Err(e) => return eprintln!("[Error] {e}"),
         }

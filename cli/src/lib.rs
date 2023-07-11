@@ -16,52 +16,50 @@ const CONFIRM_OPTION_YES: &str = "Y";
 
 /// Program configuration.
 pub struct Config {
-    engine: engine_core::Config,
-    version: &'static str,
-    connected_db: Option<String>,
+    
 }
 
 impl Config {
     /// Builds a new program configuration.
     pub fn build() -> Self {
         Self {
-            engine: engine_core::Config::build(),
-            version: VERSION,
-            connected_db: None,
+
         }
     }
 }
 
-impl Config {
+/// Program structure.
+pub struct Cli<'a> {
+    engine: engine_core::Engine<'a>,
+    version: &'static str,
+    connected_db: Option<String>,
+}
+
+impl<'a> Cli<'a> {
+    /// Builds program structure.
+    pub fn build(config: engine_core::Config, logger: &'a engine_core::Logger) -> Self {
+        Self {
+            engine: engine_core::Engine::build(config, logger),
+            version: VERSION,
+            connected_db: None,
+        }
+    }
+
     pub fn connected_db(&self) -> &Option<String> {
         &self.connected_db
     }
 }
 
-/// Program structure.
-pub struct Cli {
-    config: Config,
-}
-
-impl Cli {
-    /// Builds program structure.
-    pub fn build() -> Self {
-        Self {
-            config: Config::build(),
-        }
-    }
-}
-
-impl Cli {
+impl<'a> Cli<'a> {
     /// Displays the program version.
     fn display_version(&self) {
-        println!("Client version: {}", &self.config.version);
-        println!("Engine version: {}", &self.config.engine.version());
+        println!("Client version: {}", &self.version);
+        println!("Engine version: {}", &self.engine.version());
     }
 
     /// Displays connected database.
     fn display_connection_status(&self) {
-        match &self.config.connected_db {
+        match &self.connected_db {
             Some(db_name) => println!("Connected database: {}", db_name),
             None => println!("{}", NO_CONNECTED_DB),
         }
@@ -74,7 +72,7 @@ pub fn run(mut cli: Cli) {
 
     println!("NOTE: This is an early version. Nothing is final.");
     println!("The engine uses Protocol Buffers for storing data.");
-    println!("\nVersion: {}", cli.config.version);
+    println!("\nVersion: {}", cli.version);
     println!("Database engine CLI client");
     println!("\n{}", help_message);
 
@@ -84,7 +82,7 @@ pub fn run(mut cli: Cli) {
 
         cli.refresh_connected_db();
 
-        if let Some(name) = cli.config.connected_db() {
+        if let Some(name) = cli.connected_db() {
             connected_db_name = format!("Connected database: {}", name);
         }
 
@@ -232,12 +230,6 @@ fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[test]
-    fn test_program_version() {
-        let config = Config::build();
-        assert_eq!(config.version, env!("CARGO_PKG_VERSION"));
-    }
+    
 }
 

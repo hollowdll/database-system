@@ -27,15 +27,15 @@ use crate::{
 /// Database manager that manages all databases
 /// and database related operations
 #[derive(PartialEq, Debug)]
-pub struct DatabaseManager {
+pub struct DatabaseManager<'a> {
     /// Directory path where databases will be created.
     db_dir_path: PathBuf,
-    logger: Logger,
+    logger: &'a Logger,
 }
 
-impl DatabaseManager {
+impl<'a> DatabaseManager<'a> {
     /// Build a new database manager.
-    pub fn build(db_dir_path: PathBuf, logger: Logger) -> Self {
+    pub fn build(db_dir_path: PathBuf, logger: &'a Logger) -> Self {
         Self {
             db_dir_path,
             logger,
@@ -43,7 +43,7 @@ impl DatabaseManager {
     }
 }
 
-impl DatabaseManager {
+impl<'a> DatabaseManager<'a> {
     /// Gets databases directory path.
     fn db_dir_path(&self) -> &Path {
         &self.db_dir_path
@@ -75,7 +75,7 @@ impl DatabaseManager {
     }
 }
 
-impl DatabaseManager {
+impl<'a> DatabaseManager<'a> {
     /// Creates a new database.
     pub fn create_database(
         &self,

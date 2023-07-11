@@ -6,7 +6,7 @@ use crate::{
     NO_CONNECTED_DB,
 };
 
-impl Cli {
+impl<'a> Cli<'a> {
     /// Checks if collection exists.
     pub fn collection_exists(
         &self,
@@ -14,7 +14,7 @@ impl Cli {
         connected_db_name: &str,
     ) -> bool
     {
-        match &self.config.engine.api().find_collection(collection_name, connected_db_name) {
+        match &self.engine.api().find_collection(collection_name, connected_db_name) {
             Ok(result) => {
                 if result.is_none() {
                     println!("Cannot find collection '{collection_name}'");
@@ -32,7 +32,7 @@ impl Cli {
 
     /// Show menu to create a new collection to the connected database.
     pub fn create_collection(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -46,7 +46,7 @@ impl Cli {
             return;
         }
 
-        match &self.config.engine.api().create_collection(&collection_name, connected_db_name) {
+        match &self.engine.api().create_collection(&collection_name, connected_db_name) {
             Ok(()) => println!("Collection created"),
             Err(e) => return eprintln!("[Error] {e}"),
         }
@@ -54,7 +54,7 @@ impl Cli {
 
     /// Show menu to delete a collection from the connected database.
     pub fn delete_collection(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -76,7 +76,7 @@ impl Cli {
                 if !&self.database_exists(connected_db_name) {
                     return;
                 }
-                match &self.config.engine.api().delete_collection(&collection_name, connected_db_name) {
+                match &self.engine.api().delete_collection(&collection_name, connected_db_name) {
                     Ok(()) => println!("Collection deleted"),
                     Err(e) => return eprintln!("[Error] {e}"),
                 }
@@ -88,7 +88,7 @@ impl Cli {
 
     /// List all collections of the connected database.
     pub fn list_all_collections(&self) {
-        let connected_db_name = match &self.config.connected_db {
+        let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
@@ -98,7 +98,6 @@ impl Cli {
         }
 
         let collections = match self
-            .config
             .engine
             .api()
             .find_all_collections(connected_db_name)

@@ -91,6 +91,7 @@ pub struct Logger {
 }
 
 impl Logger {
+    /// Builds a new logger.
     pub fn build(logs_dir_path: PathBuf) -> Self {
         Self {
             logs_dir_path

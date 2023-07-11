@@ -16,11 +16,11 @@ use crate::{
 /// 
 /// Logs system errors and events before forwarding data to clients.
 #[derive(PartialEq, Debug)]
-pub struct EngineApi {
-    db_manager: DatabaseManager,
+pub struct EngineApi<'a> {
+    db_manager: DatabaseManager<'a>,
 }
 
-impl EngineApi {
+impl<'a> EngineApi<'a> {
     /// Builds a new instance of Engine API.
     pub fn build(db_manager: DatabaseManager) -> EngineApi {
         EngineApi {
@@ -29,19 +29,19 @@ impl EngineApi {
     }
 }
 
-impl EngineApi {
+impl<'a> EngineApi<'a> {
     /// Returns an immutable reference to `DatabaseManager`.
     pub fn db_manager(&self) -> &DatabaseManager {
         &self.db_manager
     }
 
     /// Returns a mutable reference to `DatabaseManager`.
-    pub fn db_manager_mut(&mut self) -> &mut DatabaseManager {
+    pub fn db_manager_mut(&mut self) -> &'a mut DatabaseManager {
         &mut self.db_manager
     }
 }
 
-impl EngineApi {
+impl<'a> EngineApi<'a> {
     /// Requests `DatabaseManager` to create a database.
     /// 
     /// Forwards results to the calling client.
