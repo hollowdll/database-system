@@ -247,6 +247,44 @@ pub fn find_all_documents_from_collection(
     Err(Box::new(CollectionError::NotFound))
 }
 
+/// Finds the first documents from a collection specified by limit.
+/// 
+/// Returns the found documents.
+pub fn find_documents_from_collection_limit(
+    file_path: &Path,
+    collection_name: &str,
+    limit: usize,
+) -> Result<Vec<DocumentDto>, Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let mut documents = Vec::new();
+
+    for collection in database.collections.into_iter() {
+        if collection.name() == collection_name {
+            for document in collection.documents.into_iter() {
+                if documents.len() >= limit {
+                    return Ok(documents)
+                }
+
+                let document_dto = DocumentDto::from((
+                    document.id,
+                    collection.name.to_string(),
+                    document.data,
+                ));
+
+                documents.push(document_dto)
+            }
+
+            return Ok(documents);
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
+
 /// Finds a document from a collection by document id.
 /// 
 /// Returns the found document.

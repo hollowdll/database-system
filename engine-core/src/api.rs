@@ -352,6 +352,36 @@ impl<'a> EngineApi<'a> {
         }
     }
 
+    /// Requests `DatabaseManager` to find the first documents from a collection specified by limit.
+    /// 
+    /// Forwards results to the calling client.
+    pub fn find_documents_limit(
+        &self,
+        db_name: &str,
+        collection_name: &str,
+        limit: usize,
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
+    {
+        match self.db_manager().find_documents_limit(db_name, collection_name, limit) {
+            Ok(result) => {
+                let content = format!(
+                    "Fetched {} documents from collection '{}' in database '{}' with limit {}",
+                    result.len(),
+                    collection_name,
+                    db_name,
+                    limit
+                );
+                self.db_manager().log_event(&content);
+                
+                return Ok(result)
+            },
+            Err(err) => {
+                self.db_manager().log_error(&err.0);
+                return Err(err)
+            }
+        }
+    }
+
     /// Requests `DatabaseManager` to find a document from a database by document id.
     /// 
     /// Forwards results to the calling client.

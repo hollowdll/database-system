@@ -353,6 +353,30 @@ impl<'a> DatabaseManager<'a> {
         }
     }
 
+    /// Finds the first documents from a collection specified by limit.
+    pub fn find_documents_limit(
+        &self,
+        db_name: &str,
+        collection_name: &str,
+        limit: usize,
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
+    {
+        match find_documents_from_collection_limit(
+            &self.db_file_path(db_name),
+            collection_name,
+            limit
+        ) {
+            Ok(document) => return Ok(document),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find documents from collection '{}' in database '{}' with limit {}: {}",
+                collection_name,
+                db_name,
+                limit,
+                err
+            ))),
+        }
+    }
+
     /// Finds a document from a collection by document id.
     pub fn find_document_by_id(
         &self,
