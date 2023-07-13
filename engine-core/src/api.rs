@@ -365,11 +365,10 @@ impl<'a> EngineApi<'a> {
         match self.db_manager().find_documents_limit(db_name, collection_name, limit) {
             Ok(result) => {
                 let content = format!(
-                    "Fetched {} documents from collection '{}' in database '{}' with limit {}",
+                    "Fetched {} documents from collection '{}' in database '{}'",
                     result.len(),
                     collection_name,
-                    db_name,
-                    limit
+                    db_name
                 );
                 self.db_manager().log_event(&content);
                 

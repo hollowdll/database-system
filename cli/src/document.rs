@@ -129,8 +129,8 @@ impl<'a> Cli<'a> {
         }
     }
 
-    /// Show menu to list documents of a collection.
-    pub fn list_documents(&self) {
+    /// Show menu to list all documents of a collection.
+    pub fn list_all_documents(&self) {
         let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
@@ -150,6 +150,48 @@ impl<'a> Cli<'a> {
         let documents = match self.engine.api().find_all_documents(
             connected_db_name,
             &collection_name,
+        ) {
+            Ok(documents) => documents,
+            Err(e) => return eprintln!("[Error] {e}"),
+        };
+
+        println!("\nNumber of documents: {}", documents.len());
+
+        for document in documents {
+            display_document(&document);
+        }
+    }
+
+    /// Show menu to list specific documents of a collection.
+    pub fn list_documents(&self) {
+        let connected_db_name = match &self.connected_db {
+            Some(db_name) => db_name,
+            None => return println!("{}", NO_CONNECTED_DB),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+        let limit = match ask_user_input("Limit: ") {
+            Ok(limit) => limit,
+            Err(_) => return,
+        };
+        let limit: usize = match limit.parse() {
+            Ok(limit) => limit,
+            Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
+        };
+
+        if !&self.collection_exists(&collection_name, connected_db_name) {
+            return;
+        }
+        if !&self.database_exists(connected_db_name) {
+            return;
+        }
+
+        let documents = match self.engine.api().find_documents_limit(
+            connected_db_name,
+            &collection_name,
+            limit
         ) {
             Ok(documents) => documents,
             Err(e) => return eprintln!("[Error] {e}"),
