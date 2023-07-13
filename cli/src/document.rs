@@ -246,15 +246,27 @@ impl<'a> Cli<'a> {
     }
 
     /// Creates test documents to a collection.
+    /// 
+    /// Asks the number of documents to create.
+    /// 
+    /// WARNING! Be aware that there is no batch creating yet.
+    /// This method will create each document individually!
     pub fn create_test_documents(&self) {
         let connected_db_name = match &self.connected_db {
             Some(db_name) => db_name,
             None => return println!("{}", NO_CONNECTED_DB),
         };
-
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
             Err(_) => return,
+        };
+        let count = match ask_user_input("Count: ") {
+            Ok(count) => count,
+            Err(_) => return,
+        };
+        let count: usize = match count.parse() {
+            Ok(count) => count,
+            Err(e) => return eprintln!("Invalid document count: {e}"),
         };
 
         if !&self.collection_exists(&collection_name, connected_db_name) {
@@ -265,7 +277,8 @@ impl<'a> Cli<'a> {
             return;
         }
         
-        for i in 1..=10 {
+        let mut document_count = 0;
+        for i in 1..=count {
             let mut data: Vec<DocumentInputDataField> = Vec::new();
             let field = format!("field_{i}");
             let data_type = "Text";
@@ -274,9 +287,14 @@ impl<'a> Cli<'a> {
             data.push(DocumentInputDataField::new(&field, data_type, &value));
 
             match &self.engine.api().create_document(connected_db_name, &collection_name, data) {
-                Ok(()) => println!("Document created"),
+                Ok(()) => {
+                    println!("Document created");
+                    document_count += 1;
+                },
                 Err(e) => eprintln!("[Error] {e}"),
             }
         }
+
+        println!("Created {} documents to collection '{}'", document_count, collection_name);
     }
 }

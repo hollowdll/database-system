@@ -130,7 +130,8 @@ pub fn run(mut cli: Cli) {
   ** DOCUMENT COMMANDS **
 
   /get all docs                List all documents of a collection
-  /get docs                    List the first documents of a collection specified by limit
+  /get docs                    List the first documents of a collection specified by limit.
+                               This command will be changed in the future to support different kinds of queries.
   /get doc                     List a single document of a collection
   /create doc                  Create a new document to a collection
   /delete doc                  Delete a document from a collection
