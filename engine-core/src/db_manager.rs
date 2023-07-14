@@ -29,13 +29,13 @@ use crate::{
 #[derive(PartialEq, Debug)]
 pub struct DatabaseManager<'a> {
     /// Directory path where databases will be created.
-    db_dir_path: PathBuf,
+    db_dir_path: &'a Path,
     logger: &'a Logger,
 }
 
 impl<'a> DatabaseManager<'a> {
     /// Build a new database manager.
-    pub fn build(db_dir_path: PathBuf, logger: &'a Logger) -> Self {
+    pub fn build(db_dir_path: &'a Path, logger: &'a Logger) -> Self {
         Self {
             db_dir_path,
             logger,

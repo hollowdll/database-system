@@ -37,10 +37,10 @@ impl<'a> Engine<'a> {
 
 impl<'a> Engine<'a> {
     /// Builds a new engine structure.
-    pub fn build(config: Config, logger: &'a Logger) -> Engine<'a> {
+    pub fn build(config: &'a Config, logger: &'a Logger) -> Engine<'a> {
         Engine {
             api: EngineApi::build(DatabaseManager::build(
-                config.db_dir_path,
+                config.db_dir_path(),
                 logger,
             )),
             version: VERSION,

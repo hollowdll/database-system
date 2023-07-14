@@ -7,7 +7,10 @@ use std::{
         self,
         Write,
     },
-    path::PathBuf,
+    path::{
+        PathBuf,
+        Path,
+    },
     env::current_exe,
     fs::{
         self,
@@ -30,6 +33,39 @@ const CONFIG_FILE_NAME: &str = "engine.config.json";
 pub struct Config {
     pub db_dir_path: PathBuf,
     pub logs_dir_path: PathBuf,
+}
+
+impl Config {
+    pub fn db_dir_path(&self) -> &Path {
+        &self.db_dir_path
+    }
+
+    pub fn logs_dir_path(&self) -> &Path {
+        &self.logs_dir_path
+    }
+
+    pub fn set_db_dir_path(&mut self, value: &Path) {
+        self.db_dir_path = PathBuf::from(value)
+    }
+
+    pub fn set_config(&mut self, config: Config) {
+        self.db_dir_path = config.db_dir_path;
+        self.logs_dir_path = config.logs_dir_path;
+    }
+}
+
+impl Config {
+    /// Creates a new config.
+    pub fn new(
+        db_dir_path: &Path,
+        logs_dir_path: &Path,
+    ) -> Config
+    {
+        Config {
+            db_dir_path: PathBuf::from(db_dir_path),
+            logs_dir_path: PathBuf::from(logs_dir_path)
+        }
+    }
 }
 
 impl Default for Config {
@@ -82,7 +118,7 @@ pub fn read_config_file() -> io::Result<String> {
 }
 
 /// Writes config data to config file.
-pub fn write_config_file_json(json: &str) -> io::Result<()> {
+pub fn write_config_file(json: &str) -> io::Result<()> {
     let file_path = get_config_file_path()?;
     let mut file = OpenOptions::new()
         .write(true)
@@ -94,3 +130,18 @@ pub fn write_config_file_json(json: &str) -> io::Result<()> {
     Ok(())
 }
 
+/// Loads configuration data from config file.
+pub fn load_config() -> io::Result<Config> {
+    create_config_file_if_not_exists()?;
+    let contents = read_config_file()?;
+    let config = deserialize_config_from_json(&contents)?;
+
+    Ok(config)
+}
+
+pub fn set_config(config: Config) -> io::Result<()> {
+    let json = serialize_config_to_json(&config)?;
+    write_config_file(&json)?;
+
+    Ok(())
+}
