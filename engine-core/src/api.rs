@@ -15,7 +15,7 @@ use crate::{
 /// Engine API that provides methods to do database operations.
 /// 
 /// Logs system errors and events before forwarding data to clients.
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct EngineApi<'a> {
     db_manager: DatabaseManager<'a>,
 }

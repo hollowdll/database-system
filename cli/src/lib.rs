@@ -8,7 +8,6 @@ pub mod config;
 use std::{
     process,
     io::{self, Write},
-    path::PathBuf,
 };
 use engine_core::{
     self,
@@ -17,6 +16,10 @@ use engine_core::{
         load_config,
     },
     Logger
+};
+use config::{
+    list_all_configs,
+    set_db_dir_path,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -76,7 +79,7 @@ pub fn run() {
             Config::default()
         },
     };
-    let logger = Logger::build(PathBuf::from(&config.logs_dir_path));
+    let logger = Logger::build(&config);
     let mut cli = Cli::build(&config, &logger);
 
     let help_message = "Write /help for all available commands";
@@ -199,6 +202,12 @@ More commands in the future...");
             },
             "/delete doc" => {
                 cli.delete_document();
+            },
+            "/config get all" => {
+                list_all_configs(&config);
+            },
+            "/config set db_dir_path" => {
+                set_db_dir_path(&config);
             },
             "/create test docs" => {
                 cli.create_test_documents();

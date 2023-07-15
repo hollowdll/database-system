@@ -18,6 +18,7 @@ use chrono::{
     Local,
 };
 use self::error::LogError;
+use crate::Config;
 
 pub const DB_EVENTS_LOG: &str = "events.log";
 pub const ERRORS_LOG: &str = "errors.log";
@@ -84,25 +85,24 @@ pub enum ErrorLogType {
 }
 
 /// Logger that logs events and errors to log files.
-#[derive(Debug, PartialEq)]
-pub struct Logger {
-    /// Directory path where logs will be created.
-    logs_dir_path: PathBuf,
+#[derive(Debug)]
+pub struct Logger<'a> {
+    config: &'a Config,
 }
 
-impl Logger {
+impl<'a> Logger<'a> {
     /// Builds a new logger.
-    pub fn build(logs_dir_path: PathBuf) -> Self {
+    pub fn build(config: &'a Config) -> Self {
         Self {
-            logs_dir_path
+            config
         }
     }
 }
 
-impl Logger {
+impl<'a> Logger<'a> {
     /// Gets logs directory path.
     pub fn logs_dir_path(&self) -> &Path {
-        &self.logs_dir_path
+        &self.config.logs_dir_path
     }
 
     /// Gets database events log file path.
@@ -116,7 +116,7 @@ impl Logger {
     }
 }
 
-impl Logger {
+impl<'a> Logger<'a> {
     /// Logs database event to log file.
     pub fn log_event(
         &self,

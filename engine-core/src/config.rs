@@ -29,7 +29,7 @@ const CONFIG_FILE_NAME: &str = "engine.config.json";
 /// 
 /// Configuration file contains configs used by the system.
 /// The contents of the config file are parsed into this.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub db_dir_path: PathBuf,
     pub logs_dir_path: PathBuf,
@@ -117,7 +117,7 @@ pub fn read_config_file() -> io::Result<String> {
     Ok(fs::read_to_string(file_path)?)
 }
 
-/// Writes config data to config file.
+/// Writes json to config file.
 pub fn write_config_file(json: &str) -> io::Result<()> {
     let file_path = get_config_file_path()?;
     let mut file = OpenOptions::new()
@@ -139,7 +139,8 @@ pub fn load_config() -> io::Result<Config> {
     Ok(config)
 }
 
-pub fn set_config(config: Config) -> io::Result<()> {
+/// Saves configuration data to config file.
+pub fn save_config(config: Config) -> io::Result<()> {
     let json = serialize_config_to_json(&config)?;
     write_config_file(&json)?;
 

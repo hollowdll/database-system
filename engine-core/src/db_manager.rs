@@ -22,22 +22,22 @@ use crate::{
         create_db_dir_if_not_exists,
         DB_FILE_EXTENSION,
     },
+    config::Config,
 };
 
 /// Database manager that manages all databases
 /// and database related operations
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct DatabaseManager<'a> {
-    /// Directory path where databases will be created.
-    db_dir_path: &'a Path,
-    logger: &'a Logger,
+    config: &'a Config,
+    logger: &'a Logger<'a>,
 }
 
 impl<'a> DatabaseManager<'a> {
     /// Build a new database manager.
-    pub fn build(db_dir_path: &'a Path, logger: &'a Logger) -> Self {
+    pub fn build(config: &'a Config, logger: &'a Logger) -> Self {
         Self {
-            db_dir_path,
+            config,
             logger,
         }
     }
@@ -46,7 +46,7 @@ impl<'a> DatabaseManager<'a> {
 impl<'a> DatabaseManager<'a> {
     /// Gets databases directory path.
     fn db_dir_path(&self) -> &Path {
-        &self.db_dir_path
+        &self.config.db_dir_path
     }
 
     /// Gets database file path.
