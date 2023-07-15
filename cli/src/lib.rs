@@ -72,11 +72,10 @@ pub fn run() {
     let config = match load_config() {
         Ok(config) => config,
         Err(e) => {
-            // Use default configs if config loading fails.
-            // Might be changed in the future.
-            eprintln!("Failed to load configs from config file: {}", e);
-            println!("Using default configs. Restart the program to try again.\n");
-            Config::default()
+            eprintln!("Failed to load configurations from config file: {}", e);
+            println!("Restart the program to try again.\n");
+            // Panic if config loading fails.
+            panic!("Failed to load configs: {}", e)
         },
     };
     let logger = Logger::build(&config);

@@ -77,6 +77,17 @@ impl Default for Config {
     }
 }
 
+/// Sets default directory paths to config.
+fn set_default_config_dir_paths(config: &mut Config) -> io::Result<()> {
+    let mut dir = current_exe()?;
+    dir.pop();
+
+    config.db_dir_path = dir.join("databases");
+    config.logs_dir_path = dir.join("logs");
+
+    Ok(())
+}
+
 /// Gets file path to config file.
 pub fn get_config_file_path() -> io::Result<PathBuf> {
     let mut dir = current_exe()?;
@@ -92,7 +103,8 @@ pub fn create_config_file_if_not_exists() -> io::Result<()> {
     
     if !file_path.is_file() {
         let mut file = File::create(file_path)?;
-        let config = Config::default();
+        let mut config = Config::default();
+        set_default_config_dir_paths(&mut config)?;
         let json = serialize_config_to_json(&config)?;
 
         file.write_all(json.as_bytes())?;
@@ -140,8 +152,8 @@ pub fn load_config() -> io::Result<Config> {
 }
 
 /// Saves configuration data to config file.
-pub fn save_config(config: Config) -> io::Result<()> {
-    let json = serialize_config_to_json(&config)?;
+pub fn save_config(config: &Config) -> io::Result<()> {
+    let json = serialize_config_to_json(config)?;
     write_config_file(&json)?;
 
     Ok(())
