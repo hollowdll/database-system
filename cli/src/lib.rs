@@ -17,10 +17,6 @@ use engine_core::{
     },
     Logger
 };
-use config::{
-    list_all_configs,
-    set_db_dir_path,
-};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NO_CONNECTED_DB: &str = "No connected database";
@@ -203,10 +199,13 @@ More commands in the future...");
                 cli.delete_document();
             },
             "/config get all" => {
-                list_all_configs(&config);
+                config::list_all_configs(&config);
             },
             "/config set db_dir_path" => {
-                set_db_dir_path(&config);
+                config::set_db_dir_path(&config);
+            },
+            "/config set logs_dir_path" => {
+                config::set_logs_dir_path(&config);
             },
             "/create test docs" => {
                 cli.create_test_documents();
