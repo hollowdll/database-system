@@ -207,6 +207,12 @@ More commands in the future...");
             "/config set logs_dir_path" => {
                 config::set_logs_dir_path(&config);
             },
+            "/config get db_dir_path" => {
+                println!("{:?}", config.db_dir_path());
+            },
+            "/config get logs_dir_path" => {
+                println!("{:?}", config.logs_dir_path());
+            },
             "/create test docs" => {
                 cli.create_test_documents();
             },
