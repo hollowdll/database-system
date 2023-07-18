@@ -1,3 +1,5 @@
+// Engine configuration API
+
 use std::{
     io,
     path::Path,
@@ -8,9 +10,26 @@ use crate::{
 };
 use super::ConfigManager;
 
+/// Engine configuration API.
+/// 
+/// Logs errors and events before forwarding results to clients.
 pub struct ConfigApi<'a> {
     config_manager: ConfigManager<'a>,
     logger: &'a Logger<'a>,
+}
+
+impl<'a> ConfigApi<'a> {
+    /// Builds config API.
+    pub fn build(
+        config_manager: ConfigManager<'a>,
+        logger: &'a Logger<'a>,
+    ) -> ConfigApi<'a>
+    {
+        ConfigApi {
+            config_manager,
+            logger,
+        }
+    }
 }
 
 impl<'a> ConfigApi<'a> {

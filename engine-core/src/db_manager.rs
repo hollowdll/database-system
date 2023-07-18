@@ -25,8 +25,9 @@ use crate::{
     config::Config,
 };
 
-/// Database manager that manages all databases
-/// and database related operations
+/// Database manager that manages all databases and database operations.
+/// 
+/// Stores and retrieves data from databases.
 #[derive(Debug)]
 pub struct DatabaseManager<'a> {
     config: &'a Config,
