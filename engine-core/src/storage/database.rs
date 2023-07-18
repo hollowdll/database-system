@@ -6,7 +6,7 @@ use std::{
     path::Path,
     error::Error,
 };
-use crate::db::{
+use crate::storage::{
     error::DatabaseError,
     pb,
     serialize_database,

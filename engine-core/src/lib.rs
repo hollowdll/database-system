@@ -3,7 +3,7 @@
 // #![allow(unused)]
 
 pub mod logging;
-pub mod db;
+pub mod storage;
 mod db_manager;
 mod input_data;
 mod api;

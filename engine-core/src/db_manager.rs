@@ -12,7 +12,7 @@ use std::{
 use crate::{
     logging::*,
     DocumentInputDataField,
-    db::{
+    storage::{
         self,
         error::DatabaseOperationError,
         pb::document::DataType,
@@ -279,7 +279,7 @@ impl<'a> DatabaseManager<'a> {
         db_name: &str,
     ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
-        if let Err(err) = db::create_db_dir_if_not_exists(&self.db_dir_path()) {
+        if let Err(err) = storage::create_db_dir_if_not_exists(&self.db_dir_path()) {
             return Err(DatabaseOperationError(
                 format!("Failed to create databases directory: {}", err)
             ));

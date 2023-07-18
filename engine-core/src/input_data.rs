@@ -1,6 +1,6 @@
 // This module contains code to handle input data
 
-use crate::db::{
+use crate::storage::{
     error::ParseError,
     pb::document::{
         DataType,

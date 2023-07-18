@@ -8,7 +8,7 @@ use std::{
     collections::HashMap,
     fmt,
 };
-use crate::db::{
+use crate::storage::{
     error::{
         DatabaseError,
         CollectionError,

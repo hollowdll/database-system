@@ -6,7 +6,7 @@ use crate::{
     NO_CONNECTED_DB,
 };
 use engine_core::{
-    db::{
+    storage::{
         pb::document::data_type::DataType,
         document::DocumentDto,
     },

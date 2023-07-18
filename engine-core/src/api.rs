@@ -3,7 +3,7 @@
 
 use crate::{
     DatabaseManager,
-    db::{
+    storage::{
         error::DatabaseOperationError,
         database::DatabaseDto,
         collection::CollectionDto,
