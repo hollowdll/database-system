@@ -21,6 +21,7 @@ use serde::{
     Serialize,
     Deserialize,
 };
+use crate::Logger;
 
 /// Configuration file name. Config file uses JSON format.
 const CONFIG_FILE_NAME: &str = "engine.config.json";
@@ -42,15 +43,6 @@ impl Config {
 
     pub fn logs_dir_path(&self) -> &Path {
         &self.logs_dir_path
-    }
-
-    pub fn set_db_dir_path(&mut self, value: &Path) {
-        self.db_dir_path = PathBuf::from(value)
-    }
-
-    pub fn set_config(&mut self, config: Config) {
-        self.db_dir_path = config.db_dir_path;
-        self.logs_dir_path = config.logs_dir_path;
     }
 }
 
@@ -77,6 +69,37 @@ impl Default for Config {
     }
 }
 
+/// Configuration manager.
+/// 
+/// Manages configuration changes.
+pub struct ConfigManager<'a> {
+    config: &'a Config,
+}
+
+impl<'a> ConfigManager<'a> {
+    /// Sets database directory path config and saves it to config file.
+    pub fn set_db_dir_path_and_save(&self, path: &Path) -> io::Result<()> {
+        let new_config = Config::new(
+            path,
+            &self.config.logs_dir_path(),
+        );
+        save_config(&new_config)?;
+
+        Ok(())
+    }
+
+    /// Sets logs directory path config and saves it to config file.
+    pub fn set_logs_dir_path_and_save(&self, path: &Path) -> io::Result<()> {
+        let new_config = Config::new(
+            &self.config.db_dir_path(),
+            path,
+        );
+        save_config(&new_config)?;
+
+        Ok(())
+    }
+}
+
 /// Sets default directory paths to config.
 fn set_default_config_dir_paths(config: &mut Config) -> io::Result<()> {
     let mut dir = current_exe()?;
@@ -89,7 +112,7 @@ fn set_default_config_dir_paths(config: &mut Config) -> io::Result<()> {
 }
 
 /// Gets file path to config file.
-pub fn get_config_file_path() -> io::Result<PathBuf> {
+fn get_config_file_path() -> io::Result<PathBuf> {
     let mut dir = current_exe()?;
     dir.pop();
     let file_path = dir.join(CONFIG_FILE_NAME);
@@ -98,7 +121,7 @@ pub fn get_config_file_path() -> io::Result<PathBuf> {
 }
 
 /// Creates config file with default configs if it doesn't exist.
-pub fn create_config_file_if_not_exists() -> io::Result<()> {
+fn create_config_file_if_not_exists() -> io::Result<()> {
     let file_path = get_config_file_path()?;
     
     if !file_path.is_file() {
@@ -114,23 +137,23 @@ pub fn create_config_file_if_not_exists() -> io::Result<()> {
 }
 
 /// Deserializes config data from JSON string.
-pub fn deserialize_config_from_json(json: &str) -> serde_json::Result<Config> {
+fn deserialize_config_from_json(json: &str) -> serde_json::Result<Config> {
     Ok(serde_json::from_str(&json)?)
 }
 
 /// Serialized config data to JSON string.
-pub fn serialize_config_to_json(config: &Config) -> serde_json::Result<String> {
+fn serialize_config_to_json(config: &Config) -> serde_json::Result<String> {
     Ok(serde_json::to_string_pretty(config)?)
 }
 
 /// Reads config file and returns the contents.
-pub fn read_config_file() -> io::Result<String> {
+fn read_config_file() -> io::Result<String> {
     let file_path = get_config_file_path()?;
     Ok(fs::read_to_string(file_path)?)
 }
 
 /// Writes json to config file.
-pub fn write_config_file(json: &str) -> io::Result<()> {
+fn write_config_file(json: &str) -> io::Result<()> {
     let file_path = get_config_file_path()?;
     let mut file = OpenOptions::new()
         .write(true)
