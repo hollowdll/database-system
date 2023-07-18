@@ -2,6 +2,8 @@
 
 #![allow(unused)]
 
+pub mod api;
+
 use std::{
     io::{
         self,
@@ -78,7 +80,9 @@ pub struct ConfigManager<'a> {
 
 impl<'a> ConfigManager<'a> {
     /// Sets database directory path config and saves it to config file.
-    pub fn set_db_dir_path_and_save(&self, path: &Path) -> io::Result<()> {
+    /// 
+    /// A program restart is required for the changes to take effect.
+    pub fn set_db_dir_path(&self, path: &Path) -> io::Result<()> {
         let new_config = Config::new(
             path,
             &self.config.logs_dir_path(),
@@ -89,7 +93,9 @@ impl<'a> ConfigManager<'a> {
     }
 
     /// Sets logs directory path config and saves it to config file.
-    pub fn set_logs_dir_path_and_save(&self, path: &Path) -> io::Result<()> {
+    /// 
+    /// A program restart is required for the changes to take effect.
+    pub fn set_logs_dir_path(&self, path: &Path) -> io::Result<()> {
         let new_config = Config::new(
             &self.config.db_dir_path(),
             path,

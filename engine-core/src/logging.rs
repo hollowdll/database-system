@@ -117,7 +117,7 @@ impl<'a> Logger<'a> {
 }
 
 impl<'a> Logger<'a> {
-    /// Logs database event to log file.
+    /// Logs an event to log file.
     pub fn log_event(
         &self,
         content: &str,
@@ -143,7 +143,7 @@ impl<'a> Logger<'a> {
         Ok(())
     }
 
-    /// Logs error to log file.
+    /// Logs an error to log file.
     pub fn log_error(
         &self,
         error_type: ErrorLogType,
