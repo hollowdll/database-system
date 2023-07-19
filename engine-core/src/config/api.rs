@@ -12,7 +12,9 @@ use super::ConfigManager;
 
 /// Engine configuration API.
 /// 
-/// Logs errors and events before forwarding results to clients.
+/// Provides methods to change engine configurations.
+/// 
+/// Logs errors and events before forwarding results to the caller.
 pub struct ConfigApi<'a> {
     config_manager: ConfigManager<'a>,
     logger: &'a Logger<'a>,
@@ -35,7 +37,7 @@ impl<'a> ConfigApi<'a> {
 impl<'a> ConfigApi<'a> {
     /// Requests `ConfigManager` to set database directory path config.
     /// 
-    /// Logs the outcome and forwards the result to the caller.
+    /// Forwards the result to the caller.
     pub fn set_db_dir_path(&self, path: &Path) -> io::Result<()> {
         match self.config_manager.set_db_dir_path(path) {
             Ok(()) => {
@@ -60,7 +62,7 @@ impl<'a> ConfigApi<'a> {
 
     /// Requests `ConfigManager` to set logs directory path config.
     /// 
-    /// Logs the outcome and forwards the result to the caller.
+    /// Forwards the result to the caller.
     pub fn set_logs_dir_path(&self, path: &Path) -> io::Result<()> {
         match self.config_manager.set_logs_dir_path(path) {
             Ok(()) => {
