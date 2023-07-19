@@ -31,15 +31,13 @@ use crate::{
 #[derive(Debug)]
 pub struct DatabaseManager<'a> {
     config: &'a Config,
-    logger: &'a Logger<'a>,
 }
 
 impl<'a> DatabaseManager<'a> {
     /// Build a new database manager.
-    pub fn build(config: &'a Config, logger: &'a Logger) -> Self {
+    pub fn build(config: &'a Config) -> Self {
         Self {
-            config,
-            logger,
+            config
         }
     }
 }
@@ -54,25 +52,6 @@ impl<'a> DatabaseManager<'a> {
     fn db_file_path(&self, db_name: &str) -> PathBuf {
         PathBuf::from(&self.db_dir_path()
             .join(format!("{}.{}", db_name, DB_FILE_EXTENSION)))
-    }
-
-    /// Attempts to log events to log file.
-    pub fn log_event(&self, content: &str) {
-        if let Err(e) = &self.logger.log_event(
-            content,
-        ) {
-            eprintln!("[Error] {}", e);
-        }
-    }
-
-    /// Attempts to log errors to log file.
-    pub fn log_error(&self, content: &str) {
-        if let Err(e) = &self.logger.log_error(
-            ErrorLogType::Error,
-            content,
-        ) {
-            eprintln!("[Error] {}", e);
-        }
     }
 }
 

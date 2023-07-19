@@ -79,6 +79,15 @@ pub struct ConfigManager<'a> {
 }
 
 impl<'a> ConfigManager<'a> {
+    /// Builds config manager.
+    pub fn build(config: &'a Config) -> Self {
+        Self {
+            config
+        }
+    }
+}
+
+impl<'a> ConfigManager<'a> {
     /// Sets database directory path config and saves it to config file.
     /// 
     /// A program restart is required for the changes to take effect.

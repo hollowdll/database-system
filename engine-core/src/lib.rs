@@ -6,30 +6,43 @@ pub mod logging;
 pub mod storage;
 mod db_manager;
 mod input_data;
-mod api;
 pub mod config;
 
-pub use api::EngineApi;
 pub use logging::Logger;
 pub use serde_json;
 pub use db_manager::DatabaseManager;
 pub use input_data::DocumentInputDataField;
-use config::Config;
+use config::{
+    Config,
+    api::ConfigApi,
+    ConfigManager
+};
+use storage::api::StorageApi;
 
 // Engine version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Engine structure.
+/// 
+/// Holds all the engine APIs and metadata.
 pub struct Engine<'a> {
-    api: EngineApi<'a>,
+    storage_api: StorageApi<'a>,
+    config_api: ConfigApi<'a>,
     version: &'static str,
 }
 
 impl<'a> Engine<'a> {
-    pub fn api(&self) -> &EngineApi {
-        &self.api
+    /// Gets an immutable reference to the storage API.
+    pub fn storage_api(&self) -> &StorageApi {
+        &self.storage_api
     }
 
+    /// Gets an immutable reference to the config API.
+    pub fn config_api(&self) -> &ConfigApi {
+        &self.config_api
+    }
+
+    /// Gets engine version.
     pub fn version(&self) -> &'static str {
         &self.version
     }
@@ -39,10 +52,14 @@ impl<'a> Engine<'a> {
     /// Builds a new engine structure.
     pub fn build(config: &'a Config, logger: &'a Logger) -> Engine<'a> {
         Engine {
-            api: EngineApi::build(DatabaseManager::build(
-                config,
+            storage_api: StorageApi::build(
+                DatabaseManager::build(config),
                 logger,
-            )),
+            ),
+            config_api: ConfigApi::build(
+                ConfigManager::build(config),
+                logger,
+            ),
             version: VERSION,
         }
     }
