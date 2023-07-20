@@ -83,7 +83,7 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine.api().create_document(connected_db_name, &collection_name, data) {
+        match &self.engine.storage_api().create_document(connected_db_name, &collection_name, data) {
             Ok(()) => println!("Document created"),
             Err(e) => return eprintln!("[Error] {e}"),
         }
@@ -120,7 +120,7 @@ impl<'a> Cli<'a> {
                 if !&self.database_exists(connected_db_name) {
                     return;
                 }
-                match &self.engine.api().delete_document(connected_db_name, &document_id, &collection_name) {
+                match &self.engine.storage_api().delete_document(connected_db_name, &document_id, &collection_name) {
                     Ok(()) => println!("Document deleted"),
                     Err(e) => return eprintln!("[Error] {e}"),
                 }
@@ -147,7 +147,7 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let documents = match self.engine.api().find_all_documents(
+        let documents = match self.engine.storage_api().find_all_documents(
             connected_db_name,
             &collection_name,
         ) {
@@ -188,7 +188,7 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let documents = match self.engine.api().find_documents_limit(
+        let documents = match self.engine.storage_api().find_documents_limit(
             connected_db_name,
             &collection_name,
             limit
@@ -227,7 +227,7 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let result = match self.engine.api().find_document_by_id(
+        let result = match self.engine.storage_api().find_document_by_id(
             &document_id,
             connected_db_name,
             &collection_name,
@@ -286,7 +286,7 @@ impl<'a> Cli<'a> {
 
             data.push(DocumentInputDataField::new(&field, data_type, &value));
 
-            match &self.engine.api().create_document(connected_db_name, &collection_name, data) {
+            match &self.engine.storage_api().create_document(connected_db_name, &collection_name, data) {
                 Ok(()) => {
                     println!("Document created");
                     document_count += 1;

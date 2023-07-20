@@ -8,7 +8,10 @@ use crate::{
     Logger,
     logging::ErrorLogType,
 };
-use super::ConfigManager;
+use super::{
+    Config,
+    ConfigManager,
+};
 
 /// Engine configuration API.
 /// 
@@ -48,7 +51,7 @@ impl<'a> ConfigApi<'a> {
                 return Ok(());
             },
             Err(e) => {
-                let content = format!("Failed to change database directory path configuration: {:?}", path);
+                let content = format!("Failed to change database directory path configuration: {}", e);
                 if let Err(e) = &self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
@@ -73,7 +76,7 @@ impl<'a> ConfigApi<'a> {
                 return Ok(());
             },
             Err(e) => {
-                let content = format!("Failed to change logs directory path configuration: {:?}", path);
+                let content = format!("Failed to change logs directory path configuration: {}", e);
                 if let Err(e) = &self.logger.log_error(
                     ErrorLogType::Error,
                     &content,

@@ -14,7 +14,7 @@ impl<'a> Cli<'a> {
             None => return,
         };
 
-        match &self.engine.api().find_database(connected_db_name) {
+        match &self.engine.storage_api().find_database(connected_db_name) {
             Ok(result) => {
                 if result.is_none() {
                     let _ = &self.connected_db.take();
@@ -30,7 +30,7 @@ impl<'a> Cli<'a> {
         connected_db_name: &str,
     ) -> bool
     {
-        match &self.engine.api().find_database(connected_db_name) {
+        match &self.engine.storage_api().find_database(connected_db_name) {
             Ok(result) => {
                 if result.is_none() {
                     println!("Cannot find database '{connected_db_name}'");
@@ -53,7 +53,7 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine.api().find_database(&db_name) {
+        match &self.engine.storage_api().find_database(&db_name) {
             Ok(result) => {
                 if result.is_some() {
                     let _ = &self.connected_db.replace(db_name);
@@ -73,7 +73,7 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine.api().create_database(&db_name) {
+        match &self.engine.storage_api().create_database(&db_name) {
             Ok(()) => println!("Database created"),
             Err(err) => eprintln!("[Error] {}", err),
         }
@@ -95,7 +95,7 @@ impl<'a> Cli<'a> {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                match &self.engine.api().delete_database(&db_name) {
+                match &self.engine.storage_api().delete_database(&db_name) {
                     Ok(()) => {
                         // Disconnect database if it is connected
                         if let Some(connected_db_name) = &self.connected_db {
@@ -114,7 +114,7 @@ impl<'a> Cli<'a> {
 
     /// List all databases and display information about them.
     pub fn list_all_databases(&self) {
-        let databases = match self.engine.api().find_all_databases() {
+        let databases = match self.engine.storage_api().find_all_databases() {
             Ok(databases) => databases,
             Err(e) => return eprintln!("[Error] {e}"),
         };
@@ -151,7 +151,7 @@ impl<'a> Cli<'a> {
         }
 
         // Change description of connected database
-        match &self.engine.api().change_database_description(connected_db_name, &description) {
+        match &self.engine.storage_api().change_database_description(connected_db_name, &description) {
             Ok(()) => println!("Database description changed"),
             Err(e) => return eprintln!("[Error] {e}"),
         }

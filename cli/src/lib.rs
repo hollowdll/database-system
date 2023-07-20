@@ -13,7 +13,7 @@ use engine_core::{
     self,
     config::{
         Config,
-        load_config,
+        ConfigManager,
     },
     Logger
 };
@@ -65,7 +65,7 @@ impl<'a> Cli<'a> {
 
 /// Runs the program.
 pub fn run() {
-    let config = match load_config() {
+    let config = match ConfigManager::load_config() {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Failed to load configurations from config file: {}", e);
@@ -199,13 +199,13 @@ More commands in the future...");
                 cli.delete_document();
             },
             "/config get all" => {
-                config::list_all_configs(&config);
+                Cli::list_all_configs(&config);
             },
             "/config set db_dir_path" => {
-                config::set_db_dir_path(&config);
+                cli.set_db_dir_path();
             },
             "/config set logs_dir_path" => {
-                config::set_logs_dir_path(&config);
+                cli.set_logs_dir_path();
             },
             "/config get db_dir_path" => {
                 println!("{:?}", config.db_dir_path());

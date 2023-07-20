@@ -73,7 +73,7 @@ impl Default for Config {
 
 /// Configuration manager.
 /// 
-/// Manages configuration changes.
+/// Manages configuration loading and changes.
 pub struct ConfigManager<'a> {
     config: &'a Config,
 }
@@ -88,6 +88,15 @@ impl<'a> ConfigManager<'a> {
 }
 
 impl<'a> ConfigManager<'a> {
+    /// Loads configuration data from config file.
+    pub fn load_config() -> io::Result<Config> {
+        create_config_file_if_not_exists()?;
+        let contents = read_config_file()?;
+        let config = deserialize_config_from_json(&contents)?;
+
+        Ok(config)
+    }
+
     /// Sets database directory path config and saves it to config file.
     /// 
     /// A program restart is required for the changes to take effect.
@@ -180,17 +189,8 @@ fn write_config_file(json: &str) -> io::Result<()> {
     Ok(())
 }
 
-/// Loads configuration data from config file.
-pub fn load_config() -> io::Result<Config> {
-    create_config_file_if_not_exists()?;
-    let contents = read_config_file()?;
-    let config = deserialize_config_from_json(&contents)?;
-
-    Ok(config)
-}
-
 /// Saves configuration data to config file.
-pub fn save_config(config: &Config) -> io::Result<()> {
+fn save_config(config: &Config) -> io::Result<()> {
     let json = serialize_config_to_json(config)?;
     write_config_file(&json)?;
 

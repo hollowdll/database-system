@@ -14,7 +14,7 @@ impl<'a> Cli<'a> {
         connected_db_name: &str,
     ) -> bool
     {
-        match &self.engine.api().find_collection(collection_name, connected_db_name) {
+        match &self.engine.storage_api().find_collection(collection_name, connected_db_name) {
             Ok(result) => {
                 if result.is_none() {
                     println!("Cannot find collection '{collection_name}'");
@@ -46,7 +46,7 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine.api().create_collection(&collection_name, connected_db_name) {
+        match &self.engine.storage_api().create_collection(&collection_name, connected_db_name) {
             Ok(()) => println!("Collection created"),
             Err(e) => return eprintln!("[Error] {e}"),
         }
@@ -76,7 +76,7 @@ impl<'a> Cli<'a> {
                 if !&self.database_exists(connected_db_name) {
                     return;
                 }
-                match &self.engine.api().delete_collection(&collection_name, connected_db_name) {
+                match &self.engine.storage_api().delete_collection(&collection_name, connected_db_name) {
                     Ok(()) => println!("Collection deleted"),
                     Err(e) => return eprintln!("[Error] {e}"),
                 }
@@ -99,7 +99,7 @@ impl<'a> Cli<'a> {
 
         let collections = match self
             .engine
-            .api()
+            .storage_api()
             .find_all_collections(connected_db_name)
         {
             Ok(collections) => collections,
