@@ -49,7 +49,7 @@ impl<'a> Engine<'a> {
 }
 
 impl<'a> Engine<'a> {
-    /// Builds a new engine structure.
+    /// Builds engine structure.
     pub fn build(config: &'a Config, logger: &'a Logger) -> Engine<'a> {
         Engine {
             storage_api: StorageApi::build(

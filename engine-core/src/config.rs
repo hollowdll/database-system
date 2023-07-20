@@ -26,7 +26,7 @@ use serde::{
 use crate::Logger;
 
 /// Configuration file name. Config file uses JSON format.
-const CONFIG_FILE_NAME: &str = "engine.config.json";
+pub const CONFIG_FILE_NAME: &str = "engine.config.json";
 
 /// Engine configuration.
 /// 
@@ -76,22 +76,35 @@ impl Default for Config {
 /// Manages configuration loading and changes.
 pub struct ConfigManager<'a> {
     config: &'a Config,
+    config_file_path: PathBuf,
 }
 
 impl<'a> ConfigManager<'a> {
     /// Builds config manager.
     pub fn build(config: &'a Config) -> Self {
         Self {
-            config
+            config,
+            config_file_path: get_config_file_path(),
         }
     }
 }
 
 impl<'a> ConfigManager<'a> {
+    fn config_file_path(&self) -> &Path {
+        &self.config_file_path
+    }
+}
+
+impl<'a> ConfigManager<'a> {
     /// Loads configuration data from config file.
+    /// 
+    /// Configuration loading is intended to be done only once.
+    /// 
+    /// Will panic if cannot get config file path.
     pub fn load_config() -> io::Result<Config> {
-        create_config_file_if_not_exists()?;
-        let contents = read_config_file()?;
+        let file_path = get_config_file_path();
+        create_config_file_if_not_exists(&file_path)?;
+        let contents = read_config_file(&file_path)?;
         let config = deserialize_config_from_json(&contents)?;
 
         Ok(config)
@@ -105,7 +118,7 @@ impl<'a> ConfigManager<'a> {
             path,
             &self.config.logs_dir_path(),
         );
-        save_config(&new_config)?;
+        save_config(self.config_file_path(), &new_config)?;
 
         Ok(())
     }
@@ -118,7 +131,7 @@ impl<'a> ConfigManager<'a> {
             &self.config.db_dir_path(),
             path,
         );
-        save_config(&new_config)?;
+        save_config(self.config_file_path(), &new_config)?;
 
         Ok(())
     }
@@ -136,28 +149,20 @@ fn set_default_config_dir_paths(config: &mut Config) -> io::Result<()> {
 }
 
 /// Gets file path to config file.
-fn get_config_file_path() -> io::Result<PathBuf> {
-    let mut dir = current_exe()?;
+/// 
+/// Use this when building `ConfigManager`.
+fn get_config_file_path() -> PathBuf {
+    let mut dir = match current_exe() {
+        Ok(dir) => dir,
+        Err(e) => {
+            // Panic if a system error occurs to ensure only valid file path will be used.
+            panic!("Failed to get config file path due to system error. Try again or fix the problem. {}", e);
+        },
+    };
     dir.pop();
     let file_path = dir.join(CONFIG_FILE_NAME);
 
-    Ok(file_path)
-}
-
-/// Creates config file with default configs if it doesn't exist.
-fn create_config_file_if_not_exists() -> io::Result<()> {
-    let file_path = get_config_file_path()?;
-    
-    if !file_path.is_file() {
-        let mut file = File::create(file_path)?;
-        let mut config = Config::default();
-        set_default_config_dir_paths(&mut config)?;
-        let json = serialize_config_to_json(&config)?;
-
-        file.write_all(json.as_bytes())?;
-    }
-
-    Ok(())
+    file_path
 }
 
 /// Deserializes config data from JSON string.
@@ -170,15 +175,27 @@ fn serialize_config_to_json(config: &Config) -> serde_json::Result<String> {
     Ok(serde_json::to_string_pretty(config)?)
 }
 
+/// Creates config file with default configs if it doesn't exist.
+fn create_config_file_if_not_exists(file_path: &Path) -> io::Result<()> {
+    if !file_path.is_file() {
+        let mut file = File::create(file_path)?;
+        let mut config = Config::default();
+        set_default_config_dir_paths(&mut config)?;
+        let json = serialize_config_to_json(&config)?;
+
+        file.write_all(json.as_bytes())?;
+    }
+
+    Ok(())
+}
+
 /// Reads config file and returns the contents.
-fn read_config_file() -> io::Result<String> {
-    let file_path = get_config_file_path()?;
+fn read_config_file(file_path: &Path) -> io::Result<String> {
     Ok(fs::read_to_string(file_path)?)
 }
 
 /// Writes json to config file.
-fn write_config_file(json: &str) -> io::Result<()> {
-    let file_path = get_config_file_path()?;
+fn write_config_file(file_path: &Path, json: &str) -> io::Result<()> {
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
@@ -190,9 +207,9 @@ fn write_config_file(json: &str) -> io::Result<()> {
 }
 
 /// Saves configuration data to config file.
-fn save_config(config: &Config) -> io::Result<()> {
+fn save_config(file_path: &Path, config: &Config) -> io::Result<()> {
     let json = serialize_config_to_json(config)?;
-    write_config_file(&json)?;
+    write_config_file(file_path, &json)?;
 
     Ok(())
 }
