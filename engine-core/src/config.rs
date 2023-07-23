@@ -1,4 +1,4 @@
-// Module used to read from and write to config file
+// Module used to read and write to config file
 
 //#![allow(unused)]
 

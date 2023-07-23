@@ -1,5 +1,3 @@
-// Database manager Protocol Buffers
-
 #![allow(unused)]
 
 use std::{

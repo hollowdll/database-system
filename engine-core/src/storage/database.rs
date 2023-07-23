@@ -1,5 +1,3 @@
-// Database Protocol Buffers module
-
 use std::{
     io,
     fs,

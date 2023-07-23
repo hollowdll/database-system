@@ -1,5 +1,5 @@
-// This module contains lower level code to do operations to database files.
-// Contains file system access, and database file reading and writing.
+// Data storage module. This module contains everything for storing data.
+// Contains file system access and database file read and write operations.
 
 #![allow(unused)]
 

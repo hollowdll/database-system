@@ -1,4 +1,4 @@
-// Errors types for logs
+// Errors types for logging
 
 use std::error::Error;
 use std::fmt;

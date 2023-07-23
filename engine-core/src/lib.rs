@@ -1,4 +1,4 @@
-// Engine core library
+// Entry point to engine library.
 
 // #![allow(unused)]
 

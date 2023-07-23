@@ -1,8 +1,5 @@
-// Database logs
-// All database events are logged to .log files
-
-// THIS MODULE KEEPS CHANGING FREQUENTLY
-// Code in this module will likely change a lot
+// Logging module that handles logs.
+// All database events and errors are logged to .log files.
 
 //#![allow(unused)]
 
