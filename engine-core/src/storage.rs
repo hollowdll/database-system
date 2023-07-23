@@ -8,6 +8,7 @@ pub mod collection;
 pub mod document;
 pub mod error;
 pub mod api;
+pub mod db_manager;
 
 /// This module contains Protocol Buffers types.
 pub mod pb {

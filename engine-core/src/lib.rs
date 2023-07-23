@@ -4,20 +4,21 @@
 
 pub mod logging;
 pub mod storage;
-mod db_manager;
 mod input_data;
 pub mod config;
 
 pub use logging::Logger;
 pub use serde_json;
-pub use db_manager::DatabaseManager;
 pub use input_data::DocumentInputDataField;
 use config::{
     Config,
     api::ConfigApi,
-    ConfigManager
+    config_manager::ConfigManager,
 };
-use storage::api::StorageApi;
+use storage::{
+    api::StorageApi,
+    db_manager::DatabaseManager,
+};
 
 // Engine version
 const VERSION: &str = env!("CARGO_PKG_VERSION");

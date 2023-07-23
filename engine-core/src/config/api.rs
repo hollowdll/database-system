@@ -8,10 +8,7 @@ use crate::{
     Logger,
     logging::ErrorLogType,
 };
-use super::{
-    Config,
-    ConfigManager,
-};
+use super::config_manager::ConfigManager;
 
 /// Engine configuration API.
 /// 

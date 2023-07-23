@@ -13,7 +13,7 @@ use engine_core::{
     self,
     config::{
         Config,
-        ConfigManager,
+        config_manager::ConfigManager,
     },
     Logger
 };

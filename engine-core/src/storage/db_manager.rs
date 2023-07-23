@@ -34,7 +34,7 @@ pub struct DatabaseManager<'a> {
 }
 
 impl<'a> DatabaseManager<'a> {
-    /// Build a new database manager.
+    /// Builds database manager.
     pub fn build(config: &'a Config) -> Self {
         Self {
             config
