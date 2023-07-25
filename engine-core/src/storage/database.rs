@@ -76,10 +76,9 @@ impl DatabaseDto {
     pub fn size(&self) -> &u64 {
         &self.size
     }
-}
 
-impl From<(String, String, u64)> for DatabaseDto {
-    fn from((name, description, size): (String, String, u64)) -> Self {
+    /// Creates a new instance of `DatabaseDto`.
+    pub fn new(name: String, description: String, size: u64) -> Self {
         Self {
             name,
             description,
@@ -87,8 +86,6 @@ impl From<(String, String, u64)> for DatabaseDto {
         }
     }
 }
-
-
 
 /// Creates a database file and writes initial data to it.
 pub fn create_database_file(
@@ -168,11 +165,11 @@ pub fn find_all_databases(
                         },
                     };
 
-                    let database_dto = DatabaseDto::from((
+                    let database_dto = DatabaseDto::new(
                         database.name,
                         database.description,
                         entry.metadata()?.len()
-                    ));
+                    );
                     
                     databases.push(database_dto);
                 }
@@ -191,8 +188,6 @@ pub fn find_database(
     dir_path: &Path
 ) -> io::Result<Option<DatabaseDto>>
 {
-    let mut error_message = "";
-    
     for entry in fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
@@ -202,11 +197,11 @@ pub fn find_database(
                 let database = deserialize_database(&fs::read(path)?)?;
 
                 if database.name() == db_name {
-                    let database_dto = DatabaseDto::from((
+                    let database_dto = DatabaseDto::new(
                         database.name,
                         database.description,
                         entry.metadata()?.len()
-                    ));
+                    );
 
                     return Ok(Some(database_dto));
                 }
@@ -215,6 +210,27 @@ pub fn find_database(
     }
 
     Ok(None)
+}
+
+/// Finds a database from the file path.
+/// 
+/// Returns `Some` with the found database or `None` if it was not found.
+pub fn find_database_by_file_path(
+    file_path: &Path,
+) -> io::Result<Option<DatabaseDto>>
+{
+    if !file_path.is_file() {
+        return Ok(None);
+    }
+
+    let database = deserialize_database(&fs::read(file_path)?)?;
+    let database_dto = DatabaseDto::new(
+        database.name,
+        database.description,
+        file_path.metadata()?.len()
+    );
+
+    Ok(Some(database_dto))
 }
 
 
