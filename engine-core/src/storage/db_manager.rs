@@ -271,6 +271,20 @@ impl<'a> DatabaseManager<'a> {
         }
     }
 
+    /// Finds a database by file path.
+    pub fn find_database_by_file_path(
+        &self,
+        file_path: &Path,
+    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
+    {
+        match find_database_by_file_path(file_path) {
+            Ok(db) => return Ok(db),
+            Err(err) => return Err(DatabaseOperationError(
+                format!("Failed to find database from '{}': {}", file_path.display(), err)
+            )),
+        }
+    }
+
     /// Finds all collections from a database.
     pub fn find_all_collections(
         &self,

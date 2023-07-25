@@ -1,5 +1,6 @@
 // Data storage API
 
+use std::path::Path;
 use crate::{
     DatabaseManager,
     Logger,
@@ -304,6 +305,35 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.find_database(db_name) {
             Ok(database) => {
                 let content = format!("Fetched database '{}'", db_name);
+                if let Err(e) = &self.logger.log_event(&content) {
+                    eprintln!("Failed to log event: {}", e);
+                }
+                return Ok(database);
+            },
+            Err(e) => {
+                let content = format!("Failed to fetch database: {}", e);
+                if let Err(e) = &self.logger.log_error(
+                    ErrorLogType::Error,
+                    &content,
+                ) {
+                    eprintln!("Failed to log error: {}", e);
+                }
+                return Err(e);
+            },
+        }
+    }
+
+    /// Requests `DatabaseManager` to find a database by file path.
+    /// 
+    /// Forwards the result to the caller.
+    pub fn find_database_by_file_path(
+        &self,
+        file_path: &Path,
+    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
+    {
+        match self.db_manager.find_database_by_file_path(file_path) {
+            Ok(database) => {
+                let content = format!("Fetched database from '{}'", file_path.display());
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }
