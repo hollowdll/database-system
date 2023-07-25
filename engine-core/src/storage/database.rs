@@ -1,7 +1,10 @@
 use std::{
     io,
     fs,
-    path::Path,
+    path::{
+        Path,
+        PathBuf,
+    },
     error::Error,
 };
 use crate::storage::{
@@ -62,6 +65,7 @@ pub struct DatabaseDto {
     name: String,
     description: String,
     size: u64,
+    file_path: PathBuf,
 }
 
 impl DatabaseDto {
@@ -77,12 +81,23 @@ impl DatabaseDto {
         &self.size
     }
 
+    pub fn file_path(&self) -> &Path {
+        &self.file_path
+    }
+
     /// Creates a new instance of `DatabaseDto`.
-    pub fn new(name: String, description: String, size: u64) -> Self {
+    pub fn new(
+        name: String,
+        description: String,
+        size: u64,
+        file_path: PathBuf
+    ) -> Self
+    {
         Self {
             name,
             description,
             size,
+            file_path,
         }
     }
 }
@@ -156,7 +171,7 @@ pub fn find_all_databases(
         if path.is_file() {
             if let Some(file_extension) = path.extension() {
                 if file_extension == DB_FILE_EXTENSION {
-                    let buf = fs::read(path)?;
+                    let buf = fs::read(&path)?;
                     let database = match deserialize_database(&buf) {
                         Ok(database) => database,
                         Err(e) => {
@@ -168,7 +183,8 @@ pub fn find_all_databases(
                     let database_dto = DatabaseDto::new(
                         database.name,
                         database.description,
-                        entry.metadata()?.len()
+                        entry.metadata()?.len(),
+                        path
                     );
                     
                     databases.push(database_dto);
@@ -194,13 +210,14 @@ pub fn find_database(
 
         if path.is_file() {
             if entry.file_name() == format!("{db_name}.{DB_FILE_EXTENSION}").as_str() {
-                let database = deserialize_database(&fs::read(path)?)?;
+                let database = deserialize_database(&fs::read(&path)?)?;
 
                 if database.name() == db_name {
                     let database_dto = DatabaseDto::new(
                         database.name,
                         database.description,
-                        entry.metadata()?.len()
+                        entry.metadata()?.len(),
+                        path
                     );
 
                     return Ok(Some(database_dto));
@@ -227,7 +244,8 @@ pub fn find_database_by_file_path(
     let database_dto = DatabaseDto::new(
         database.name,
         database.description,
-        file_path.metadata()?.len()
+        file_path.metadata()?.len(),
+        PathBuf::from(file_path),
     );
 
     Ok(Some(database_dto))
