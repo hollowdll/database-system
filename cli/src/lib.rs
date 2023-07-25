@@ -8,6 +8,10 @@ pub mod config;
 use std::{
     process,
     io::{self, Write},
+    path::{
+        PathBuf,
+        Path,
+    },
 };
 use engine_core::{
     self,
@@ -26,7 +30,7 @@ const CONFIRM_OPTION_YES: &str = "Y";
 pub struct Cli<'a> {
     engine: engine_core::Engine<'a>,
     version: &'static str,
-    connected_db: Option<String>,
+    connected_db: Option<ConnectedDatabase>,
 }
 
 impl<'a> Cli<'a> {
@@ -42,7 +46,7 @@ impl<'a> Cli<'a> {
         }
     }
 
-    pub fn connected_db(&self) -> &Option<String> {
+    pub fn connected_db(&self) -> &Option<ConnectedDatabase> {
         &self.connected_db
     }
 }
@@ -57,8 +61,36 @@ impl<'a> Cli<'a> {
     /// Displays connected database.
     fn display_connection_status(&self) {
         match &self.connected_db {
-            Some(db_name) => println!("Connected database: {}", db_name),
+            Some(db) => {
+                println!("Connected database: {}", db.name());
+                println!("File path: {:?}", db.file_path());
+            },
             None => println!("{}", NO_CONNECTED_DB),
+        }
+    }
+}
+
+/// Represents the connected database.
+/// 
+/// Holds its name without file extension and its file path.
+struct ConnectedDatabase {
+    name: String,
+    file_path: PathBuf,
+}
+
+impl ConnectedDatabase {
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn file_path(&self) -> &Path {
+        &self.file_path
+    }
+
+    fn new(name: &str, file_path: &Path) -> Self {
+        Self {
+            name: String::from(name),
+            file_path: PathBuf::from(file_path),
         }
     }
 }
@@ -90,8 +122,8 @@ pub fn run() {
     loop {
         cli.refresh_connected_db();
 
-        if let Some(name) = cli.connected_db() {
-            connected_db_name = format!("Connected database: {}", name);
+        if let Some(db) = cli.connected_db() {
+            connected_db_name = format!("Connected database: {}", db.name());
         } else {
             connected_db_name = NO_CONNECTED_DB.to_string();
         }
@@ -115,7 +147,8 @@ pub fn run() {
 
   ** DATABASE COMMANDS **
 
-  /connect db                    Connect to a database
+  /connect db name               Connect to a database by its name. Tries to find it in the database directory.
+  /connect db file_path          Connect to a database by its file path.
   /get dbs                       List all databases
   /create db                     Create a new database
   /delete db                     Delete a database
@@ -124,8 +157,8 @@ pub fn run() {
   ** COLLECTION COMMANDS **
 
   /get cols                      List all collections of the connected database
-  /create col                    Creates a new collection to the connected database
-  /delete col                    Deletes a collection from the connected database
+  /create col                    Create a new collection to the connected database
+  /delete col                    Delete a collection from the connected database
 
   ** DOCUMENT COMMANDS **
 
@@ -159,9 +192,12 @@ More commands in the future...");
             "/version" => {
                 cli.display_version();
             },
-            "/connect db" => {
-                cli.connect_database();
+            "/connect db name" => {
+                cli.connect_db_by_name();
             },
+            "/connect db file_path" => {
+                cli.connect_db_by_file_path();
+            }
             "/get dbs" => {
                 cli.list_all_databases();
             },
