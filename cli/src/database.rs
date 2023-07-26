@@ -4,7 +4,8 @@ use crate::{
     ask_user_input,
     ask_action_confirm,
     CONFIRM_OPTION_YES,
-    NO_CONNECTED_DB, ConnectedDatabase,
+    ConnectedDatabase,
+    db_not_connected,
 };
 
 impl<'a> Cli<'a> {
@@ -15,7 +16,10 @@ impl<'a> Cli<'a> {
             None => return,
         };
 
-        match &self.engine.storage_api().find_database_by_file_path(connected_db.file_path()) {
+        match &self.engine
+            .storage_api()
+            .find_database_by_file_path(connected_db.file_path())
+        {
             Ok(db) => {
                 if db.is_none() {
                     let _ = &self.connected_db.take();
@@ -31,7 +35,10 @@ impl<'a> Cli<'a> {
         connected_db: &ConnectedDatabase,
     ) -> bool
     {
-        match &self.engine.storage_api().find_database_by_file_path(connected_db.file_path()) {
+        match &self.engine
+            .storage_api()
+            .find_database_by_file_path(connected_db.file_path())
+        {
             Ok(result) => {
                 if result.is_none() {
                     println!("Cannot find connected database");
@@ -144,7 +151,10 @@ impl<'a> Cli<'a> {
 
     /// List all databases and display information about them.
     pub fn list_all_databases(&self) {
-        let databases = match self.engine.storage_api().find_all_databases() {
+        let databases = match self.engine
+            .storage_api()
+            .find_all_databases()
+        {
             Ok(databases) => databases,
             Err(e) => return eprintln!("[Error] Failed to list databases: {e}"),
         };
@@ -168,7 +178,7 @@ impl<'a> Cli<'a> {
     pub fn change_database_description(&self) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
-            None => return println!("{}", NO_CONNECTED_DB),
+            None => return db_not_connected(),
         };
 
         let description = match ask_user_input("Description: ") {
@@ -180,7 +190,10 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine.storage_api().change_database_description(connected_db.name(), &description) {
+        match &self.engine
+            .storage_api()
+            .change_database_description(connected_db.name(), &description)
+        {
             Ok(()) => println!("Database description changed"),
             Err(e) => return eprintln!("[Error] Failed to change database description: {e}"),
         }

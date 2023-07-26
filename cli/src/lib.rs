@@ -72,7 +72,7 @@ impl<'a> Cli<'a> {
 
 /// Represents the connected database.
 /// 
-/// Holds its name without file extension and its file path.
+/// Holds its name and file path.
 struct ConnectedDatabase {
     name: String,
     file_path: PathBuf,
@@ -265,6 +265,11 @@ More commands in the future...");
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
+}
+
+/// Prints a message telling there is no connected database.
+fn db_not_connected() {
+    println!("{}", NO_CONNECTED_DB);
 }
 
 /// Asks for user input and returns it trimmed.
