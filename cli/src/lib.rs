@@ -63,7 +63,7 @@ impl<'a> Cli<'a> {
         match &self.connected_db {
             Some(db) => {
                 println!("Connected database: {}", db.name());
-                println!("File path: {:?}", db.file_path());
+                println!("File path: {}", db.file_path().display());
             },
             None => println!("{}", NO_CONNECTED_DB),
         }
@@ -73,7 +73,7 @@ impl<'a> Cli<'a> {
 /// Represents the connected database.
 /// 
 /// Holds its name and file path.
-struct ConnectedDatabase {
+pub struct ConnectedDatabase {
     name: String,
     file_path: PathBuf,
 }
@@ -113,7 +113,6 @@ pub fn run() {
     let mut connected_db_name;
 
     println!("NOTE: This is an early version. Nothing is final.");
-    println!("The engine uses Protocol Buffers for storing data.");
     println!("\nVersion: {}", cli.version);
     println!("Database engine CLI client");
     println!("\n{}", help_message);

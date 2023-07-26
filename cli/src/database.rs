@@ -72,7 +72,7 @@ impl<'a> Cli<'a> {
                     ));
                     println!("Connected to database");
                 } else {
-                    println!("Database does not exist.");
+                    println!("Cannot find database");
                 }
             },
             Err(e) => eprintln!("[Error] Failed to connect to database: {}", e),
@@ -96,7 +96,7 @@ impl<'a> Cli<'a> {
                     ));
                     println!("Connected to database");
                 } else {
-                    println!("Database does not exist.");
+                    println!("Cannot find database");
                 }
             },
             Err(e) => eprintln!("[Error] Failed to connect to database: {}", e),
@@ -164,12 +164,14 @@ impl<'a> Cli<'a> {
         for database in databases {
             println!(
 "
-  Name: {}
-  Size: {} bytes
-  Description: {}",
+  Name:        {}
+  Size:        {} bytes
+  Description: {}
+  File path:   {}",
             database.name(),
             database.size(),
             database.description(),
+            database.file_path().display()
             );
         }
     }

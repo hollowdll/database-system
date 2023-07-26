@@ -3,7 +3,7 @@ use crate::{
     ask_user_input,
     ask_action_confirm,
     CONFIRM_OPTION_YES,
-    NO_CONNECTED_DB,
+    db_not_connected,
 };
 use engine_core::{
     storage::{
@@ -35,9 +35,9 @@ fn display_document(document: &DocumentDto) {
 impl<'a> Cli<'a> {
     /// Show menu to create a new document to a collection.
     pub fn create_document(&self) {
-        let connected_db_name = match &self.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
 
         let collection_name = match ask_user_input("Collection: ") {
@@ -45,7 +45,7 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        if !&self.collection_exists(&collection_name, connected_db_name) {
+        if !&self.collection_exists(&collection_name, connected_db) {
             return;
         }
 
@@ -79,21 +79,24 @@ impl<'a> Cli<'a> {
             }
         }
 
-        if !&self.database_exists(connected_db_name) {
+        if !&self.database_exists(connected_db) {
             return;
         }
 
-        match &self.engine.storage_api().create_document(connected_db_name, &collection_name, data) {
+        match &self.engine
+            .storage_api()
+            .create_document(connected_db.name(), &collection_name, data)
+        {
             Ok(()) => println!("Document created"),
-            Err(e) => return eprintln!("[Error] {e}"),
+            Err(e) => return eprintln!("[Error] Failed to create document: {e}"),
         }
     }
 
     /// Show menu to delete a document.
     pub fn delete_document(&self) {
-        let connected_db_name = match &self.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
@@ -117,12 +120,15 @@ impl<'a> Cli<'a> {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                if !&self.database_exists(connected_db_name) {
+                if !&self.database_exists(connected_db) {
                     return;
                 }
-                match &self.engine.storage_api().delete_document(connected_db_name, &document_id, &collection_name) {
+                match &self.engine
+                    .storage_api()
+                    .delete_document(connected_db.name(), &document_id, &collection_name)
+                {
                     Ok(()) => println!("Document deleted"),
-                    Err(e) => return eprintln!("[Error] {e}"),
+                    Err(e) => return eprintln!("[Error] Failed to delete document: {e}"),
                 }
             },
             _ => return println!("Canceled action"),
@@ -131,28 +137,28 @@ impl<'a> Cli<'a> {
 
     /// Show menu to list all documents of a collection.
     pub fn list_all_documents(&self) {
-        let connected_db_name = match &self.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
 
-        if !&self.collection_exists(&collection_name, connected_db_name) {
+        if !&self.collection_exists(&collection_name, connected_db) {
             return;
         }
-        if !&self.database_exists(connected_db_name) {
+        if !&self.database_exists(connected_db) {
             return;
         }
 
-        let documents = match self.engine.storage_api().find_all_documents(
-            connected_db_name,
-            &collection_name,
-        ) {
+        let documents = match self.engine
+            .storage_api()
+            .find_all_documents(connected_db.name(), &collection_name)
+        {
             Ok(documents) => documents,
-            Err(e) => return eprintln!("[Error] {e}"),
+            Err(e) => return eprintln!("[Error] Failed to list documents: {e}"),
         };
 
         println!("\nNumber of documents: {}", documents.len());
@@ -164,9 +170,9 @@ impl<'a> Cli<'a> {
 
     /// Show menu to list specific documents of a collection.
     pub fn list_documents(&self) {
-        let connected_db_name = match &self.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
@@ -181,20 +187,19 @@ impl<'a> Cli<'a> {
             Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
         };
 
-        if !&self.collection_exists(&collection_name, connected_db_name) {
+        if !&self.collection_exists(&collection_name, connected_db) {
             return;
         }
-        if !&self.database_exists(connected_db_name) {
+        if !&self.database_exists(connected_db) {
             return;
         }
 
-        let documents = match self.engine.storage_api().find_documents_limit(
-            connected_db_name,
-            &collection_name,
-            limit
-        ) {
+        let documents = match self.engine
+            .storage_api()
+            .find_documents_limit(connected_db.name(), &collection_name, limit)
+        {
             Ok(documents) => documents,
-            Err(e) => return eprintln!("[Error] {e}"),
+            Err(e) => return eprintln!("[Error] Failed to list documents: {e}"),
         };
 
         println!("\nNumber of documents: {}", documents.len());
@@ -206,9 +211,9 @@ impl<'a> Cli<'a> {
 
     /// Show menu to list a single document of a collection.
     pub fn list_single_document(&self) {
-        let connected_db_name = match &self.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
@@ -223,17 +228,16 @@ impl<'a> Cli<'a> {
             Err(e) => return eprintln!("Invalid document ID: {e}"),
         };
 
-        if !&self.database_exists(connected_db_name) {
+        if !&self.database_exists(connected_db) {
             return;
         }
 
-        let result = match self.engine.storage_api().find_document_by_id(
-            &document_id,
-            connected_db_name,
-            &collection_name,
-        ) {
+        let result = match self.engine
+            .storage_api()
+            .find_document_by_id(&document_id, connected_db.name(), &collection_name)
+        {
             Ok(result) => result,
-            Err(e) => return eprintln!("[Error] {e}"),
+            Err(e) => return eprintln!("[Error] Failed to list document: {e}"),
         };
 
         match result {
@@ -252,9 +256,9 @@ impl<'a> Cli<'a> {
     /// WARNING! Be aware that there is no batch creating yet.
     /// This method will create each document individually!
     pub fn create_test_documents(&self) {
-        let connected_db_name = match &self.connected_db {
-            Some(db_name) => db_name,
-            None => return println!("{}", NO_CONNECTED_DB),
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
@@ -269,11 +273,11 @@ impl<'a> Cli<'a> {
             Err(e) => return eprintln!("Invalid document count: {e}"),
         };
 
-        if !&self.collection_exists(&collection_name, connected_db_name) {
+        if !&self.collection_exists(&collection_name, connected_db) {
             return;
         }
         
-        if !&self.database_exists(connected_db_name) {
+        if !&self.database_exists(connected_db) {
             return;
         }
         
@@ -286,12 +290,15 @@ impl<'a> Cli<'a> {
 
             data.push(DocumentInputDataField::new(&field, data_type, &value));
 
-            match &self.engine.storage_api().create_document(connected_db_name, &collection_name, data) {
+            match &self.engine
+                .storage_api()
+                .create_document(connected_db.name(), &collection_name, data)
+            {
                 Ok(()) => {
                     println!("Document created");
                     document_count += 1;
                 },
-                Err(e) => eprintln!("[Error] {e}"),
+                Err(e) => eprintln!("[Error] Failed to create test documents: {e}"),
             }
         }
 
