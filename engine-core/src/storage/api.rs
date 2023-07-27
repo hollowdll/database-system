@@ -266,7 +266,7 @@ impl<'a> StorageApi<'a> {
         }
     }
 
-    /// Requests `DatabaseManager` to find all databases.
+    /// Requests `DatabaseManager` to find all databases from database directory.
     /// 
     /// Forwards the result to the caller.
     pub fn find_all_databases(
@@ -275,14 +275,14 @@ impl<'a> StorageApi<'a> {
     {
         match self.db_manager.find_all_databases() {
             Ok(databases) => {
-                let content = "Fetched all databases";
+                let content = "Fetched all databases from database directory";
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }
                 return Ok(databases);
             },
             Err(e) => {
-                let content = format!("Failed to fetch all databases: {}", e);
+                let content = format!("Failed to fetch all databases from database directory: {}", e);
                 if let Err(e) = &self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
@@ -294,7 +294,7 @@ impl<'a> StorageApi<'a> {
         }
     }
 
-    /// Requests `DatabaseManager` to find a database.
+    /// Requests `DatabaseManager` to find a database from database directory.
     /// 
     /// Forwards the result to the caller.
     pub fn find_database(
@@ -304,14 +304,14 @@ impl<'a> StorageApi<'a> {
     {
         match self.db_manager.find_database(db_name) {
             Ok(database) => {
-                let content = format!("Fetched database '{}'", db_name);
+                let content = format!("Fetched database '{}' from database directory", db_name);
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }
                 return Ok(database);
             },
             Err(e) => {
-                let content = format!("Failed to fetch database: {}", e);
+                let content = format!("Failed to fetch database from database directory: {}", e);
                 if let Err(e) = &self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
@@ -328,12 +328,12 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn find_database_by_file_path(
         &self,
-        file_path: &Path,
+        db_file_path: &Path,
     ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
-        match self.db_manager.find_database_by_file_path(file_path) {
+        match self.db_manager.find_database_by_file_path(db_file_path) {
             Ok(database) => {
-                let content = format!("Fetched database from '{}'", file_path.display());
+                let content = format!("Fetched database '{}'", db_file_path.display());
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }
@@ -357,14 +357,14 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn find_all_collections(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
     {
-        match self.db_manager.find_all_collections(db_name) {
+        match self.db_manager.find_all_collections(db_file_path) {
             Ok(collections) => {
                 let content = format!(
                     "Fetched all collections from database '{}'",
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -390,15 +390,15 @@ impl<'a> StorageApi<'a> {
     pub fn find_collection(
         &self,
         collection_name: &str,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<Option<CollectionDto>, DatabaseOperationError>
     {
-        match self.db_manager.find_collection(collection_name, db_name) {
+        match self.db_manager.find_collection(collection_name, db_file_path) {
             Ok(collection) => {
                 let content = format!(
                     "Fetched collection '{}' from database '{}'",
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -423,16 +423,16 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn find_all_documents(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
-        match self.db_manager.find_all_documents(db_name, collection_name) {
+        match self.db_manager.find_all_documents(db_file_path, collection_name) {
             Ok(documents) => {
                 let content = format!(
                     "Fetched all documents from collection '{}' in database '{}'",
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -457,18 +457,18 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn find_documents_limit(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
         limit: usize,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
-        match self.db_manager.find_documents_limit(db_name, collection_name, limit) {
+        match self.db_manager.find_documents_limit(db_file_path, collection_name, limit) {
             Ok(documents) => {
                 let content = format!(
                     "Fetched {} documents from collection '{}' in database '{}'",
                     documents.len(),
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -494,17 +494,17 @@ impl<'a> StorageApi<'a> {
     pub fn find_document_by_id(
         &self,
         document_id: &u64,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
     ) -> Result<Option<DocumentDto>, DatabaseOperationError>
     {
-        match self.db_manager.find_document_by_id(document_id, db_name, collection_name) {
+        match self.db_manager.find_document_by_id(document_id, db_file_path, collection_name) {
             Ok(document) => {
                 let content = format!(
                     "Fetched document with ID '{}' from collection '{}' in database '{}'",
                     document_id,
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);

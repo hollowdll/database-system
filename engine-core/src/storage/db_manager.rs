@@ -232,7 +232,7 @@ impl<'a> DatabaseManager<'a> {
         Ok(())
     }
 
-    /// Finds all databases.
+    /// Finds all databases from database directory.
     pub fn find_all_databases(
         &self,
     ) -> Result<Vec<DatabaseDto>, DatabaseOperationError>
@@ -246,12 +246,12 @@ impl<'a> DatabaseManager<'a> {
         match find_all_databases(&self.db_dir_path()) {
             Ok(databases) => return Ok(databases),
             Err(err) => return Err(DatabaseOperationError(
-                format!("Failed to find all databases: {}", err)
+                format!("Failed to find databases: {}", err)
             )),
         }
     }
 
-    /// Finds a database.
+    /// Finds a database from database directory.
     pub fn find_database(
         &self,
         db_name: &str,
@@ -274,30 +274,30 @@ impl<'a> DatabaseManager<'a> {
     /// Finds a database by file path.
     pub fn find_database_by_file_path(
         &self,
-        file_path: &Path,
+        db_file_path: &Path,
     ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
-        match find_database_by_file_path(file_path) {
+        match find_database_by_file_path(db_file_path) {
             Ok(db) => return Ok(db),
-            Err(err) => return Err(DatabaseOperationError(
-                format!("Failed to find database from '{}': {}", file_path.display(), err)
-            )),
+            Err(err) => return Err(DatabaseOperationError(format!(
+                "Failed to find database '{}': {}",
+                db_file_path.display(),
+                err
+            ))),
         }
     }
 
     /// Finds all collections from a database.
     pub fn find_all_collections(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
     {
-        match find_all_collections_from_db_file(
-            &self.db_file_path(db_name)
-        ) {
+        match find_all_collections_from_db_file(db_file_path) {
             Ok(collections) => return Ok(collections),
             Err(err) => return Err(DatabaseOperationError(format!(
-                "Failed to find all collections from database '{}': {}",
-                db_name,
+                "Failed to find collections from database '{}': {}",
+                db_file_path.display(),
                 err
             ))),
         }
@@ -307,18 +307,18 @@ impl<'a> DatabaseManager<'a> {
     pub fn find_collection(
         &self,
         collection_name: &str,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<Option<CollectionDto>, DatabaseOperationError>
     {
         match find_collection_from_db_file(
             collection_name,
-            &self.db_file_path(db_name)
+            db_file_path
         ) {
             Ok(collection) => return Ok(collection),
             Err(err) => return Err(DatabaseOperationError(format!(
                 "Failed to find collection '{}' from database '{}': {}",
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             ))),
         }
@@ -327,19 +327,19 @@ impl<'a> DatabaseManager<'a> {
     /// Finds all documents from a collection.
     pub fn find_all_documents(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match find_all_documents_from_collection(
-            &self.db_file_path(db_name),
+            db_file_path,
             collection_name
         ) {
             Ok(document) => return Ok(document),
             Err(err) => return Err(DatabaseOperationError(format!(
-                "Failed to find all documents from collection '{}' in database '{}': {}",
+                "Failed to find documents from collection '{}' in database '{}': {}",
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             ))),
         }
@@ -348,13 +348,13 @@ impl<'a> DatabaseManager<'a> {
     /// Finds the first documents from a collection specified by limit.
     pub fn find_documents_limit(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
         limit: usize,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match find_documents_from_collection_limit(
-            &self.db_file_path(db_name),
+            db_file_path,
             collection_name,
             limit
         ) {
@@ -362,7 +362,7 @@ impl<'a> DatabaseManager<'a> {
             Err(err) => return Err(DatabaseOperationError(format!(
                 "Failed to find documents from collection '{}' in database '{}' with limit {}: {}",
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 limit,
                 err
             ))),
@@ -373,12 +373,12 @@ impl<'a> DatabaseManager<'a> {
     pub fn find_document_by_id(
         &self,
         document_id: &u64,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
     ) -> Result<Option<DocumentDto>, DatabaseOperationError>
     {
         match find_document_from_collection_by_id(
-            &self.db_file_path(db_name),
+            db_file_path,
             document_id,
             collection_name,
         ) {
@@ -387,7 +387,7 @@ impl<'a> DatabaseManager<'a> {
                 "Failed to find document with ID '{}' from collection '{}' in database '{}': {}",
                 document_id,
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             ))),
         }

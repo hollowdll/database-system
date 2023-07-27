@@ -155,7 +155,7 @@ impl<'a> Cli<'a> {
 
         let documents = match self.engine
             .storage_api()
-            .find_all_documents(connected_db.name(), &collection_name)
+            .find_all_documents(connected_db.file_path(), &collection_name)
         {
             Ok(documents) => documents,
             Err(e) => return eprintln!("[Error] Failed to list documents: {e}"),
@@ -196,7 +196,7 @@ impl<'a> Cli<'a> {
 
         let documents = match self.engine
             .storage_api()
-            .find_documents_limit(connected_db.name(), &collection_name, limit)
+            .find_documents_limit(connected_db.file_path(), &collection_name, limit)
         {
             Ok(documents) => documents,
             Err(e) => return eprintln!("[Error] Failed to list documents: {e}"),
@@ -234,7 +234,7 @@ impl<'a> Cli<'a> {
 
         let result = match self.engine
             .storage_api()
-            .find_document_by_id(&document_id, connected_db.name(), &collection_name)
+            .find_document_by_id(&document_id, connected_db.file_path(), &collection_name)
         {
             Ok(result) => result,
             Err(e) => return eprintln!("[Error] Failed to list document: {e}"),

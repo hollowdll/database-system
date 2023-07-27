@@ -17,7 +17,7 @@ impl<'a> Cli<'a> {
     {
         match &self.engine
             .storage_api()
-            .find_collection(collection_name, connected_db.name())
+            .find_collection(collection_name, connected_db.file_path())
         {
             Ok(result) => {
                 if result.is_none() {
@@ -107,7 +107,7 @@ impl<'a> Cli<'a> {
 
         let collections = match self.engine
             .storage_api()
-            .find_all_collections(connected_db.name())
+            .find_all_collections(connected_db.file_path())
         {
             Ok(collections) => collections,
             Err(e) => return eprintln!("[Error] Failed to list collections: {e}"),
