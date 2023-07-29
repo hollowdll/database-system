@@ -54,8 +54,8 @@ impl<'a> DatabaseManager<'a> {
 }
 
 impl<'a> DatabaseManager<'a> {
-    /// Creates a new database.
-    pub fn create_database(
+    /// Creates a new database to database directory.
+    pub fn create_database_to_db_dir(
         &self,
         db_name: &str,
     ) -> Result<(), DatabaseOperationError>
@@ -73,6 +73,27 @@ impl<'a> DatabaseManager<'a> {
             return Err(DatabaseOperationError(format!(
                 "Failed to create database '{}': {}",
                 db_name,
+                err
+            )));
+        }
+
+        Ok(())
+    }
+
+    /// Creates a new database by file path.
+    pub fn create_database_by_file_path(
+        &self,
+        db_name: &str,
+        file_path: &Path,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        if let Err(err) = create_database_file(
+            db_name,
+            &self.db_file_path(db_name)
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to create database '{}': {}",
+                file_path.display(),
                 err
             )));
         }

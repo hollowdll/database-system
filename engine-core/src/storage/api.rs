@@ -39,17 +39,47 @@ impl<'a> StorageApi<'a> {
 }
 
 impl<'a> StorageApi<'a> {
-    /// Requests `DatabaseManager` to create a database.
+    /// Requests `DatabaseManager` to create a database to database directory.
     /// 
     /// Forwards the result to the caller.
-    pub fn create_database(
+    pub fn create_database_to_db_dir(
         &self,
         db_name: &str,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.create_database(db_name) {
+        match self.db_manager.create_database_to_db_dir(db_name) {
             Ok(()) => {
-                let content = format!("Created database '{}'", db_name);
+                let content = format!("Created database '{}' to database directory", db_name);
+                if let Err(e) = &self.logger.log_event(&content) {
+                    eprintln!("Failed to log event: {}", e);
+                }
+                return Ok(());
+            },
+            Err(e) => {
+                let content = format!("Failed to create database to database directory: {}", e);
+                if let Err(e) = &self.logger.log_error(
+                    ErrorLogType::Error,
+                    &content,
+                ) {
+                    eprintln!("Failed to log error: {}", e);
+                }
+                return Err(e);
+            },
+        }
+    }
+
+    /// Requests `DatabaseManager` to create a database by file path.
+    /// 
+    /// Forwards the result to the caller.
+    pub fn create_database_by_file_path(
+        &self,
+        db_name: &str,
+        db_file_path: &Path,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        match self.db_manager.create_database_by_file_path(db_name, db_file_path) {
+            Ok(()) => {
+                let content = format!("Created database '{}'", db_file_path.display());
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }

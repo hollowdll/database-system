@@ -110,7 +110,7 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine.storage_api().create_database(&db_name) {
+        match &self.engine.storage_api().create_database_to_db_dir(&db_name) {
             Ok(()) => println!("Database created"),
             Err(e) => eprintln!("[Error] Failed to create database: {}", e),
         }
