@@ -150,14 +150,14 @@ pub fn run() {
   /connect db file_path          Connect to a database by its file path.
   /get dbs                       List all databases
   /create db                     Create a new database
-  /delete db                     Delete a database
+  /delete db                     Delete the connected database
   /change db desc                Change description of the connected database
 
   ** COLLECTION COMMANDS **
 
   /get cols                      List all collections of the connected database
   /create col                    Create a new collection to the connected database
-  /delete col                    Delete a collection from the connected database
+  /delete col                    Delete a collection and all its documents from the connected database
 
   ** DOCUMENT COMMANDS **
 

@@ -103,12 +103,12 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn delete_database(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.delete_database(db_name) {
+        match self.db_manager.delete_database(db_file_path) {
             Ok(()) => {
-                let content = format!("Deleted database '{}'", db_name);
+                let content = format!("Deleted database '{}'", db_file_path.display());
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }
@@ -132,13 +132,13 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn change_database_description(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         description: &str,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.change_database_description(db_name, description) {
+        match self.db_manager.change_database_description(db_file_path, description) {
             Ok(()) => {
-                let content = format!("Changed description of database '{}'", db_name);
+                let content = format!("Changed description of database '{}'", db_file_path.display());
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }

@@ -89,7 +89,7 @@ impl<'a> DatabaseManager<'a> {
     {
         if let Err(err) = create_database_file(
             db_name,
-            &self.db_file_path(db_name)
+            file_path
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create database '{}': {}",
@@ -104,15 +104,13 @@ impl<'a> DatabaseManager<'a> {
     /// Deletes a database.
     pub fn delete_database(
         &self,
-        db_name: &str,
+        file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = delete_database_file(
-            &self.db_file_path(db_name)
-        ) {
+        if let Err(err) = delete_database_file(file_path) {
             return Err(DatabaseOperationError(format!(
                 "Failed to delete database '{}': {}",
-                db_name,
+                file_path.display(),
                 err
             )));
         }
@@ -123,17 +121,17 @@ impl<'a> DatabaseManager<'a> {
     /// Changes description of a database.
     pub fn change_database_description(
         &self,
-        db_name: &str,
+        file_path: &Path,
         description: &str,
     ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = change_database_description(
             description,
-            &self.db_file_path(db_name)
+            file_path
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to change description of database '{}': {}",
-                db_name,
+                file_path.display(),
                 err
             )));
         }

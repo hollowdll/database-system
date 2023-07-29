@@ -118,13 +118,13 @@ impl<'a> Cli<'a> {
 
     /// Show menu to delete a database.
     pub fn delete_database(&mut self) {
-        let db_name = match ask_user_input("Database name: ") {
-            Ok(db_name) => db_name,
-            Err(_) => return,
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
         };
 
         let confirm = match ask_action_confirm(
-            &format!("Are you sure you want to delete database '{}'?", db_name)
+            &format!("All data in this database will be lost. Delete database?")
         ) {
             Ok(confirm) => confirm,
             Err(_) => return,
@@ -132,14 +132,10 @@ impl<'a> Cli<'a> {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                match &self.engine.storage_api().delete_database(&db_name) {
+                match &self.engine.storage_api().delete_database(connected_db.file_path()) {
                     Ok(()) => {
                         // Disconnect database if it is connected
-                        if let Some(connected_db) = &self.connected_db {
-                            if connected_db.name() == &db_name {
-                                let _ = &self.connected_db.take();
-                            }
-                        }
+                        let _ = &self.connected_db.take();
                         println!("Database deleted");
                     },
                     Err(e) => eprintln!("[Error] Failed to delete database: {e}"),
@@ -194,7 +190,7 @@ impl<'a> Cli<'a> {
 
         match &self.engine
             .storage_api()
-            .change_database_description(connected_db.name(), &description)
+            .change_database_description(connected_db.file_path(), &description)
         {
             Ok(()) => println!("Database description changed"),
             Err(e) => return eprintln!("[Error] Failed to change database description: {e}"),

@@ -112,7 +112,7 @@ impl<'a> Cli<'a> {
         };
 
         let confirm = match ask_action_confirm(
-            &format!("Are you sure you want to delete document with ID '{}'?", document_id)
+            &format!("Delete document with ID '{}'?", document_id)
         ) {
             Ok(confirm) => confirm,
             Err(_) => return,
