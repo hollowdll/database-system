@@ -85,7 +85,7 @@ impl<'a> Cli<'a> {
 
         match &self.engine
             .storage_api()
-            .create_document(connected_db.name(), &collection_name, data)
+            .create_document(connected_db.file_path(), &collection_name, data)
         {
             Ok(()) => println!("Document created"),
             Err(e) => return eprintln!("[Error] Failed to create document: {e}"),
@@ -125,7 +125,7 @@ impl<'a> Cli<'a> {
                 }
                 match &self.engine
                     .storage_api()
-                    .delete_document(connected_db.name(), &document_id, &collection_name)
+                    .delete_document(connected_db.file_path(), &document_id, &collection_name)
                 {
                     Ok(()) => println!("Document deleted"),
                     Err(e) => return eprintln!("[Error] Failed to delete document: {e}"),
@@ -292,7 +292,7 @@ impl<'a> Cli<'a> {
 
             match &self.engine
                 .storage_api()
-                .create_document(connected_db.name(), &collection_name, data)
+                .create_document(connected_db.file_path(), &collection_name, data)
             {
                 Ok(()) => {
                     println!("Document created");

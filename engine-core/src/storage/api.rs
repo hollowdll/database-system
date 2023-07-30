@@ -163,15 +163,15 @@ impl<'a> StorageApi<'a> {
     pub fn create_collection(
         &self,
         collection_name: &str,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.create_collection(collection_name, db_name) {
+        match self.db_manager.create_collection(collection_name, db_file_path) {
             Ok(()) => {
                 let content = format!(
                     "Created collection '{}' to database '{}'",
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -197,15 +197,15 @@ impl<'a> StorageApi<'a> {
     pub fn delete_collection(
         &self,
         collection_name: &str,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.delete_collection(collection_name, db_name) {
+        match self.db_manager.delete_collection(collection_name, db_file_path) {
             Ok(()) => {
                 let content = format!(
                     "Deleted collection '{}' from database '{}'",
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -230,17 +230,17 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn create_document(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
         data: Vec<DocumentInputDataField>,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.create_document(db_name, collection_name, data) {
+        match self.db_manager.create_document(db_file_path, collection_name, data) {
             Ok(()) => {
                 let content = format!(
                     "Created document to collection '{}' in database '{}'",
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
@@ -265,18 +265,18 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn delete_document(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         document_id: &u64,
         collection_name: &str,
     ) -> Result<(), DatabaseOperationError>
     {
-        match self.db_manager.delete_document(db_name, document_id, collection_name) {
+        match self.db_manager.delete_document(db_file_path, document_id, collection_name) {
             Ok(()) => {
                 let content = format!(
                     "Deleted document with ID '{}' from collection '{}' in database '{}'",
                     document_id,
                     collection_name,
-                    db_name
+                    db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);

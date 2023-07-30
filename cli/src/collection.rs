@@ -51,7 +51,7 @@ impl<'a> Cli<'a> {
 
         match &self.engine
             .storage_api()
-            .create_collection(&collection_name, connected_db.name())
+            .create_collection(&collection_name, connected_db.file_path())
         {
             Ok(()) => println!("Collection created"),
             Err(e) => return eprintln!("[Error] Failed to create collection: {e}"),
@@ -83,7 +83,7 @@ impl<'a> Cli<'a> {
                 }
                 match &self.engine
                     .storage_api()
-                    .delete_collection(&collection_name, connected_db.name())
+                    .delete_collection(&collection_name, connected_db.file_path())
                 {
                     Ok(()) => println!("Collection deleted"),
                     Err(e) => return eprintln!("[Error] Failed to delete collection: {e}"),

@@ -84,16 +84,16 @@ impl<'a> DatabaseManager<'a> {
     pub fn create_database_by_file_path(
         &self,
         db_name: &str,
-        file_path: &Path,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = create_database_file(
             db_name,
-            file_path
+            db_file_path
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create database '{}': {}",
-                file_path.display(),
+                db_file_path.display(),
                 err
             )));
         }
@@ -104,13 +104,13 @@ impl<'a> DatabaseManager<'a> {
     /// Deletes a database.
     pub fn delete_database(
         &self,
-        file_path: &Path,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
-        if let Err(err) = delete_database_file(file_path) {
+        if let Err(err) = delete_database_file(db_file_path) {
             return Err(DatabaseOperationError(format!(
                 "Failed to delete database '{}': {}",
-                file_path.display(),
+                db_file_path.display(),
                 err
             )));
         }
@@ -121,17 +121,17 @@ impl<'a> DatabaseManager<'a> {
     /// Changes description of a database.
     pub fn change_database_description(
         &self,
-        file_path: &Path,
+        db_file_path: &Path,
         description: &str,
     ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = change_database_description(
             description,
-            file_path
+            db_file_path
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to change description of database '{}': {}",
-                file_path.display(),
+                db_file_path.display(),
                 err
             )));
         }
@@ -143,17 +143,17 @@ impl<'a> DatabaseManager<'a> {
     pub fn create_collection(
         &self,
         collection_name: &str,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = create_collection_to_db_file(
             collection_name,
-            &self.db_file_path(db_name)
+            db_file_path
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create collection '{}' to database '{}': {}",
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             )));
         }
@@ -165,17 +165,17 @@ impl<'a> DatabaseManager<'a> {
     pub fn delete_collection(
         &self,
         collection_name: &str,
-        db_name: &str,
+        db_file_path: &Path,
     ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = delete_collection_from_db_file(
             collection_name,
-            &self.db_file_path(db_name)
+            db_file_path
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to delete collection '{}' from database '{}': {}",
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             )));
         }
@@ -186,7 +186,7 @@ impl<'a> DatabaseManager<'a> {
     /// Creates a new document to a collection
     pub fn create_document(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         collection_name: &str,
         input_data: Vec<DocumentInputDataField>,
     ) -> Result<(), DatabaseOperationError>
@@ -211,14 +211,14 @@ impl<'a> DatabaseManager<'a> {
         }
 
         if let Err(err) = create_document_to_db_file(
-            &self.db_file_path(db_name),
+            db_file_path,
             collection_name,
             document_data
         ) {
             return Err(DatabaseOperationError(format!(
                 "Failed to create document to collection '{}' in database '{}': {}",
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             )));
         }
@@ -229,13 +229,13 @@ impl<'a> DatabaseManager<'a> {
     /// Deletes a document from a collection.
     pub fn delete_document(
         &self,
-        db_name: &str,
+        db_file_path: &Path,
         document_id: &u64,
         collection_name: &str,
     ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = delete_document_from_db_file(
-            &self.db_file_path(db_name),
+            db_file_path,
             document_id,
             collection_name,
         ) {
@@ -243,7 +243,7 @@ impl<'a> DatabaseManager<'a> {
                 "Failed to delete document with ID '{}' from collection '{}' in database '{}': {}",
                 document_id,
                 collection_name,
-                db_name,
+                db_file_path.display(),
                 err
             )));
         }
