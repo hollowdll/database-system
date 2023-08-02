@@ -29,12 +29,11 @@ impl pb::Document {
     pub fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
-}
 
-impl pb::Document {
     /// Creates a new document.
     /// 
-    /// Increments the database's `id_count` by 1 so each document gets a unique id.
+    /// Increases the collection's `id_count` by 1
+    /// so each document gets a unique id in the collection.
     pub fn new(collection: &mut pb::Collection) -> Self {
         collection.id_count += 1;
         Self {
@@ -50,7 +49,6 @@ impl pb::Document {
 #[derive(Debug)]
 pub struct DocumentDto {
     id: u64,
-    collection: String,
     data: HashMap<String, DataType>,
 }
 
@@ -59,24 +57,14 @@ impl DocumentDto {
         &self.id
     }
 
-    pub fn collection(&self) -> &str {
-        &self.collection
-    }
-
     pub fn data(&self) -> &HashMap<String, DataType> {
         &self.data
     }
-}
 
-impl From<(u64, String, HashMap<String, DataType>)> for DocumentDto {
-    fn from(
-        (id, collection, data):
-        (u64, String, HashMap<String, DataType>)
-    ) -> Self
-    {
+    /// Creates a new instance of `DocumentDto`.
+    pub fn new(id: u64, data: HashMap<String, DataType>) -> Self {
         Self {
             id,
-            collection,
             data,
         }
     }
@@ -229,11 +217,10 @@ pub fn find_all_documents_from_collection(
     for collection in database.collections.into_iter() {
         if collection.name() == collection_name {
             for document in collection.documents.into_iter() {
-                let document_dto = DocumentDto::from((
+                let document_dto = DocumentDto::new(
                     document.id,
-                    collection.name.to_string(),
                     document.data,
-                ));
+                );
 
                 documents.push(document_dto)
             }
@@ -267,11 +254,10 @@ pub fn find_documents_from_collection_limit(
                     return Ok(documents)
                 }
 
-                let document_dto = DocumentDto::from((
+                let document_dto = DocumentDto::new(
                     document.id,
-                    collection.name.to_string(),
                     document.data,
-                ));
+                );
 
                 documents.push(document_dto)
             }
@@ -301,11 +287,10 @@ pub fn find_document_from_collection_by_id(
         if collection.name() == collection_name {
             for document in collection.documents.into_iter() {
                 if document.id() == document_id {
-                    let document_dto = DocumentDto::from((
+                    let document_dto = DocumentDto::new(
                         document.id,
-                        collection.name,
                         document.data,
-                    ));
+                    );
     
                     return Ok(Some(document_dto));
                 }

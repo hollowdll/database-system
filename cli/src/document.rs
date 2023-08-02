@@ -241,10 +241,7 @@ impl<'a> Cli<'a> {
         };
 
         match result {
-            Some(document) => {
-                println!("Collection: {}", document.collection());
-                display_document(&document);
-            },
+            Some(document) => display_document(&document),
             None => return println!("Document with this ID was not found from this collection"),
         }
     }
