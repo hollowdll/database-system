@@ -87,7 +87,7 @@ impl<'a> Cli<'a> {
             .storage_api()
             .create_document(connected_db.file_path(), &collection_name, data)
         {
-            Ok(()) => println!("Document created"),
+            Ok(_) => println!("Document created"),
             Err(e) => return eprintln!("[Error] Failed to create document: {e}"),
         }
     }
@@ -291,7 +291,7 @@ impl<'a> Cli<'a> {
                 .storage_api()
                 .create_document(connected_db.file_path(), &collection_name, data)
             {
-                Ok(()) => {
+                Ok(_) => {
                     println!("Document created");
                     document_count += 1;
                 },

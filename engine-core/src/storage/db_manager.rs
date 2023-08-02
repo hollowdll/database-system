@@ -183,13 +183,15 @@ impl<'a> DatabaseManager<'a> {
         Ok(())
     }
 
-    /// Creates a new document to a collection
+    /// Creates a new document to a collection.
+    /// 
+    /// Returns the created document.
     pub fn create_document(
         &self,
         db_file_path: &Path,
         collection_name: &str,
         input_data: Vec<DocumentInputDataField>,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> Result<DocumentDto, DatabaseOperationError>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
@@ -210,20 +212,21 @@ impl<'a> DatabaseManager<'a> {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        if let Err(err) = create_document_to_db_file(
+        let created_document = match create_document_to_db_file(
             db_file_path,
             collection_name,
             document_data
         ) {
-            return Err(DatabaseOperationError(format!(
+            Ok(created_document) => created_document,
+            Err(err) => return Err(DatabaseOperationError(format!(
                 "Failed to create document to collection '{}' in database '{}': {}",
                 collection_name,
                 db_file_path.display(),
                 err
-            )));
-        }
+            ))),
+        };
 
-        Ok(())
+        Ok(created_document)
     }
 
     /// Deletes a document from a collection.

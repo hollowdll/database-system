@@ -62,10 +62,10 @@ impl DocumentDto {
     }
 
     /// Creates a new instance of `DocumentDto`.
-    pub fn new(id: u64, data: HashMap<String, DataType>) -> Self {
+    pub fn new(id: u64, data: &HashMap<String, DataType>) -> Self {
         Self {
             id,
-            data,
+            data: data.to_owned(),
         }
     }
 }
@@ -114,14 +114,14 @@ impl fmt::Display for DataType {
 }
 */
 
-/// Creates a document to a collection.
+/// Creates a document to a collection and writes the modified database to a file.
 /// 
-/// Writes the modified database to a file.
+/// Returns the created document.
 pub fn create_document_to_db_file(
     file_path: &Path,
     collection_name: &str, 
     data: HashMap<String, DataType>,
-) -> Result<(), Box<dyn Error>>
+) -> Result<DocumentDto, Box<dyn Error>>
 {
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
@@ -147,12 +147,16 @@ pub fn create_document_to_db_file(
         {
             let mut document = pb::Document::new(collection);
             document.data = data;
+            let document_dto = DocumentDto::new(
+                document.id,
+                &document.data
+            );
 
             collection.documents_mut().push(document);
             let buf = serialize_database(&database)?;
 
             match write_database_to_file(&buf, file_path) {
-                Ok(()) => return Ok(()),
+                Ok(()) => return Ok(document_dto),
                 Err(e) => return Err(e.into()),
             }
         }
@@ -217,10 +221,10 @@ pub fn find_all_documents_from_collection(
     for collection in database.collections.into_iter() {
         if collection.name() == collection_name {
             for document in collection.documents.into_iter() {
-                let document_dto = DocumentDto::new(
-                    document.id,
-                    document.data,
-                );
+                let document_dto = DocumentDto {
+                    id: document.id,
+                    data: document.data,
+                };
 
                 documents.push(document_dto)
             }
@@ -254,10 +258,10 @@ pub fn find_documents_from_collection_limit(
                     return Ok(documents)
                 }
 
-                let document_dto = DocumentDto::new(
-                    document.id,
-                    document.data,
-                );
+                let document_dto = DocumentDto {
+                    id: document.id,
+                    data: document.data,
+                };
 
                 documents.push(document_dto)
             }
@@ -287,10 +291,10 @@ pub fn find_document_from_collection_by_id(
         if collection.name() == collection_name {
             for document in collection.documents.into_iter() {
                 if document.id() == document_id {
-                    let document_dto = DocumentDto::new(
-                        document.id,
-                        document.data,
-                    );
+                    let document_dto = DocumentDto {
+                        id: document.id,
+                        data: document.data,
+                    };
     
                     return Ok(Some(document_dto));
                 }

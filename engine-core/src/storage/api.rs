@@ -225,7 +225,7 @@ impl<'a> StorageApi<'a> {
         }
     }
 
-    /// Requests `DatabaseManager` to create a new document.
+    /// Requests `DatabaseManager` to create a new document to a collection.
     /// 
     /// Forwards the result to the caller.
     pub fn create_document(
@@ -233,19 +233,20 @@ impl<'a> StorageApi<'a> {
         db_file_path: &Path,
         collection_name: &str,
         data: Vec<DocumentInputDataField>,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> Result<DocumentDto, DatabaseOperationError>
     {
         match self.db_manager.create_document(db_file_path, collection_name, data) {
-            Ok(()) => {
+            Ok(created_document) => {
                 let content = format!(
-                    "Created document to collection '{}' in database '{}'",
+                    "Created document with ID '{}' to collection '{}' in database '{}'",
+                    created_document.id(),
                     collection_name,
                     db_file_path.display()
                 );
                 if let Err(e) = &self.logger.log_event(&content) {
                     eprintln!("Failed to log event: {}", e);
                 }
-                return Ok(());
+                return Ok(created_document);
             },
             Err(e) => {
                 let content = format!("Failed to create document: {}", e);
