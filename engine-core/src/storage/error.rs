@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::fmt;
 
-/// Error type for database errors
+/// Error type for database errors.
 #[derive(Debug)]
 pub enum DatabaseError {
     /// Database already exists.
@@ -36,6 +36,11 @@ pub enum CollectionError {
 
     /// Collection was not found.
     NotFound,
+
+    /// Collection has documents.
+    /// 
+    /// This will occur when deleting a collection if it has documents.
+    HasDocuments,
 }
 
 impl fmt::Display for CollectionError {
@@ -46,6 +51,7 @@ impl fmt::Display for CollectionError {
             match self {
                 CollectionError::Exists => "Collection already exists",
                 CollectionError::NotFound => "Collection was not found",
+                CollectionError::HasDocuments => "Collection has documents",
             }
         )
     }

@@ -70,7 +70,7 @@ impl<'a> Cli<'a> {
         };
 
         let confirm = match ask_action_confirm(
-            &format!("Delete collection '{}' and all its documents?", collection_name)
+            &format!("Delete collection '{}'?", collection_name)
         ) {
             Ok(confirm) => confirm,
             Err(_) => return,

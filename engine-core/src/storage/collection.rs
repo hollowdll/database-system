@@ -119,9 +119,22 @@ pub fn delete_collection_from_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
 
-    if !collection_exists(&database, collection_name) {
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let mut collection_exists = false;
+
+    for collection in database.collections() {
+        if collection.name() == collection_name {
+            // cancel if collection has documents
+            if collection.documents().len() > 0 {
+                return Err(Box::new(CollectionError::HasDocuments));
+            }
+            collection_exists = true;
+            break;
+        }
+    }
+
+    if !collection_exists {
         return Err(Box::new(CollectionError::NotFound));
     }
 
