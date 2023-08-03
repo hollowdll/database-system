@@ -166,6 +166,7 @@ pub fn run() {
                                  This command will be changed in the future to support different kinds of queries.
   /get doc                       List a single document of a collection
   /create doc                    Create a new document to a collection
+  /replace doc                   Replace a document with new data
   /delete doc                    Delete a document from a collection
 
   ** CONFIG COMMANDS **
@@ -229,6 +230,9 @@ More commands in the future...");
             },
             "/create doc" => {
                 cli.create_document();
+            },
+            "/replace doc" => {
+                cli.replace_document();
             },
             "/delete doc" => {
                 cli.delete_document();

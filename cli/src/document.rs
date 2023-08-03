@@ -39,7 +39,6 @@ impl<'a> Cli<'a> {
             Some(db) => db,
             None => return db_not_connected(),
         };
-
         let collection_name = match ask_user_input("Collection: ") {
             Ok(collection_name) => collection_name,
             Err(_) => return,
@@ -92,6 +91,73 @@ impl<'a> Cli<'a> {
         }
     }
 
+    /// Show menu to replace a document.
+    pub fn replace_document(&self) {
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+
+        if !&self.collection_exists(&collection_name, connected_db) {
+            return;
+        }
+
+        let document_id = match ask_user_input("Document ID: ") {
+            Ok(document_id) => document_id,
+            Err(_) => return,
+        };
+        let document_id: u64 = match document_id.parse() {
+            Ok(id) => id,
+            Err(e) => return eprintln!("Invalid document ID: {e}"),
+        };
+
+        // input data for the new document
+        let mut data: Vec<DocumentInputDataField> = Vec::new();
+        
+        loop {
+            println!("\n{}", "Insert new field");
+
+            let field = match ask_user_input("Field name: ") {
+                Ok(field) => field,
+                Err(_) => return,
+            };
+            let data_type = match ask_user_input("Data type: ") {
+                Ok(data_type) => data_type,
+                Err(_) => return,
+            };
+            let value = match ask_user_input("Value: ") {
+                Ok(value) => value,
+                Err(_) => return,
+            };
+
+            data.push(DocumentInputDataField::new(&field, &data_type, &value));
+
+            let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
+                Ok(confirm) => confirm,
+                Err(_) => return,
+            };
+            if confirm.as_str() == CONFIRM_OPTION_YES {
+                break;
+            }
+        }
+
+        if !&self.database_exists(connected_db) {
+            return;
+        }
+
+        match &self.engine
+            .storage_api()
+            .replace_document(connected_db.file_path(), &document_id, &collection_name, data)
+        {
+            Ok(_) => println!("Document replaced"),
+            Err(e) => return eprintln!("[Error] Failed to replace document: {e}"),
+        }
+    }
+
     /// Show menu to delete a document.
     pub fn delete_document(&self) {
         let connected_db = match &self.connected_db {
@@ -102,6 +168,11 @@ impl<'a> Cli<'a> {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
+
+        if !&self.collection_exists(&collection_name, connected_db) {
+            return;
+        }
+
         let document_id = match ask_user_input("Document ID: ") {
             Ok(document_id) => document_id,
             Err(_) => return,
