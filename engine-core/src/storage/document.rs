@@ -114,7 +114,9 @@ impl fmt::Display for DataType {
 }
 */
 
-/// Creates a document to a collection and writes the modified database to a file.
+/// Creates a document to a collection.
+/// 
+/// Writes the modified database to a file.
 /// 
 /// Returns the created document.
 pub fn create_document_to_db_file(
@@ -158,6 +160,44 @@ pub fn create_document_to_db_file(
             match write_database_to_file(&buf, file_path) {
                 Ok(()) => return Ok(document_dto),
                 Err(e) => return Err(e.into()),
+            }
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
+
+/// Replaces a document's data. Keeps the document id.
+/// 
+/// Writes the modified database to a file.
+pub fn replace_document_in_db_file(
+    file_path: &Path,
+    document_id: &u64,
+    collection_name: &str,
+    data: HashMap<String, DataType>,
+) -> Result<(), Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    for collection in database.collections_mut() {
+        if collection.name() == collection_name {
+            if let Some(document) = collection
+                .documents_mut()
+                .iter_mut()
+                .find(|document| document.id() == document_id)
+            {
+                document.data = data;
+                let buf = serialize_database(&database)?;
+
+                match write_database_to_file(&buf, file_path) {
+                    Ok(()) => return Ok(()),
+                    Err(e) => return Err(e.into()),
+                }
+            } else {
+                return Err(Box::new(DocumentError::NotFound));
             }
         }
     }

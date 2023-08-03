@@ -5,7 +5,7 @@ use std::{
     path::{
         Path,
         PathBuf,
-    },
+    }, hash::Hash,
 };
 use crate::{
     logging::*,
@@ -227,6 +227,52 @@ impl<'a> DatabaseManager<'a> {
         };
 
         Ok(created_document)
+    }
+
+    /// Replaces a document's data. Keeps the document id.
+    pub fn replace_document(
+        &self,
+        db_file_path: &Path,
+        document_id: &u64,
+        collection_name: &str,
+        input_data: Vec<DocumentInputDataField>,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        let mut document_data: HashMap<String, DataType> = HashMap::new();
+
+        // convert input data to correct document data types
+        for data_field in input_data {
+            let converted_value = match data_field.parse_to_document_data_type(
+                data_field.value(),
+                data_field.data_type()
+            ) {
+                Ok(converted_value) => converted_value,
+                Err(err) => return Err(DatabaseOperationError(format!(
+                    "Data type '{}' is not valid: {}",
+                    data_field.data_type(),
+                    err
+                ))),
+            };
+
+            document_data.insert(data_field.field().to_string(), converted_value);
+        }
+
+        if let Err(err) = replace_document_in_db_file(
+            db_file_path,
+            document_id,
+            collection_name,
+            document_data
+        ) {
+            return Err(DatabaseOperationError(format!(
+                "Failed to replace document with ID '{}' in collection '{}' in database '{}': {}",
+                document_id,
+                collection_name,
+                db_file_path.display(),
+                err
+            )));
+        }
+
+        Ok(())
     }
 
     /// Deletes a document from a collection.

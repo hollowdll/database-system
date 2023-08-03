@@ -261,6 +261,45 @@ impl<'a> StorageApi<'a> {
         }
     }
 
+    /// Requests `DatabaseManager` to replace a document's data.
+    /// 
+    /// Forwards the result to the caller.
+    pub fn replace_document(
+        &self,
+        db_file_path: &Path,
+        document_id: &u64,
+        collection_name: &str,
+        data: Vec<DocumentInputDataField>,
+    ) -> Result<(), DatabaseOperationError>
+    {
+        match self.db_manager
+            .replace_document(db_file_path, document_id, collection_name, data)
+        {
+            Ok(()) => {
+                let content = format!(
+                    "Replaced document with ID '{}' in collection '{}' in database '{}'",
+                    document_id,
+                    collection_name,
+                    db_file_path.display()
+                );
+                if let Err(e) = &self.logger.log_event(&content) {
+                    eprintln!("Failed to log event: {}", e);
+                }
+                return Ok(());
+            },
+            Err(e) => {
+                let content = format!("Failed to replace document: {}", e);
+                if let Err(e) = &self.logger.log_error(
+                    ErrorLogType::Error,
+                    &content,
+                ) {
+                    eprintln!("Failed to log error: {}", e);
+                }
+                return Err(e);
+            },
+        }
+    }
+
     /// Requests `DatabaseManager` to delete a document.
     /// 
     /// Forwards the result to the caller.
