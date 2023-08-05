@@ -29,6 +29,7 @@ const CONFIRM_OPTION_YES: &str = "Y";
 /// Program structure.
 pub struct Cli<'a> {
     engine: engine_core::Engine<'a>,
+    logger: &'a engine_core::Logger<'a>,
     version: &'static str,
     connected_db: Option<ConnectedDatabase>,
 }
@@ -37,10 +38,11 @@ impl<'a> Cli<'a> {
     /// Builds program structure.
     pub fn build(
         config: &'a Config,
-        logger: &'a engine_core::Logger
+        logger: &'a engine_core::Logger,
     ) -> Self {
         Self {
             engine: engine_core::Engine::build(config, logger),
+            logger,
             version: VERSION,
             connected_db: None,
         }

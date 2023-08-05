@@ -10,9 +10,21 @@ use std::{
 };
 use crate::{
     Logger,
-    logging::ErrorLogType,
+    logging::{
+        ErrorLogType,
+        error::LogError,
+    },
 };
 use super::config_manager::ConfigManager;
+
+/// Result for calls that request configs.
+/// 
+/// Config API methods return this.
+pub struct ConfigRequestResult {
+    success: bool,
+    message: String,
+    log_error: Option<LogError>,
+}
 
 /// Engine configuration API.
 /// 
@@ -42,14 +54,22 @@ impl<'a> ConfigApi<'a> {
     /// Requests `ConfigManager` to set database directory path config.
     /// 
     /// Forwards the result to the caller.
-    pub fn set_db_dir_path(&self, path: &Path) -> io::Result<()> {
+    pub fn set_db_dir_path(&self, path: &Path) -> ConfigRequestResult {
         match self.config_manager.set_db_dir_path(path) {
             Ok(()) => {
                 let content = format!("Changed database directory path configuration to {:?}", path);
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(Error::new(ErrorKind::Other, e));
+                    return ConfigRequestResult {
+                        success: true,
+                        message: content,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return ConfigRequestResult {
+                    success: true,
+                    message: content,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to change database directory path configuration: {}", e);
@@ -57,9 +77,17 @@ impl<'a> ConfigApi<'a> {
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    return Err(Error::new(ErrorKind::Other, e));
+                    return ConfigRequestResult {
+                        success: false,
+                        message: content,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return ConfigRequestResult {
+                    success: false,
+                    message: content,
+                    log_error: None,
+                };
             },
         };
     }

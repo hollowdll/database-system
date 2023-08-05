@@ -63,7 +63,10 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine.storage_api().find_database(&db_name) {
+        match &self.engine
+            .storage_api()
+            .find_database(&db_name)
+        {
             Ok(result) => {
                 if let Some(db) = result {
                     let _ = &self.connected_db.replace(ConnectedDatabase::new(
@@ -87,7 +90,10 @@ impl<'a> Cli<'a> {
         };
         let file_path = Path::new(&file_path);
 
-        match self.engine.storage_api().find_database_by_file_path(file_path) {
+        match self.engine
+            .storage_api()
+            .find_database_by_file_path(file_path)
+        {
             Ok(result) => {
                 if let Some(db) = result {
                     let _ = &self.connected_db.replace(ConnectedDatabase::new(
@@ -110,9 +116,16 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine.storage_api().create_database_to_db_dir(&db_name) {
-            Ok(()) => println!("Database created"),
-            Err(e) => eprintln!("[Error] Failed to create database: {}", e),
+        match &self.engine
+            .storage_api()
+            .create_database_to_db_dir(&db_name)
+        {
+            Ok(()) => {
+                println!("Database created");
+            },
+            Err(e) => {
+                eprintln!("[Error] Failed to create database: {}", e);
+            },
         }
     }
 

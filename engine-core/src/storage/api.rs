@@ -14,6 +14,36 @@ use crate::{
     logging::ErrorLogType,
 };
 
+/// Result for database operations that request databases.
+/// 
+/// Storage API methods return this.
+pub struct DatabaseRequestResult {
+    success: bool,
+    message: String,
+    data: DatabaseDto,
+    log_error_message: Option<String>,
+}
+
+/// Result for database operations that request collections.
+/// 
+/// Storage API methods return this.
+pub struct CollectionRequestResult {
+    success: bool,
+    message: String,
+    data: CollectionDto,
+    log_error_message: Option<String>,
+}
+
+/// Result for database operations that request documents.
+/// 
+/// Storage API methods return this.
+pub struct DocumentRequestResult {
+    success: bool,
+    message: String,
+    data: DocumentDto,
+    log_error_message: Option<String>,
+}
+
 /// Data storage API.
 /// 
 /// Provides methods to do database operations.
@@ -37,6 +67,7 @@ impl<'a> StorageApi<'a> {
         }
     }
 }
+
 
 impl<'a> StorageApi<'a> {
     /// Requests `DatabaseManager` to create a database to database directory.

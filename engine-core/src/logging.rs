@@ -3,7 +3,7 @@
 
 //#![allow(unused)]
 
-mod error;
+pub mod error;
 
 use std::{
     fs::{self, File, OpenOptions},
