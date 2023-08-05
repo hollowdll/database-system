@@ -50,18 +50,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.create_database_to_db_dir(db_name) {
             Ok(()) => {
                 let content = format!("Created database '{}' to database directory", db_name);
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to create database to database directory: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -80,18 +80,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.create_database_by_file_path(db_name, db_file_path) {
             Ok(()) => {
                 let content = format!("Created database '{}'", db_file_path.display());
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to create database: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -109,18 +109,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.delete_database(db_file_path) {
             Ok(()) => {
                 let content = format!("Deleted database '{}'", db_file_path.display());
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to delete database: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -139,18 +139,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.change_database_description(db_file_path, description) {
             Ok(()) => {
                 let content = format!("Changed description of database '{}'", db_file_path.display());
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to change database description: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -173,18 +173,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to create collection: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -207,18 +207,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to delete collection: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -243,18 +243,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(created_document);
             },
             Err(e) => {
                 let content = format!("Failed to create document: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -282,18 +282,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to replace document: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -318,18 +318,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(());
             },
             Err(e) => {
                 let content = format!("Failed to delete document: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -346,18 +346,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.find_all_databases() {
             Ok(databases) => {
                 let content = "Fetched all databases from database directory";
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(databases);
             },
             Err(e) => {
                 let content = format!("Failed to fetch all databases from database directory: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -375,18 +375,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.find_database(db_name) {
             Ok(database) => {
                 let content = format!("Fetched database '{}' from database directory", db_name);
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(database);
             },
             Err(e) => {
                 let content = format!("Failed to fetch database from database directory: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -404,18 +404,18 @@ impl<'a> StorageApi<'a> {
         match self.db_manager.find_database_by_file_path(db_file_path) {
             Ok(database) => {
                 let content = format!("Fetched database '{}'", db_file_path.display());
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(database);
             },
             Err(e) => {
                 let content = format!("Failed to fetch database: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -436,18 +436,18 @@ impl<'a> StorageApi<'a> {
                     "Fetched all collections from database '{}'",
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(collections);
             },
             Err(e) => {
                 let content = format!("Failed to fetch all collections: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -470,18 +470,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(collection);
             },
             Err(e) => {
                 let content = format!("Failed to fetch collection: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -504,18 +504,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(documents);
             },
             Err(e) => {
                 let content = format!("Failed to fetch all documents: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -540,18 +540,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(documents);
             },
             Err(e) => {
                 let content = format!("Failed to fetch documents: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
@@ -576,18 +576,18 @@ impl<'a> StorageApi<'a> {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = &self.logger.log_event(&content) {
-                    eprintln!("Failed to log event: {}", e);
+                if let Err(e) = self.logger.log_event(&content) {
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Ok(document);
             },
             Err(e) => {
                 let content = format!("Failed to fetch document: {}", e);
-                if let Err(e) = &self.logger.log_error(
+                if let Err(e) = self.logger.log_error(
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    eprintln!("Failed to log error: {}", e);
+                    return Err(DatabaseOperationError(e.to_string()));
                 }
                 return Err(e);
             },
