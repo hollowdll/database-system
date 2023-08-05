@@ -175,8 +175,10 @@ pub fn find_all_databases(
                     let database = match deserialize_database(&buf) {
                         Ok(database) => database,
                         Err(e) => {
-                            eprintln!("Error parsing database: {} ({:?})", e, entry.file_name());
-                            continue
+                            return Err(io::Error::new(
+                                io::ErrorKind::Other,
+                                format!("Error parsing database: {} ({:?})", e, entry.file_name())
+                            ));
                         },
                     };
 

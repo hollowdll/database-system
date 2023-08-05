@@ -12,8 +12,8 @@ fn config_save_success() {
 impl<'a> Cli<'a> {
     /// Lists the current configurations the program is using.
     pub fn list_all_configs(config: &Config) {
-        println!("  Databases directory: {:?}", config.db_dir_path());
-        println!("  Logs directory:      {:?}", config.logs_dir_path());
+        println!("  Database directory: {}", config.db_dir_path().display());
+        println!("  Logs directory:     {}", config.logs_dir_path().display());
     }
 
     /// Sets new `db_dir_path` configuration.
