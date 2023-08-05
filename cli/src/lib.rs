@@ -29,7 +29,6 @@ const CONFIRM_OPTION_YES: &str = "Y";
 /// Program structure.
 pub struct Cli<'a> {
     engine: engine_core::Engine<'a>,
-    logger: &'a engine_core::Logger<'a>,
     version: &'static str,
     connected_db: Option<ConnectedDatabase>,
 }
@@ -42,7 +41,6 @@ impl<'a> Cli<'a> {
     ) -> Self {
         Self {
             engine: engine_core::Engine::build(config, logger),
-            logger,
             version: VERSION,
             connected_db: None,
         }
@@ -249,10 +247,10 @@ More commands in the future...");
                 cli.set_logs_dir_path();
             },
             "/config get db_dir_path" => {
-                println!("{:?}", config.db_dir_path());
+                println!("{}", config.db_dir_path().display());
             },
             "/config get logs_dir_path" => {
-                println!("{:?}", config.logs_dir_path());
+                println!("{}", config.logs_dir_path().display());
             },
             "/create test docs" => {
                 cli.create_test_documents();

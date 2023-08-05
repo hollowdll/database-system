@@ -1,13 +1,6 @@
 // Engine configuration API
 
-use std::{
-    io::{
-        self,
-        Error,
-        ErrorKind,
-    },
-    path::Path,
-};
+use std::path::Path;
 use crate::{
     Logger,
     logging::{
@@ -21,9 +14,14 @@ use super::config_manager::ConfigManager;
 /// 
 /// Config API methods return this.
 pub struct ConfigRequestResult {
-    success: bool,
-    message: String,
-    log_error: Option<LogError>,
+    /// Whether result is successful.
+    pub success: bool,
+
+    /// Result message.
+    pub message: String,
+
+    /// Possible error that occurred during logging.
+    pub log_error: Option<LogError>,
 }
 
 /// Engine configuration API.
@@ -95,14 +93,22 @@ impl<'a> ConfigApi<'a> {
     /// Requests `ConfigManager` to set logs directory path config.
     /// 
     /// Forwards the result to the caller.
-    pub fn set_logs_dir_path(&self, path: &Path) -> io::Result<()> {
+    pub fn set_logs_dir_path(&self, path: &Path) -> ConfigRequestResult {
         match self.config_manager.set_logs_dir_path(path) {
             Ok(()) => {
                 let content = format!("Changed logs directory path configuration to {:?}", path);
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(Error::new(ErrorKind::Other, e));
+                    return ConfigRequestResult {
+                        success: true,
+                        message: content,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return ConfigRequestResult {
+                    success: true,
+                    message: content,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to change logs directory path configuration: {}", e);
@@ -110,9 +116,17 @@ impl<'a> ConfigApi<'a> {
                     ErrorLogType::Error,
                     &content,
                 ) {
-                    return Err(Error::new(ErrorKind::Other, e));
+                    return ConfigRequestResult {
+                        success: false,
+                        message: content,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return ConfigRequestResult {
+                    success: false,
+                    message: content,
+                    log_error: None,
+                };
             },
         };
     }

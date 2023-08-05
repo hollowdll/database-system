@@ -28,12 +28,23 @@ impl<'a> Cli<'a> {
             return println!("Invalid directory path");
         }
 
-        match &self.engine.config_api().set_db_dir_path(path) {
-            Ok(()) => {
-                println!("Database directory path set successfully");
-                config_save_success();
-            },
-            Err(e) => eprintln!("Failed to set database directory path: {}", e),
+        let result = self.engine
+            .config_api()
+            .set_db_dir_path(path);
+
+        if result.success {
+            println!("Database directory path set successfully");
+            config_save_success();
+
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+        } else {
+            eprintln!("Failed to set database directory path: {}", result.message);
+
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
         }
     }
 
@@ -49,12 +60,23 @@ impl<'a> Cli<'a> {
             return println!("Invalid directory path");
         }
 
-        match &self.engine.config_api().set_logs_dir_path(path) {
-            Ok(()) => {
-                println!("Logs directory path set successfully");
-                config_save_success();
-            },
-            Err(e) => eprintln!("Failed to set logs directory path: {}", e),
+        let result = self.engine
+            .config_api()
+            .set_logs_dir_path(path);
+
+        if result.success {
+            println!("Logs directory path set successfully");
+            config_save_success();
+
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+        } else {
+            eprintln!("Failed to set logs directory path: {}", result.message);
+
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
         }
     }
 }
