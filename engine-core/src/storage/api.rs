@@ -11,37 +11,48 @@ use crate::{
         document::DocumentDto,
     },
     DocumentInputDataField,
-    logging::ErrorLogType,
+    logging::{
+        ErrorLogType,
+        error::LogError,
+    },
 };
 
-/// Result for database operations that request databases.
+/// Result for database operations that handle databases.
 /// 
-/// Storage API methods return this.
+/// Storage API methods that handle databases return this.
 pub struct DatabaseRequestResult {
-    success: bool,
-    message: String,
-    data: DatabaseDto,
-    log_error_message: Option<String>,
+    pub success: bool,
+    pub message: String,
+    pub data: Option<DatabaseRequestResultData>,
+    pub log_error: Option<LogError>,
 }
 
-/// Result for database operations that request collections.
+/// Data that `DatabaseRequestResult` can hold.
+pub enum DatabaseRequestResultData {
+    Single(DatabaseDto),
+    SingleOptional(Option<DatabaseDto>),
+    Many(Vec<DatabaseDto>),
+    ManyOptional(Option<Vec<DatabaseDto>>),
+}
+
+/// Result for database operations that handle collections.
 /// 
-/// Storage API methods return this.
+/// Storage API methods that handle collections return this.
 pub struct CollectionRequestResult {
-    success: bool,
-    message: String,
-    data: CollectionDto,
-    log_error_message: Option<String>,
+    pub success: bool,
+    pub message: String,
+    pub data: Option<CollectionDto>,
+    pub log_error: Option<LogError>,
 }
 
-/// Result for database operations that request documents.
+/// Result for database operations that handle documents.
 /// 
-/// Storage API methods return this.
+/// Storage API methods that handle documents return this.
 pub struct DocumentRequestResult {
-    success: bool,
-    message: String,
-    data: DocumentDto,
-    log_error_message: Option<String>,
+    pub success: bool,
+    pub message: String,
+    pub data: Option<DocumentDto>,
+    pub log_error: Option<LogError>,
 }
 
 /// Data storage API.
@@ -76,25 +87,44 @@ impl<'a> StorageApi<'a> {
     pub fn create_database_to_db_dir(
         &self,
         db_name: &str,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.create_database_to_db_dir(db_name) {
             Ok(()) => {
                 let content = format!("Created database '{}' to database directory", db_name);
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to create database to database directory: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -106,25 +136,44 @@ impl<'a> StorageApi<'a> {
         &self,
         db_name: &str,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.create_database_by_file_path(db_name, db_file_path) {
             Ok(()) => {
                 let content = format!("Created database '{}'", db_file_path.display());
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to create database: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -135,25 +184,44 @@ impl<'a> StorageApi<'a> {
     pub fn delete_database(
         &self,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.delete_database(db_file_path) {
             Ok(()) => {
                 let content = format!("Deleted database '{}'", db_file_path.display());
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to delete database: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -165,25 +233,44 @@ impl<'a> StorageApi<'a> {
         &self,
         db_file_path: &Path,
         description: &str,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.change_database_description(db_file_path, description) {
             Ok(()) => {
                 let content = format!("Changed description of database '{}'", db_file_path.display());
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to change database description: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -372,25 +459,44 @@ impl<'a> StorageApi<'a> {
     /// Forwards the result to the caller.
     pub fn find_all_databases(
         &self,
-    ) -> Result<Vec<DatabaseDto>, DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.find_all_databases() {
             Ok(databases) => {
-                let content = "Fetched all databases from database directory";
+                let content = "Fetched all databases from database directory".to_string();
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: Some(DatabaseRequestResultData::Many(databases)),
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(databases);
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: Some(DatabaseRequestResultData::Many(databases)),
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to fetch all databases from database directory: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -401,25 +507,44 @@ impl<'a> StorageApi<'a> {
     pub fn find_database(
         &self,
         db_name: &str,
-    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.find_database(db_name) {
             Ok(database) => {
                 let content = format!("Fetched database '{}' from database directory", db_name);
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: Some(DatabaseRequestResultData::SingleOptional(database)),
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(database);
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: Some(DatabaseRequestResultData::SingleOptional(database)),
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to fetch database from database directory: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -430,25 +555,44 @@ impl<'a> StorageApi<'a> {
     pub fn find_database_by_file_path(
         &self,
         db_file_path: &Path,
-    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
+    ) -> DatabaseRequestResult
     {
         match self.db_manager.find_database_by_file_path(db_file_path) {
             Ok(database) => {
                 let content = format!("Fetched database '{}'", db_file_path.display());
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return DatabaseRequestResult {
+                        success: true,
+                        message: content,
+                        data: Some(DatabaseRequestResultData::SingleOptional(database)),
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(database);
+                return DatabaseRequestResult {
+                    success: true,
+                    message: content,
+                    data: Some(DatabaseRequestResultData::SingleOptional(database)),
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to fetch database: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return DatabaseRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return DatabaseRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }

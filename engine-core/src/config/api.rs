@@ -71,10 +71,9 @@ impl<'a> ConfigApi<'a> {
             },
             Err(e) => {
                 let content = format!("Failed to change database directory path configuration: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
                     return ConfigRequestResult {
                         success: false,
                         message: content,
@@ -112,10 +111,9 @@ impl<'a> ConfigApi<'a> {
             },
             Err(e) => {
                 let content = format!("Failed to change logs directory path configuration: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
                     return ConfigRequestResult {
                         success: false,
                         message: content,
