@@ -15,7 +15,6 @@ impl<'a> Cli<'a> {
             Some(db) => db,
             None => return,
         };
-
         let result = self.engine
             .storage_api()
             .find_database_by_file_path(connected_db.file_path());
@@ -80,7 +79,6 @@ impl<'a> Cli<'a> {
             Ok(db_name) => db_name,
             Err(_) => return,
         };
-
         let result = self.engine
             .storage_api()
             .find_database(&db_name);
@@ -117,7 +115,6 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
         let file_path = Path::new(&file_path);
-
         let result = self.engine
             .storage_api()
             .find_database_by_file_path(file_path);
@@ -153,7 +150,6 @@ impl<'a> Cli<'a> {
             Ok(db_name) => db_name,
             Err(_) => return,
         };
-
         let result = self.engine
             .storage_api()
             .create_database_to_db_dir(&db_name);
@@ -179,7 +175,6 @@ impl<'a> Cli<'a> {
             Some(db) => db,
             None => return db_not_connected(),
         };
-
         let confirm = match ask_action_confirm(
             &format!("All data in this database will be lost. Delete database?")
         ) {
@@ -256,16 +251,10 @@ impl<'a> Cli<'a> {
             Some(db) => db,
             None => return db_not_connected(),
         };
-
         let description = match ask_user_input("Description: ") {
             Ok(description) => description,
             Err(_) => return,
         };
-
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .change_database_description(connected_db.file_path(), &description);

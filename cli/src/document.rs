@@ -44,10 +44,6 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        if !&self.collection_exists(&collection_name, connected_db) {
-            return;
-        }
-
         // input data for the new document
         let mut data: Vec<DocumentInputDataField> = Vec::new();
         
@@ -76,10 +72,6 @@ impl<'a> Cli<'a> {
             if confirm.as_str() == CONFIRM_OPTION_YES {
                 break;
             }
-        }
-
-        if !&self.database_exists(connected_db) {
-            return;
         }
 
         let result = self.engine
@@ -111,11 +103,6 @@ impl<'a> Cli<'a> {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
-
-        if !&self.collection_exists(&collection_name, connected_db) {
-            return;
-        }
-
         let document_id = match ask_user_input("Document ID: ") {
             Ok(document_id) => document_id,
             Err(_) => return,
@@ -155,10 +142,6 @@ impl<'a> Cli<'a> {
             }
         }
 
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .replace_document(connected_db.file_path(), &document_id, &collection_name, data);
@@ -188,11 +171,6 @@ impl<'a> Cli<'a> {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
-
-        if !&self.collection_exists(&collection_name, connected_db) {
-            return;
-        }
-
         let document_id = match ask_user_input("Document ID: ") {
             Ok(document_id) => document_id,
             Err(_) => return,
@@ -201,7 +179,6 @@ impl<'a> Cli<'a> {
             Ok(id) => id,
             Err(e) => return eprintln!("Invalid document ID: {e}"),
         };
-
         let confirm = match ask_action_confirm(
             &format!("Delete document with ID '{}'?", document_id)
         ) {
@@ -211,10 +188,6 @@ impl<'a> Cli<'a> {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                if !&self.database_exists(connected_db) {
-                    return;
-                }
-
                 let result = self.engine
                     .storage_api()
                     .delete_document(connected_db.file_path(), &document_id, &collection_name);
@@ -247,14 +220,6 @@ impl<'a> Cli<'a> {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
-
-        if !&self.collection_exists(&collection_name, connected_db) {
-            return;
-        }
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .find_all_documents(connected_db.file_path(), &collection_name);
@@ -298,14 +263,6 @@ impl<'a> Cli<'a> {
             Ok(limit) => limit,
             Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
         };
-
-        if !&self.collection_exists(&collection_name, connected_db) {
-            return;
-        }
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .find_documents_limit(connected_db.file_path(), &collection_name, limit);
@@ -349,11 +306,6 @@ impl<'a> Cli<'a> {
             Ok(id) => id,
             Err(e) => return eprintln!("Invalid document ID: {e}"),
         };
-
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .find_document_by_id(&document_id, connected_db.file_path(), &collection_name);
@@ -402,16 +354,8 @@ impl<'a> Cli<'a> {
             Ok(count) => count,
             Err(e) => return eprintln!("Invalid document count: {e}"),
         };
-
-        if !&self.collection_exists(&collection_name, connected_db) {
-            return;
-        }
-        
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-        
         let mut document_count = 0;
+        
         for i in 1..=count {
             let mut data: Vec<DocumentInputDataField> = Vec::new();
             let field = format!("field_{i}");

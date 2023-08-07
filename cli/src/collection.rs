@@ -52,11 +52,6 @@ impl<'a> Cli<'a> {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
-
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .create_collection(&collection_name, connected_db.file_path());
@@ -86,7 +81,6 @@ impl<'a> Cli<'a> {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
-
         let confirm = match ask_action_confirm(
             &format!("Delete collection '{}'?", collection_name)
         ) {
@@ -96,10 +90,6 @@ impl<'a> Cli<'a> {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                if !&self.database_exists(connected_db) {
-                    return;
-                }
-
                 let result = self.engine
                     .storage_api()
                     .delete_collection(&collection_name, connected_db.file_path());
@@ -129,11 +119,6 @@ impl<'a> Cli<'a> {
             Some(db) => db,
             None => return db_not_connected(),
         };
-
-        if !&self.database_exists(connected_db) {
-            return;
-        }
-
         let result = self.engine
             .storage_api()
             .find_all_collections(connected_db.file_path());
