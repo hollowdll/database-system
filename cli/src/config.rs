@@ -36,6 +36,7 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log event: {}", e);
             }
+            
             println!("Database directory path set successfully");
             config_save_success();
         } else {
@@ -68,6 +69,7 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log event: {}", e);
             }
+
             println!("Logs directory path set successfully");
             config_save_success();
         } else {

@@ -24,7 +24,7 @@ use crate::{
 /// Storage API methods return this.
 pub struct StorageRequestResult<T> {
     pub success: bool,
-    pub message: String,
+    pub error: Option<DatabaseOperationError>,
     pub data: Option<T>,
     pub log_error: Option<LogError>,
 }
@@ -69,33 +69,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to create database to database directory: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to create database to database directory: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -118,33 +118,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to create database: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to create database: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -166,33 +166,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to delete database: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to delete database: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -215,33 +215,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to change database description: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to change database description: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -268,33 +268,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to create collection: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to create collection: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -321,33 +321,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to delete collection: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to delete collection: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -376,33 +376,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(created_document),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(created_document),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to create document: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to create document: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -434,33 +434,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to replace document: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to replace document: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -489,33 +489,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: None,
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to delete document: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to delete document: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -536,33 +536,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(databases),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(databases),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch all databases from database directory: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch all databases from database directory: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -584,33 +584,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(database),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(database),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch database from database directory: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch database from database directory: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -632,33 +632,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(database),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(database),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch database: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch database: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -683,33 +683,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(collections),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(collections),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch all collections: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch all collections: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -736,33 +736,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(collection),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(collection),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch collection: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch collection: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -789,33 +789,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(documents),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(documents),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch all documents: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch all documents: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -844,33 +844,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(documents),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(documents),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch documents: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch documents: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };
@@ -899,33 +899,33 @@ impl<'a> StorageApi<'a> {
                 if let Err(e) = self.logger.log_event(&content) {
                     return StorageRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         data: Some(document),
                         log_error: Some(e),
                     };
                 }
                 return StorageRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     data: Some(document),
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to fetch document: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to fetch document: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return StorageRequestResult {
                         success: false,
-                        message: content,
+                        error: Some(err),
                         data: None,
-                        log_error: Some(e),
+                        log_error: Some(log_err),
                     };
                 }
                 return StorageRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     data: None,
                     log_error: None,
                 };

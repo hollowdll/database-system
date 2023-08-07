@@ -88,8 +88,9 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
-
-            eprintln!("Failed to create document: {}", result.message);
+            if let Some(e) = result.error {
+                eprintln!("Failed to create document: {}", e);
+            }
         }
     }
 
@@ -156,8 +157,9 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
-
-            eprintln!("Failed to replace document: {}", result.message);
+            if let Some(e) = result.error {
+                eprintln!("Failed to replace document: {}", e);
+            }
         }
     }
 
@@ -202,8 +204,9 @@ impl<'a> Cli<'a> {
                     if let Some(e) = result.log_error {
                         eprintln!("Failed to log error: {}", e);
                     }
-
-                    eprintln!("Failed to delete document: {}", result.message);
+                    if let Some(e) = result.error {
+                        eprintln!("Failed to delete document: {}", e);
+                    }
                 }
             },
             _ => return println!("Canceled action"),
@@ -240,8 +243,9 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
-
-            eprintln!("Failed to list documents: {}", result.message);
+            if let Some(e) = result.error {
+                eprintln!("Failed to list documents: {}", e);
+            }
         }
     }
 
@@ -283,8 +287,9 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
-
-            eprintln!("Failed to list documents: {}", result.message);
+            if let Some(e) = result.error {
+                eprintln!("Failed to list documents: {}", e);
+            }
         }
     }
 
@@ -326,8 +331,9 @@ impl<'a> Cli<'a> {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
-
-            eprintln!("Failed to list document: {}", result.message);
+            if let Some(e) = result.error {
+                eprintln!("Failed to list document: {}", e);
+            }
         }
     }
 
@@ -355,7 +361,7 @@ impl<'a> Cli<'a> {
             Err(e) => return eprintln!("Invalid document count: {e}"),
         };
         let mut document_count = 0;
-        
+
         for i in 1..=count {
             let mut data: Vec<DocumentInputDataField> = Vec::new();
             let field = format!("field_{i}");
@@ -379,8 +385,9 @@ impl<'a> Cli<'a> {
                 if let Some(e) = result.log_error {
                     eprintln!("Failed to log error: {}", e);
                 }
-
-                eprintln!("Failed to create test documents: {}", result.message);
+                if let Some(e) = result.error {
+                    eprintln!("Failed to create test documents: {}", e);
+                }
             }
         }
 
