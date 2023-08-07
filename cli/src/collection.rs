@@ -15,20 +15,28 @@ impl<'a> Cli<'a> {
         connected_db: &ConnectedDatabase,
     ) -> bool
     {
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .find_collection(collection_name, connected_db.file_path())
-        {
-            Ok(result) => {
-                if result.is_none() {
+            .find_collection(collection_name, connected_db.file_path());
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            if let Some(collection) = result.data {
+                if collection.is_none() {
                     println!("Cannot find collection '{collection_name}'");
                     return false;
                 }
-            },
-            Err(e) => {
-                eprintln!("[Error] Failed to find collection: {e}");
-                return false;
-            },
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to find collection: {}", result.message);
+            return false;
         }
 
         return true;
@@ -49,12 +57,22 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .create_collection(&collection_name, connected_db.file_path())
-        {
-            Ok(()) => println!("Collection created"),
-            Err(e) => return eprintln!("[Error] Failed to create collection: {e}"),
+            .create_collection(&collection_name, connected_db.file_path());
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            println!("Collection created");
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to create collection: {}", result.message);
         }
     }
 
@@ -81,12 +99,23 @@ impl<'a> Cli<'a> {
                 if !&self.database_exists(connected_db) {
                     return;
                 }
-                match &self.engine
+
+                let result = self.engine
                     .storage_api()
-                    .delete_collection(&collection_name, connected_db.file_path())
-                {
-                    Ok(()) => println!("Collection deleted"),
-                    Err(e) => return eprintln!("[Error] Failed to delete collection: {e}"),
+                    .delete_collection(&collection_name, connected_db.file_path());
+
+                if result.success {
+                    if let Some(e) = result.log_error {
+                        eprintln!("Failed to log event: {}", e);
+                    }
+
+                    println!("Collection deleted");
+                } else {
+                    if let Some(e) = result.log_error {
+                        eprintln!("Failed to log error: {}", e);
+                    }
+
+                    eprintln!("Failed to delete collection: {}", result.message);
                 }
             },
             _ => return println!("Canceled action"),
@@ -105,18 +134,28 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let collections = match self.engine
+        let result = self.engine
             .storage_api()
-            .find_all_collections(connected_db.file_path())
-        {
-            Ok(collections) => collections,
-            Err(e) => return eprintln!("[Error] Failed to list collections: {e}"),
-        };
+            .find_all_collections(connected_db.file_path());
 
-        println!("\nNumber of collections: {}", collections.len());
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
 
-        for collection in collections {
-            println!("{}", collection.name());
+            if let Some(collections) = result.data {
+                println!("\nNumber of collections: {}", collections.len());
+
+                for collection in collections {
+                    println!("{}", collection.name());
+                }
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to list collections: {}", result.message);
         }
     }
 }
