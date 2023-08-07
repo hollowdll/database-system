@@ -35,7 +35,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
 
-            eprintln!("[Error] Failed to find connected database: {}", result.message);
+            eprintln!("Failed to find connected database: {}", result.message);
         }
     }
 
@@ -65,7 +65,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
 
-            eprintln!("[Error] Failed to find connected database: {}", result.message);
+            eprintln!("Failed to find connected database: {}", result.message);
             return false;
         }
 
@@ -81,12 +81,17 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .find_database(&db_name)
-        {
-            Ok(result) => {
-                if let Some(db) = result {
+            .find_database(&db_name);
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            if let Some(db) = result.data {
+                if let Some(db) = db {
                     let _ = &self.connected_db.replace(ConnectedDatabase::new(
                         db.name(),
                         db.file_path()
@@ -95,8 +100,13 @@ impl<'a> Cli<'a> {
                 } else {
                     println!("Cannot find database");
                 }
-            },
-            Err(e) => eprintln!("[Error] Failed to connect to database: {}", e),
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to connect to database: {}", result.message);
         }
     }
 
@@ -108,12 +118,17 @@ impl<'a> Cli<'a> {
         };
         let file_path = Path::new(&file_path);
 
-        match self.engine
+        let result = self.engine
             .storage_api()
-            .find_database_by_file_path(file_path)
-        {
-            Ok(result) => {
-                if let Some(db) = result {
+            .find_database_by_file_path(file_path);
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            if let Some(db) = result.data {
+                if let Some(db) = db {
                     let _ = &self.connected_db.replace(ConnectedDatabase::new(
                         db.name(),
                         db.file_path()
@@ -122,8 +137,13 @@ impl<'a> Cli<'a> {
                 } else {
                     println!("Cannot find database");
                 }
-            },
-            Err(e) => eprintln!("[Error] Failed to connect to database: {}", e),
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to connect to database: {}", result.message);
         }
     }
 
@@ -134,16 +154,22 @@ impl<'a> Cli<'a> {
             Err(_) => return,
         };
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .create_database_to_db_dir(&db_name)
-        {
-            Ok(()) => {
-                println!("Database created");
-            },
-            Err(e) => {
-                eprintln!("[Error] Failed to create database: {}", e);
-            },
+            .create_database_to_db_dir(&db_name);
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            println!("Database created");
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to create database: {}", result.message);
         }
     }
 
@@ -163,13 +189,25 @@ impl<'a> Cli<'a> {
 
         match confirm.as_str() {
             CONFIRM_OPTION_YES => {
-                match &self.engine.storage_api().delete_database(connected_db.file_path()) {
-                    Ok(()) => {
-                        // Disconnect database if it is connected
-                        let _ = &self.connected_db.take();
-                        println!("Database deleted");
-                    },
-                    Err(e) => eprintln!("[Error] Failed to delete database: {e}"),
+                let result = self.engine
+                    .storage_api()
+                    .delete_database(connected_db.file_path());
+
+                if result.success {
+                    if let Some(e) = result.log_error {
+                        eprintln!("Failed to log event: {}", e);
+                    }
+
+                    // Disconnect database if it is connected
+                    let _ = &self.connected_db.take();
+                    println!("Database deleted");
+                    
+                } else {
+                    if let Some(e) = result.log_error {
+                        eprintln!("Failed to log error: {}", e);
+                    }
+
+                    eprintln!("Failed to delete database: {}", result.message);
                 }
             },
             _ => return println!("Canceled action"),
@@ -178,28 +216,37 @@ impl<'a> Cli<'a> {
 
     /// List all databases and display information about them.
     pub fn list_all_databases(&self) {
-        let databases = match self.engine
+        let result = self.engine
             .storage_api()
-            .find_all_databases()
-        {
-            Ok(databases) => databases,
-            Err(e) => return eprintln!("[Error] Failed to list databases: {e}"),
-        };
+            .find_all_databases();
 
-        println!("\nNumber of databases: {}", databases.len());
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
 
-        for database in databases {
-            println!(
+            if let Some(databases) = result.data {
+                println!("\nNumber of databases: {}", databases.len());
+
+                for database in databases {
+                    println!(
 "
   Name:        {}
   Size:        {} bytes
   Description: {}
   File path:   {}",
-            database.name(),
-            database.size(),
-            database.description(),
-            database.file_path().display()
-            );
+                    database.name(),
+                    database.size(),
+                    database.description(),
+                    database.file_path().display());
+                }
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to delete database: {}", result.message);
         }
     }
 
@@ -219,12 +266,22 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .change_database_description(connected_db.file_path(), &description)
-        {
-            Ok(()) => println!("Database description changed"),
-            Err(e) => return eprintln!("[Error] Failed to change database description: {e}"),
+            .change_database_description(connected_db.file_path(), &description);
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            println!("Database description changed");
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to change database description: {}", result.message);
         }
     }
 }
