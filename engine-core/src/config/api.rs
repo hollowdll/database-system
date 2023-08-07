@@ -1,6 +1,9 @@
 // Engine configuration API
 
-use std::path::Path;
+use std::{
+    path::Path,
+    io,
+};
 use crate::{
     Logger,
     logging::{
@@ -17,8 +20,8 @@ pub struct ConfigRequestResult {
     /// Whether result is successful.
     pub success: bool,
 
-    /// Result message.
-    pub message: String,
+    /// Possible error.
+    pub error: Option<io::Error>,
 
     /// Possible error that occurred during logging.
     pub log_error: Option<LogError>,
@@ -55,34 +58,34 @@ impl<'a> ConfigApi<'a> {
     pub fn set_db_dir_path(&self, path: &Path) -> ConfigRequestResult {
         match self.config_manager.set_db_dir_path(path) {
             Ok(()) => {
-                let content = format!("Changed database directory path configuration to {:?}", path);
+                let content = format!("Changed database directory path configuration to '{}'", path.display());
                 if let Err(e) = self.logger.log_event(&content) {
                     return ConfigRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         log_error: Some(e),
                     };
                 }
                 return ConfigRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to change database directory path configuration: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to change database directory path configuration: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return ConfigRequestResult {
                         success: false,
-                        message: content,
-                        log_error: Some(e),
+                        error: Some(err),
+                        log_error: Some(log_err),
                     };
                 }
                 return ConfigRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     log_error: None,
                 };
             },
@@ -95,34 +98,34 @@ impl<'a> ConfigApi<'a> {
     pub fn set_logs_dir_path(&self, path: &Path) -> ConfigRequestResult {
         match self.config_manager.set_logs_dir_path(path) {
             Ok(()) => {
-                let content = format!("Changed logs directory path configuration to {:?}", path);
+                let content = format!("Changed logs directory path configuration to '{}'", path.display());
                 if let Err(e) = self.logger.log_event(&content) {
                     return ConfigRequestResult {
                         success: true,
-                        message: content,
+                        error: None,
                         log_error: Some(e),
                     };
                 }
                 return ConfigRequestResult {
                     success: true,
-                    message: content,
+                    error: None,
                     log_error: None,
                 };
             },
-            Err(e) => {
-                let content = format!("Failed to change logs directory path configuration: {}", e);
-                if let Err(e) = self.logger
+            Err(err) => {
+                let content = format!("Failed to change logs directory path configuration: {}", err);
+                if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
                     return ConfigRequestResult {
                         success: false,
-                        message: content,
-                        log_error: Some(e),
+                        error: Some(err),
+                        log_error: Some(log_err),
                     };
                 }
                 return ConfigRequestResult {
                     success: false,
-                    message: content,
+                    error: Some(err),
                     log_error: None,
                 };
             },
