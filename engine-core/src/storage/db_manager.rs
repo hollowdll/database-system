@@ -195,7 +195,7 @@ impl<'a> DatabaseManager<'a> {
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
-        // convert input data to correct document data types
+        // Validate input data
         for data_field in input_data {
             let converted_value = match data_field.parse_to_document_data_type(
                 data_field.value(),

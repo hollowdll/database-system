@@ -64,6 +64,9 @@ impl Error for CollectionError {}
 pub enum DocumentError {
     /// Document was not found.
     NotFound,
+
+    /// Document has an empty field name.
+    EmptyFieldName,
 }
 
 impl fmt::Display for DocumentError {
@@ -73,6 +76,7 @@ impl fmt::Display for DocumentError {
             "{}",
             match self {
                 DocumentError::NotFound => "Document was not found",
+                DocumentError::EmptyFieldName => "Document has an empty field name",
             }
         )
     }

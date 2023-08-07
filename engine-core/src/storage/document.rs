@@ -128,6 +128,14 @@ pub fn create_document_to_db_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
+
+    // Don't allow empty field names
+    for (key, value) in data.iter() {
+        if key.is_empty() {
+            return Err(Box::new(DocumentError::EmptyFieldName));
+        }
+    }
+
     let mut database = deserialize_database(&fs::read(file_path)?)?;
     let mut collection_index = None;
 
