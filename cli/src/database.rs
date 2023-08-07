@@ -16,16 +16,26 @@ impl<'a> Cli<'a> {
             None => return,
         };
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .find_database_by_file_path(connected_db.file_path())
-        {
-            Ok(db) => {
+            .find_database_by_file_path(connected_db.file_path());
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            if let Some(db) = result.data {
                 if db.is_none() {
                     let _ = &self.connected_db.take();
                 }
-            },
-            Err(e) => eprintln!("[Error] Failed to find connected database: {e}"),
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("[Error] Failed to find connected database: {}", result.message);
         }
     }
 
@@ -35,20 +45,28 @@ impl<'a> Cli<'a> {
         connected_db: &ConnectedDatabase,
     ) -> bool
     {
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .find_database_by_file_path(connected_db.file_path())
-        {
-            Ok(result) => {
-                if result.is_none() {
+            .find_database_by_file_path(connected_db.file_path());
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            if let Some(db) = result.data {
+                if db.is_none() {
                     println!("Cannot find connected database");
                     return false;
                 }
-            },
-            Err(e) => {
-                eprintln!("[Error] Failed to find connected database: {e}");
-                return false;
-            },
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("[Error] Failed to find connected database: {}", result.message);
+            return false;
         }
 
         return true;

@@ -33,18 +33,18 @@ impl<'a> Cli<'a> {
             .set_db_dir_path(path);
 
         if result.success {
-            println!("Database directory path set successfully");
-            config_save_success();
-
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log event: {}", e);
             }
-        } else {
-            eprintln!("Failed to set database directory path: {}", result.message);
 
+            println!("Database directory path set successfully");
+            config_save_success();
+        } else {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
+
+            eprintln!("Failed to set database directory path: {}", result.message);
         }
     }
 
@@ -65,18 +65,18 @@ impl<'a> Cli<'a> {
             .set_logs_dir_path(path);
 
         if result.success {
-            println!("Logs directory path set successfully");
-            config_save_success();
-
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log event: {}", e);
             }
-        } else {
-            eprintln!("Failed to set logs directory path: {}", result.message);
 
+            println!("Logs directory path set successfully");
+            config_save_success();
+        } else {
             if let Some(e) = result.log_error {
                 eprintln!("Failed to log error: {}", e);
             }
+
+            eprintln!("Failed to set logs directory path: {}", result.message);
         }
     }
 }
