@@ -82,12 +82,22 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .create_document(connected_db.file_path(), &collection_name, data)
-        {
-            Ok(_) => println!("Document created"),
-            Err(e) => return eprintln!("[Error] Failed to create document: {e}"),
+            .create_document(connected_db.file_path(), &collection_name, data);
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            println!("Document created");
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to create document: {}", result.message);
         }
     }
 
@@ -149,12 +159,22 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        match &self.engine
+        let result = self.engine
             .storage_api()
-            .replace_document(connected_db.file_path(), &document_id, &collection_name, data)
-        {
-            Ok(_) => println!("Document replaced"),
-            Err(e) => return eprintln!("[Error] Failed to replace document: {e}"),
+            .replace_document(connected_db.file_path(), &document_id, &collection_name, data);
+
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            println!("Document replaced");
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to replace document: {}", result.message);
         }
     }
 
@@ -194,12 +214,23 @@ impl<'a> Cli<'a> {
                 if !&self.database_exists(connected_db) {
                     return;
                 }
-                match &self.engine
+
+                let result = self.engine
                     .storage_api()
-                    .delete_document(connected_db.file_path(), &document_id, &collection_name)
-                {
-                    Ok(()) => println!("Document deleted"),
-                    Err(e) => return eprintln!("[Error] Failed to delete document: {e}"),
+                    .delete_document(connected_db.file_path(), &document_id, &collection_name);
+
+                if result.success {
+                    if let Some(e) = result.log_error {
+                        eprintln!("Failed to log event: {}", e);
+                    }
+
+                    println!("Document deleted");
+                } else {
+                    if let Some(e) = result.log_error {
+                        eprintln!("Failed to log error: {}", e);
+                    }
+
+                    eprintln!("Failed to delete document: {}", result.message);
                 }
             },
             _ => return println!("Canceled action"),
@@ -224,18 +255,28 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let documents = match self.engine
+        let result = self.engine
             .storage_api()
-            .find_all_documents(connected_db.file_path(), &collection_name)
-        {
-            Ok(documents) => documents,
-            Err(e) => return eprintln!("[Error] Failed to list documents: {e}"),
-        };
+            .find_all_documents(connected_db.file_path(), &collection_name);
 
-        println!("\nNumber of documents: {}", documents.len());
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
 
-        for document in documents {
-            display_document(&document);
+            if let Some(documents) = result.data {
+                println!("\nNumber of documents: {}", documents.len());
+
+                for document in documents {
+                    display_document(&document);
+                }
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to list documents: {}", result.message);
         }
     }
 
@@ -265,18 +306,28 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let documents = match self.engine
+        let result = self.engine
             .storage_api()
-            .find_documents_limit(connected_db.file_path(), &collection_name, limit)
-        {
-            Ok(documents) => documents,
-            Err(e) => return eprintln!("[Error] Failed to list documents: {e}"),
-        };
+            .find_documents_limit(connected_db.file_path(), &collection_name, limit);
 
-        println!("\nNumber of documents: {}", documents.len());
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
 
-        for document in documents {
-            display_document(&document);
+            if let Some(documents) = result.data {
+                println!("\nNumber of documents: {}", documents.len());
+
+                for document in documents {
+                    display_document(&document);
+                }
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to list documents: {}", result.message);
         }
     }
 
@@ -303,17 +354,28 @@ impl<'a> Cli<'a> {
             return;
         }
 
-        let result = match self.engine
+        let result = self.engine
             .storage_api()
-            .find_document_by_id(&document_id, connected_db.file_path(), &collection_name)
-        {
-            Ok(result) => result,
-            Err(e) => return eprintln!("[Error] Failed to list document: {e}"),
-        };
+            .find_document_by_id(&document_id, connected_db.file_path(), &collection_name);
 
-        match result {
-            Some(document) => display_document(&document),
-            None => return println!("Document with this ID was not found from this collection"),
+        if result.success {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log event: {}", e);
+            }
+
+            if let Some(data) = result.data {
+                if let Some(document) = data {
+                    display_document(&document);
+                } else {
+                    println!("Document with this ID was not found");
+                }
+            }
+        } else {
+            if let Some(e) = result.log_error {
+                eprintln!("Failed to log error: {}", e);
+            }
+
+            eprintln!("Failed to list document: {}", result.message);
         }
     }
 
@@ -358,15 +420,23 @@ impl<'a> Cli<'a> {
 
             data.push(DocumentInputDataField::new(&field, data_type, &value));
 
-            match &self.engine
+            let result = self.engine
                 .storage_api()
-                .create_document(connected_db.file_path(), &collection_name, data)
-            {
-                Ok(_) => {
-                    println!("Document created");
-                    document_count += 1;
-                },
-                Err(e) => eprintln!("[Error] Failed to create test documents: {e}"),
+                .create_document(connected_db.file_path(), &collection_name, data);
+
+            if result.success {
+                if let Some(e) = result.log_error {
+                    eprintln!("Failed to log event: {}", e);
+                }
+
+                println!("Document created");
+                document_count += 1;
+            } else {
+                if let Some(e) = result.log_error {
+                    eprintln!("Failed to log error: {}", e);
+                }
+
+                eprintln!("Failed to create test documents: {}", result.message);
             }
         }
 
