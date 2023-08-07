@@ -19,6 +19,8 @@ use crate::{
 
 /// Result for storage API calls that handle database operations.
 /// 
+/// T = Type for returned data.
+/// 
 /// Storage API methods return this.
 pub struct StorageRequestResult<T> {
     pub success: bool,
@@ -254,7 +256,7 @@ impl<'a> StorageApi<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> StorageRequestResult<CollectionDto>
     {
         match self.db_manager.create_collection(collection_name, db_file_path) {
             Ok(()) => {
@@ -264,19 +266,38 @@ impl<'a> StorageApi<'a> {
                     db_file_path.display()
                 );
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return StorageRequestResult {
+                        success: true,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return StorageRequestResult {
+                    success: true,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to create collection: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return StorageRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return StorageRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -288,7 +309,7 @@ impl<'a> StorageApi<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationError>
+    ) -> StorageRequestResult<CollectionDto>
     {
         match self.db_manager.delete_collection(collection_name, db_file_path) {
             Ok(()) => {
@@ -298,19 +319,38 @@ impl<'a> StorageApi<'a> {
                     db_file_path.display()
                 );
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return StorageRequestResult {
+                        success: true,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(());
+                return StorageRequestResult {
+                    success: true,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to delete collection: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return StorageRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return StorageRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -575,7 +615,7 @@ impl<'a> StorageApi<'a> {
     pub fn find_all_collections(
         &self,
         db_file_path: &Path,
-    ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
+    ) -> StorageRequestResult<Vec<CollectionDto>>
     {
         match self.db_manager.find_all_collections(db_file_path) {
             Ok(collections) => {
@@ -584,19 +624,38 @@ impl<'a> StorageApi<'a> {
                     db_file_path.display()
                 );
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return StorageRequestResult {
+                        success: true,
+                        message: content,
+                        data: Some(collections),
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(collections);
+                return StorageRequestResult {
+                    success: true,
+                    message: content,
+                    data: Some(collections),
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to fetch all collections: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return StorageRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return StorageRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
@@ -608,7 +667,7 @@ impl<'a> StorageApi<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> Result<Option<CollectionDto>, DatabaseOperationError>
+    ) -> StorageRequestResult<Option<CollectionDto>>
     {
         match self.db_manager.find_collection(collection_name, db_file_path) {
             Ok(collection) => {
@@ -618,19 +677,38 @@ impl<'a> StorageApi<'a> {
                     db_file_path.display()
                 );
                 if let Err(e) = self.logger.log_event(&content) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                    return StorageRequestResult {
+                        success: true,
+                        message: content,
+                        data: Some(collection),
+                        log_error: Some(e),
+                    };
                 }
-                return Ok(collection);
+                return StorageRequestResult {
+                    success: true,
+                    message: content,
+                    data: Some(collection),
+                    log_error: None,
+                };
             },
             Err(e) => {
                 let content = format!("Failed to fetch collection: {}", e);
-                if let Err(e) = self.logger.log_error(
-                    ErrorLogType::Error,
-                    &content,
-                ) {
-                    return Err(DatabaseOperationError(e.to_string()));
+                if let Err(e) = self.logger
+                    .log_error(ErrorLogType::Error, &content)
+                {
+                    return StorageRequestResult {
+                        success: false,
+                        message: content,
+                        data: None,
+                        log_error: Some(e),
+                    };
                 }
-                return Err(e);
+                return StorageRequestResult {
+                    success: false,
+                    message: content,
+                    data: None,
+                    log_error: None,
+                };
             },
         }
     }
