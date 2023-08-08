@@ -4,6 +4,8 @@ use crate::{
     ask_action_confirm,
     CONFIRM_OPTION_YES,
     db_not_connected,
+    event_log_failed,
+    error_log_failed,
 };
 use engine_core::{
     storage::{
@@ -79,15 +81,12 @@ impl<'a> Cli<'a> {
             .create_document(connected_db.file_path(), &collection_name, data);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             println!("Document created");
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -148,15 +147,12 @@ impl<'a> Cli<'a> {
             .replace_document(connected_db.file_path(), &document_id, &collection_name, data);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             println!("Document replaced");
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -195,15 +191,12 @@ impl<'a> Cli<'a> {
                     .delete_document(connected_db.file_path(), &document_id, &collection_name);
 
                 if result.success {
-                    if let Some(e) = result.log_error {
-                        eprintln!("Failed to log event: {}", e);
-                    }
+                    event_log_failed(result.log_error);
 
                     println!("Document deleted");
                 } else {
-                    if let Some(e) = result.log_error {
-                        eprintln!("Failed to log error: {}", e);
-                    }
+                    error_log_failed(result.log_error);
+
                     if let Some(e) = result.error {
                         eprintln!("Error: {}", e);
                     }
@@ -228,9 +221,7 @@ impl<'a> Cli<'a> {
             .find_all_documents(connected_db.file_path(), &collection_name);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             if let Some(documents) = result.data {
                 println!("\nNumber of documents: {}", documents.len());
@@ -240,9 +231,8 @@ impl<'a> Cli<'a> {
                 }
             }
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -272,9 +262,7 @@ impl<'a> Cli<'a> {
             .find_documents_limit(connected_db.file_path(), &collection_name, limit);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             if let Some(documents) = result.data {
                 println!("\nNumber of documents: {}", documents.len());
@@ -284,9 +272,8 @@ impl<'a> Cli<'a> {
                 }
             }
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -316,9 +303,7 @@ impl<'a> Cli<'a> {
             .find_document_by_id(&document_id, connected_db.file_path(), &collection_name);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             if let Some(data) = result.data {
                 if let Some(document) = data {
@@ -328,9 +313,8 @@ impl<'a> Cli<'a> {
                 }
             }
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -375,16 +359,13 @@ impl<'a> Cli<'a> {
                 .create_document(connected_db.file_path(), &collection_name, data);
 
             if result.success {
-                if let Some(e) = result.log_error {
-                    eprintln!("Failed to log event: {}", e);
-                }
+                event_log_failed(result.log_error);
 
                 println!("Document created");
                 document_count += 1;
             } else {
-                if let Some(e) = result.log_error {
-                    eprintln!("Failed to log error: {}", e);
-                }
+                error_log_failed(result.log_error);
+
                 if let Some(e) = result.error {
                     eprintln!("Error: {}", e);
                 }

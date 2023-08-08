@@ -19,7 +19,8 @@ use engine_core::{
         Config,
         config_manager::ConfigManager,
     },
-    Logger
+    Logger,
+    logging::error::LogError,
 };
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -273,6 +274,20 @@ fn exit_program() {
 /// Prints a message telling there is no connected database.
 fn db_not_connected() {
     println!("{}", NO_CONNECTED_DB);
+}
+
+/// Prints an error message telling event logging failed.
+fn event_log_failed(err: Option<LogError>) {
+    if let Some(err) = err {
+        eprintln!("Error: Failed to log event: {}", err);
+    }
+}
+
+/// Prints an error message telling error logging failed.
+fn error_log_failed(err: Option<LogError>) {
+    if let Some(err) = err {
+        eprintln!("Error: Failed to log error: {}", err);
+    }
 }
 
 /// Asks for user input and returns it trimmed.

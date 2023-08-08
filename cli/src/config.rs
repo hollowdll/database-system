@@ -2,6 +2,8 @@ use engine_core::config::Config;
 use crate::{
     Cli,
     ask_user_input,
+    event_log_failed,
+    error_log_failed,
 };
 use std::path::Path;
 
@@ -33,16 +35,13 @@ impl<'a> Cli<'a> {
             .set_db_dir_path(path);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
             
             println!("Database directory path set successfully");
             config_save_success();
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: Failed to set database directory path: {}", e);
             }
@@ -66,16 +65,13 @@ impl<'a> Cli<'a> {
             .set_logs_dir_path(path);
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             println!("Logs directory path set successfully");
             config_save_success();
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: Failed to set logs directory path: {}", e);
             }

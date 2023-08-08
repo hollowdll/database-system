@@ -5,6 +5,8 @@ use crate::{
     CONFIRM_OPTION_YES,
     ConnectedDatabase,
     db_not_connected,
+    event_log_failed,
+    error_log_failed,
 };
 
 impl<'a> Cli<'a> {
@@ -20,9 +22,7 @@ impl<'a> Cli<'a> {
             .find_collection(collection_name, connected_db.file_path());
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             if let Some(collection) = result.data {
                 if collection.is_none() {
@@ -31,9 +31,8 @@ impl<'a> Cli<'a> {
                 }
             }
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -58,15 +57,12 @@ impl<'a> Cli<'a> {
             .create_collection(&collection_name, connected_db.file_path());
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             println!("Collection created");
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
@@ -97,15 +93,12 @@ impl<'a> Cli<'a> {
                     .delete_collection(&collection_name, connected_db.file_path());
 
                 if result.success {
-                    if let Some(e) = result.log_error {
-                        eprintln!("Failed to log event: {}", e);
-                    }
+                    event_log_failed(result.log_error);
 
                     println!("Collection deleted");
                 } else {
-                    if let Some(e) = result.log_error {
-                        eprintln!("Failed to log error: {}", e);
-                    }
+                    error_log_failed(result.log_error);
+
                     if let Some(e) = result.error {
                         eprintln!("Error: {}", e);
                     }
@@ -127,9 +120,7 @@ impl<'a> Cli<'a> {
             .find_all_collections(connected_db.file_path());
 
         if result.success {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
-            }
+            event_log_failed(result.log_error);
 
             if let Some(collections) = result.data {
                 println!("\nNumber of collections: {}", collections.len());
@@ -139,9 +130,8 @@ impl<'a> Cli<'a> {
                 }
             }
         } else {
-            if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
-            }
+            error_log_failed(result.log_error);
+
             if let Some(e) = result.error {
                 eprintln!("Error: {}", e);
             }
