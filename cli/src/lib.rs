@@ -3,11 +3,11 @@
 mod database;
 mod collection;
 mod document;
+pub mod util;
 pub mod config;
 
 use std::{
     process,
-    io::{self, Write},
     path::{
         PathBuf,
         Path,
@@ -20,8 +20,8 @@ use engine_core::{
         config_manager::ConfigManager,
     },
     Logger,
-    logging::error::LogError,
 };
+use util::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NO_CONNECTED_DB: &str = "No connected database";
@@ -66,7 +66,7 @@ impl<'a> Cli<'a> {
                 println!("Connected database: {}", db.name());
                 println!("File path: {}", db.file_path().display());
             },
-            None => println!("{}", NO_CONNECTED_DB),
+            None => db_not_connected(),
         }
     }
 }
@@ -269,58 +269,6 @@ More commands in the future...");
 fn exit_program() {
     println!("Exiting...");
     process::exit(0);
-}
-
-/// Prints a message telling there is no connected database.
-fn db_not_connected() {
-    println!("{}", NO_CONNECTED_DB);
-}
-
-/// Prints an error message telling event logging failed.
-fn event_log_failed(err: Option<LogError>) {
-    if let Some(err) = err {
-        eprintln!("Error: Failed to log event: {}", err);
-    }
-}
-
-/// Prints an error message telling error logging failed.
-fn error_log_failed(err: Option<LogError>) {
-    if let Some(err) = err {
-        eprintln!("Error: Failed to log error: {}", err);
-    }
-}
-
-/// Asks for user input and returns it trimmed.
-fn ask_user_input(text_to_ask: &str) -> io::Result<String> {
-    let mut input = String::new();
-
-    print!("{text_to_ask}");
-    io::stdout().flush().expect("Unexpected I/O error");
-    if let Err(e) = io::stdin().read_line(&mut input) {
-        eprintln!("Failed to read line: {e}");
-        return Err(e);
-    }
-    let input = input.trim().to_string();
-
-    Ok(input)
-}
-
-/// Asks user to confirm an action, such as delete action.
-/// 
-/// Returns the input trimmed.
-fn ask_action_confirm(text_to_ask: &str) -> io::Result<String> {
-    let mut confirm = String::new();
-
-    println!("{text_to_ask}");
-    print!("'Y' to confirm: ");
-    io::stdout().flush().expect("Unexpected I/O error");
-    if let Err(e) = io::stdin().read_line(&mut confirm) {
-        eprintln!("Failed to read line: {e}");
-        return Err(e);
-    }
-    let confirm = confirm.trim().to_string();
-
-    Ok(confirm)
 }
 
 
