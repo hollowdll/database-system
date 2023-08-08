@@ -132,3 +132,94 @@ impl fmt::Display for DatabaseOperationError {
 }
 
 impl Error for DatabaseOperationError {}
+
+#[derive(Debug)]
+pub struct DatabaseOperationVerboseError {
+    /// Database operation that failed.
+    kind: DatabaseOperationErrorKind,
+
+    /// Message telling the cause.
+    message: String,
+}
+
+#[derive(Debug)]
+pub enum DatabaseOperationErrorKind {
+    /// Failed to create database.
+    CreateDatabase,
+
+    /// Failed to delete database.
+    DeleteDatabase,
+
+    /// Failed to modify database.
+    ModifyDatabase,
+
+    /// Failed to find one database.
+    FindDatabaseOne,
+
+    /// Failed to find many databases.
+    FindDatabaseMany,
+
+    /// Failed to create collection.
+    CreateCollection,
+
+    /// Failed to delete collection.
+    DeleteCollection,
+
+    /// Failed to find one collection.
+    FindCollectionOne,
+
+    /// Failed to find many collections.
+    FindCollectionMany,
+
+    /// Failed to create document.
+    CreateDocument,
+
+    /// Failed to delete document.
+    DeleteDocument,
+
+    /// Failed to replace document.
+    ReplaceDocument,
+
+    /// Failed to find one document.
+    FindDocumentOne,
+
+    /// Failed to find many documents.
+    FindDocumentMany,
+}
+
+impl fmt::Display for DatabaseOperationVerboseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}: {}",
+            match &self.kind {
+                DatabaseOperationErrorKind::CreateDatabase => "Failed to create database",
+                DatabaseOperationErrorKind::DeleteDatabase => "Failed to delete database",
+                DatabaseOperationErrorKind::ModifyDatabase => "Failed to modify database",
+                DatabaseOperationErrorKind::FindDatabaseOne => "Failed to find database",
+                DatabaseOperationErrorKind::FindDatabaseMany => "Failed to find databases",
+                DatabaseOperationErrorKind::CreateCollection => "Failed to create collection",
+                DatabaseOperationErrorKind::DeleteCollection => "Failed to delete collection",
+                DatabaseOperationErrorKind::FindCollectionOne => "Failed to find collection",
+                DatabaseOperationErrorKind::FindCollectionMany => "Failed to find collections",
+                DatabaseOperationErrorKind::CreateDocument => "Failed to create document",
+                DatabaseOperationErrorKind::DeleteDocument => "Failed to delete document",
+                DatabaseOperationErrorKind::ReplaceDocument => "Failed to replace document",
+                DatabaseOperationErrorKind::FindDocumentOne => "Failed to find document",
+                DatabaseOperationErrorKind::FindDocumentMany => "Failed to find documents",
+            },
+            &self.message
+        )
+    }
+}
+
+impl DatabaseOperationVerboseError {
+    pub fn new(kind: DatabaseOperationErrorKind, message: String) -> Self {
+        Self {
+            kind,
+            message
+        }
+    }
+}
+
+impl Error for DatabaseOperationVerboseError {}
