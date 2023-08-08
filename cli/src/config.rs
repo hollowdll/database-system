@@ -44,7 +44,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to set database directory path: {}", e);
+                eprintln!("Error: Failed to set database directory path: {}", e);
             }
         }
     }
@@ -77,7 +77,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to set database directory path: {}", e);
+                eprintln!("Error: Failed to set logs directory path: {}", e);
             }
         }
     }

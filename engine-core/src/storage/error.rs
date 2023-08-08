@@ -101,7 +101,7 @@ impl fmt::Display for ParseError {
             f,
             "Failed to parse data into {}",
             match self {
-                ParseError::Unknown => "an unknown type. The specified type does not exist",
+                ParseError::Unknown => "a type that does not exist",
                 ParseError::Int32 => "'Int32'",
                 ParseError::Int64 => "'Int64'",
                 ParseError::Decimal => "'Decimal'",
@@ -115,9 +115,6 @@ impl fmt::Display for ParseError {
 impl Error for ParseError {}
 
 /// Error type for database operation failures.
-/// 
-/// This error can occur, for example, when the systems fails
-/// to create or find a database.
 #[derive(Debug)]
 pub struct DatabaseOperationError(pub String);
 
@@ -133,13 +130,17 @@ impl fmt::Display for DatabaseOperationError {
 
 impl Error for DatabaseOperationError {}
 
+/// Error type for database operation failures.
+/// 
+/// This is a verbose version of `DatabaseOperationError`
+/// with separated error kind and message.
 #[derive(Debug)]
 pub struct DatabaseOperationVerboseError {
     /// Database operation that failed.
-    kind: DatabaseOperationErrorKind,
+    pub kind: DatabaseOperationErrorKind,
 
-    /// Message telling the cause.
-    message: String,
+    /// Message telling the cause of error.
+    pub message: String,
 }
 
 #[derive(Debug)]
@@ -214,6 +215,7 @@ impl fmt::Display for DatabaseOperationVerboseError {
 }
 
 impl DatabaseOperationVerboseError {
+    /// Creates a new `DatabaseOperationVerboseError`.
     pub fn new(kind: DatabaseOperationErrorKind, message: String) -> Self {
         Self {
             kind,

@@ -5,7 +5,10 @@ use crate::{
     DatabaseManager,
     Logger,
     storage::{
-        error::DatabaseOperationError,
+        error::{
+            DatabaseOperationError,
+            DatabaseOperationVerboseError,
+        },
         database::DatabaseDto,
         collection::CollectionDto,
         document::DocumentDto,
@@ -24,7 +27,7 @@ use crate::{
 /// Storage API methods return this.
 pub struct StorageRequestResult<T> {
     pub success: bool,
-    pub error: Option<DatabaseOperationError>,
+    pub error: Option<DatabaseOperationVerboseError>,
     pub data: Option<T>,
     pub log_error: Option<LogError>,
 }
@@ -82,7 +85,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to create database to database directory: {}", err);
+                let content = format!(
+                    "Failed to create database '{}' to database directory: {}",
+                    db_name,
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -131,7 +138,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to create database: {}", err);
+                let content = format!(
+                    "Failed to create database '{}': {}",
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -179,7 +190,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to delete database: {}", err);
+                let content = format!(
+                    "Failed to delete database '{}': {}",
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -228,7 +243,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to change database description: {}", err);
+                let content = format!(
+                    "Failed to change description of database '{}': {}",
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -281,7 +300,12 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to create collection: {}", err);
+                let content = format!(
+                    "Failed to create collection '{}' to database '{}': {}",
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -334,7 +358,12 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to delete collection: {}", err);
+                let content = format!(
+                    "Failed to delete collection '{}' from database '{}': {}",
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -389,7 +418,12 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to create document: {}", err);
+                let content = format!(
+                    "Failed to create document to collection '{}' in database '{}': {}",
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -447,7 +481,13 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to replace document: {}", err);
+                let content = format!(
+                    "Failed to replace document with ID '{}' in collection '{}' in database '{}': {}",
+                    document_id,
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -502,7 +542,13 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to delete document: {}", err);
+                let content = format!(
+                    "Failed to delete document with ID '{}' from collection '{}' in database '{}': {}",
+                    document_id,
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -549,7 +595,10 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch all databases from database directory: {}", err);
+                let content = format!(
+                    "Failed to find all databases from database directory: {}",
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -597,7 +646,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch database from database directory: {}", err);
+                let content = format!(
+                    "Failed to find database '{}' from database directory: {}",
+                    db_name,
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -645,7 +698,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch database: {}", err);
+                let content = format!(
+                    "Failed to find database '{}': {}",
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -696,7 +753,11 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch all collections: {}", err);
+                let content = format!(
+                    "Failed to find collections from database '{}': {}",
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -749,7 +810,12 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch collection: {}", err);
+                let content = format!(
+                    "Failed to find collection '{}' from database '{}': {}",
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -802,7 +868,12 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch all documents: {}", err);
+                let content = format!(
+                    "Failed to find documents from collection '{}' in database '{}': {}",
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -857,7 +928,13 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch documents: {}", err);
+                let content = format!(
+                    "Failed to find documents from collection '{}' in database '{}' with limit {}: {}",
+                    collection_name,
+                    db_file_path.display(),
+                    limit,
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {
@@ -912,7 +989,13 @@ impl<'a> StorageApi<'a> {
                 };
             },
             Err(err) => {
-                let content = format!("Failed to fetch document: {}", err);
+                let content = format!(
+                    "Failed to find document with ID '{}' from collection '{}' in database '{}': {}",
+                    document_id,
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
                 if let Err(log_err) = self.logger
                     .log_error(ErrorLogType::Error, &content)
                 {

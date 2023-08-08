@@ -35,7 +35,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to find collection: {}", e);
+                eprintln!("Error: {}", e);
             }
             return false;
         }
@@ -68,7 +68,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to create collection: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -107,7 +107,7 @@ impl<'a> Cli<'a> {
                         eprintln!("Failed to log error: {}", e);
                     }
                     if let Some(e) = result.error {
-                        eprintln!("Failed to delete collection: {}", e);
+                        eprintln!("Error: {}", e);
                     }
                 }
             },
@@ -143,7 +143,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to list collections: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }

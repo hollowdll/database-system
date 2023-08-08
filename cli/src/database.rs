@@ -21,7 +21,7 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             if let Some(db) = result.data {
@@ -31,10 +31,13 @@ impl<'a> Cli<'a> {
             }
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to find connected database: {}", e);
+                eprintln!("Error: Failed to find connected database: {}", e.message);
+
+                // Disconnect db to prevent ceaseless loop
+                let _ = &self.connected_db.take();
             }
         }
     }
@@ -51,7 +54,7 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             if let Some(db) = result.data {
@@ -62,10 +65,10 @@ impl<'a> Cli<'a> {
             }
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to find connected database: {}", e);
+                eprintln!("Error: Failed to find connected database: {}", e.message);
             }
             return false;
         }
@@ -87,7 +90,7 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             if let Some(db) = result.data {
@@ -103,10 +106,10 @@ impl<'a> Cli<'a> {
             }
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to connect to database: {}", e);
+                eprintln!("Error: Failed to connect to database: {}", e.message);
             }
         }
     }
@@ -124,7 +127,7 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             if let Some(db) = result.data {
@@ -140,10 +143,10 @@ impl<'a> Cli<'a> {
             }
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to connect to database: {}", e);
+                eprintln!("Error: Failed to connect to database: {}", e.message);
             }
         }
     }
@@ -160,16 +163,16 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             println!("Database created");
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to create database: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -195,7 +198,7 @@ impl<'a> Cli<'a> {
 
                 if result.success {
                     if let Some(e) = result.log_error {
-                        eprintln!("Failed to log event: {}", e);
+                        eprintln!("Error: Failed to log event: {}", e);
                     }
 
                     // Disconnect database if it is connected
@@ -204,10 +207,10 @@ impl<'a> Cli<'a> {
                     
                 } else {
                     if let Some(e) = result.log_error {
-                        eprintln!("Failed to log error: {}", e);
+                        eprintln!("Error: Failed to log error: {}", e);
                     }
                     if let Some(e) = result.error {
-                        eprintln!("Failed to delete database: {}", e);
+                        eprintln!("Error: {}", e);
                     }
                 }
             },
@@ -223,7 +226,7 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             if let Some(databases) = result.data {
@@ -244,10 +247,10 @@ impl<'a> Cli<'a> {
             }
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to delete database: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -268,16 +271,16 @@ impl<'a> Cli<'a> {
 
         if result.success {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log event: {}", e);
+                eprintln!("Error: Failed to log event: {}", e);
             }
 
             println!("Database description changed");
         } else {
             if let Some(e) = result.log_error {
-                eprintln!("Failed to log error: {}", e);
+                eprintln!("Error: Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to change database description: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }

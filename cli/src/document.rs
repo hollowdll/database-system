@@ -89,7 +89,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to create document: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -158,7 +158,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to replace document: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -205,7 +205,7 @@ impl<'a> Cli<'a> {
                         eprintln!("Failed to log error: {}", e);
                     }
                     if let Some(e) = result.error {
-                        eprintln!("Failed to delete document: {}", e);
+                        eprintln!("Error: {}", e);
                     }
                 }
             },
@@ -244,7 +244,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to list documents: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -288,7 +288,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to list documents: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -332,7 +332,7 @@ impl<'a> Cli<'a> {
                 eprintln!("Failed to log error: {}", e);
             }
             if let Some(e) = result.error {
-                eprintln!("Failed to list document: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
     }
@@ -386,7 +386,7 @@ impl<'a> Cli<'a> {
                     eprintln!("Failed to log error: {}", e);
                 }
                 if let Some(e) = result.error {
-                    eprintln!("Failed to create test documents: {}", e);
+                    eprintln!("Error: {}", e);
                 }
             }
         }
