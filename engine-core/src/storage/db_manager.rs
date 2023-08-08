@@ -26,6 +26,7 @@ use crate::{
     },
     config::Config,
 };
+use super::error::DocumentError;
 
 /// Database manager that manages all databases and database operations.
 /// 
@@ -194,6 +195,14 @@ impl<'a> DatabaseManager<'a> {
 
         // Validate input data
         for data_field in input_data {
+            // Don't allow empty field name
+            if data_field.field().is_empty() {
+                return Err(DatabaseOperationVerboseError::new(
+                    DatabaseOperationErrorKind::CreateDocument,
+                    DocumentError::EmptyFieldName.to_string()
+                ));
+            }
+
             let converted_value = match data_field.parse_to_document_data_type(
                 data_field.value(),
                 data_field.data_type()
@@ -238,8 +247,16 @@ impl<'a> DatabaseManager<'a> {
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
-        // convert input data to correct document data types
+        // Validate input data
         for data_field in input_data {
+            // Don't allow empty field name
+            if data_field.field().is_empty() {
+                return Err(DatabaseOperationVerboseError::new(
+                    DatabaseOperationErrorKind::CreateDocument,
+                    DocumentError::EmptyFieldName.to_string()
+                ));
+            }
+
             let converted_value = match data_field.parse_to_document_data_type(
                 data_field.value(),
                 data_field.data_type()
