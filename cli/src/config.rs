@@ -1,4 +1,4 @@
-use engine_core::config::Config;
+use engine::config::Config;
 use crate::{
     Cli,
     ask_user_input,

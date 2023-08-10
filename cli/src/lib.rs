@@ -13,7 +13,7 @@ use std::{
         Path,
     },
 };
-use engine_core::{
+use engine::{
     self,
     config::{
         Config,
@@ -29,7 +29,7 @@ const CONFIRM_OPTION_YES: &str = "Y";
 
 /// Program structure.
 pub struct Cli<'a> {
-    engine: engine_core::Engine<'a>,
+    engine: engine::Engine<'a>,
     version: &'static str,
     connected_db: Option<ConnectedDatabase>,
 }
@@ -38,10 +38,10 @@ impl<'a> Cli<'a> {
     /// Builds program structure.
     pub fn build(
         config: &'a Config,
-        logger: &'a engine_core::Logger,
+        logger: &'a engine::Logger,
     ) -> Self {
         Self {
-            engine: engine_core::Engine::build(config, logger),
+            engine: engine::Engine::build(config, logger),
             version: VERSION,
             connected_db: None,
         }

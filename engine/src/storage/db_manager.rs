@@ -252,7 +252,7 @@ impl<'a> DatabaseManager<'a> {
             // Don't allow empty field name
             if data_field.field().is_empty() {
                 return Err(DatabaseOperationVerboseError::new(
-                    DatabaseOperationErrorKind::CreateDocument,
+                    DatabaseOperationErrorKind::ReplaceDocument,
                     DocumentError::EmptyFieldName.to_string()
                 ));
             }

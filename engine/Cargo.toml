@@ -1,8 +1,8 @@
 [package]
-name = "engine-core"
+name = "engine"
 version = "0.0.0"
 edition = "2021"
-description = "Database engine core library."
+description = "Database engine library."
 
 [dependencies]
 serde_json = "1.0.95"

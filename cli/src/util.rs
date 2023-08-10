@@ -2,7 +2,7 @@
 
 use std::io::{self, Write};
 use crate::{
-    engine_core::logging::error::LogError,
+    engine::logging::error::LogError,
     NO_CONNECTED_DB,
 };
 
