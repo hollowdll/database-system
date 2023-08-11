@@ -36,7 +36,7 @@ It also has collections where documents can be inserted.
 
 ## Collection
 
-Collections hold documents. A collections has a unique name and documents in it. There cannot be two collections with the same name in one database.
+Collections hold documents. A collection has a unique name and documents in it. There cannot be two collections with the same name in one database.
 
 A collection can be created and deleted. Collection can be deleted only when it doesn't have documents. Delete the possible documents before deleting the collection.
 
