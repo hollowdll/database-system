@@ -135,7 +135,9 @@ pub fn delete_database_file(
     Ok(())
 }
 
-/// Changes description of a database and saves the changes to the database file.
+/// Changes description of a database.
+/// 
+/// Writes the modified database to the database file.
 pub fn change_database_description(
     description: &str,
     file_path: &Path
@@ -231,9 +233,9 @@ pub fn find_database(
     Ok(None)
 }
 
-/// Finds a database from the file path.
+/// Finds a database using the given file path.
 /// 
-/// Returns `Some` with the found database or `None` if it was not found.
+/// Returns the found database.
 pub fn find_database_by_file_path(
     file_path: &Path,
 ) -> io::Result<Option<DatabaseDto>>

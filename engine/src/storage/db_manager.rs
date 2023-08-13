@@ -148,7 +148,7 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
     ) -> Result<(), DatabaseOperationVerboseError>
     {
-        if let Err(err) = create_collection_to_db_file(
+        if let Err(err) = create_collection_to_database(
             collection_name,
             db_file_path
         ) {
@@ -168,7 +168,7 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
     ) -> Result<(), DatabaseOperationVerboseError>
     {
-        if let Err(err) = delete_collection_from_db_file(
+        if let Err(err) = delete_collection_from_database(
             collection_name,
             db_file_path
         ) {
@@ -182,6 +182,8 @@ impl<'a> DatabaseManager<'a> {
     }
 
     /// Creates a new document to a collection.
+    /// 
+    /// Validates input data and parses it into correct document data types.
     /// 
     /// Returns the created document.
     pub fn create_document(
@@ -221,7 +223,7 @@ impl<'a> DatabaseManager<'a> {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        let created_document = match create_document_to_db_file(
+        let created_document = match create_document_to_collection(
             db_file_path,
             collection_name,
             document_data
@@ -237,6 +239,8 @@ impl<'a> DatabaseManager<'a> {
     }
 
     /// Replaces a document's data. Keeps the document id.
+    /// 
+    /// Validates input data and parses it into correct document data types.
     pub fn replace_document(
         &self,
         db_file_path: &Path,
@@ -275,7 +279,7 @@ impl<'a> DatabaseManager<'a> {
             document_data.insert(data_field.field().to_string(), converted_value);
         }
 
-        if let Err(err) = replace_document_in_db_file(
+        if let Err(err) = replace_document_in_collection(
             db_file_path,
             document_id,
             collection_name,
@@ -298,7 +302,7 @@ impl<'a> DatabaseManager<'a> {
         collection_name: &str,
     ) -> Result<(), DatabaseOperationVerboseError>
     {
-        if let Err(err) = delete_document_from_db_file(
+        if let Err(err) = delete_document_from_collection(
             db_file_path,
             document_id,
             collection_name,
@@ -376,7 +380,7 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
     ) -> Result<Vec<CollectionDto>, DatabaseOperationVerboseError>
     {
-        match find_all_collections_from_db_file(db_file_path) {
+        match find_all_collections_from_database(db_file_path) {
             Ok(collections) => return Ok(collections),
             Err(err) => return Err(DatabaseOperationVerboseError::new(
                 DatabaseOperationErrorKind::FindCollectionMany,
@@ -392,7 +396,7 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
     ) -> Result<Option<CollectionDto>, DatabaseOperationVerboseError>
     {
-        match find_collection_from_db_file(
+        match find_collection_from_database(
             collection_name,
             db_file_path
         ) {

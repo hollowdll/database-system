@@ -82,8 +82,8 @@ pub fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
 
 /// Creates a new collection to a database.
 /// 
-/// Writes the modified database to a file.
-pub fn create_collection_to_db_file(
+/// Writes the modified database to the database file.
+pub fn create_collection_to_database(
     collection_name: &str,
     file_path: &Path,
 ) -> Result<(), Box<dyn Error>>
@@ -110,8 +110,8 @@ pub fn create_collection_to_db_file(
 
 /// Deletes a collection from a database.
 /// 
-/// Writes the modified database to a file.
-pub fn delete_collection_from_db_file(
+/// Writes the modified database to the database file.
+pub fn delete_collection_from_database(
     collection_name: &str,
     file_path: &Path
 ) -> Result<(), Box<dyn Error>>
@@ -149,10 +149,10 @@ pub fn delete_collection_from_db_file(
     }
 }
 
-/// Finds all collections from a database file.
+/// Finds all collections from a database.
 /// 
 /// Returns the found collections.
-pub fn find_all_collections_from_db_file(
+pub fn find_all_collections_from_database(
     file_path: &Path
 ) -> Result<Vec<CollectionDto>, Box<dyn Error>>
 {
@@ -173,10 +173,10 @@ pub fn find_all_collections_from_db_file(
     Ok(collections)
 }
 
-/// Finds a collection from a database file.
+/// Finds a collection from a database.
 /// 
 /// Returns the found collection.
-pub fn find_collection_from_db_file(
+pub fn find_collection_from_database(
     collection_name: &str,
     file_path: &Path
 ) -> Result<Option<CollectionDto>, Box<dyn Error>>

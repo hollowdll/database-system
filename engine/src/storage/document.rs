@@ -116,10 +116,10 @@ impl fmt::Display for DataType {
 
 /// Creates a document to a collection.
 /// 
-/// Writes the modified database to a file.
+/// Writes the modified database to the database file.
 /// 
 /// Returns the created document.
-pub fn create_document_to_db_file(
+pub fn create_document_to_collection(
     file_path: &Path,
     collection_name: &str, 
     data: HashMap<String, DataType>,
@@ -170,8 +170,8 @@ pub fn create_document_to_db_file(
 
 /// Replaces a document's data. Keeps the document id.
 /// 
-/// Writes the modified database to a file.
-pub fn replace_document_in_db_file(
+/// Writes the modified database to the database file.
+pub fn replace_document_in_collection(
     file_path: &Path,
     document_id: &u64,
     collection_name: &str,
@@ -208,8 +208,8 @@ pub fn replace_document_in_db_file(
 
 /// Deletes a document from a collection by document id.
 /// 
-/// Writes the modified database to a file.
-pub fn delete_document_from_db_file(
+/// Writes the modified database to the database file.
+pub fn delete_document_from_collection(
     file_path: &Path,
     document_id: &u64,
     collection_name: &str,
