@@ -95,6 +95,6 @@ mod tests {
         assert!(create_db_dir_if_not_exists(new_dir.as_path()).is_ok());
         assert!(new_dir.is_dir());
 
-        base_dir.close().expect("Failed to clean up tempdir before dropping.");
+        base_dir.close().unwrap();
     }
 }

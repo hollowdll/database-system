@@ -343,7 +343,7 @@ impl<'a> DatabaseManager<'a> {
         db_name: &str,
     ) -> Result<Option<DatabaseDto>, DatabaseOperationVerboseError>
     {
-        if let Err(err) = storage::create_db_dir_if_not_exists(&self.db_dir_path()) {
+        if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
             return Err(DatabaseOperationVerboseError::new(
                 DatabaseOperationErrorKind::FindDatabaseOne,
                 format!("Failed to create databases directory: {}", err)
