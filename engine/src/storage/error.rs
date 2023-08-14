@@ -11,6 +11,9 @@ pub enum DatabaseError {
 
     /// Database was not found.
     NotFound,
+
+    /// Database has empty name which is not allowed.
+    EmptyName,
 }
 
 impl fmt::Display for DatabaseError {
@@ -21,6 +24,7 @@ impl fmt::Display for DatabaseError {
             match self {
                 DatabaseError::Exists => "Database already exists",
                 DatabaseError::NotFound => "Database was not found",
+                DatabaseError::EmptyName => "Database cannot have empty name",
             }
         )
     }

@@ -33,6 +33,17 @@ impl pb::Database {
     pub fn collections_mut(&mut self) -> &mut Vec<pb::Collection> {
         &mut self.collections
     }
+
+    /// Validates database by checking its field values.
+    /// 
+    /// Returns any errors that may occur during the process.
+    pub fn validate_errors(&self) -> Result<(), DatabaseError> {
+        if self.name.is_empty() {
+            return Err(DatabaseError::EmptyName);
+        }
+
+        Ok(())
+    }
 }
 
 impl From<&str> for pb::Database {
@@ -112,8 +123,12 @@ pub fn create_database_file(
         return Err(Box::new(DatabaseError::Exists))
     }
 
-    let file = fs::File::create(file_path)?;
     let database = pb::Database::from(db_name);
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
+
+    let file = fs::File::create(file_path)?;
     let buf = serialize_database(&database)?;
 
     match write_database_to_file(&buf, file_path) {
@@ -149,6 +164,10 @@ pub fn change_database_description(
 
     let mut database = deserialize_database(&fs::read(file_path)?)?;
     database.description = description.to_string();
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
+
     let buf = serialize_database(&database)?;
 
     match write_database_to_file(&buf, file_path) {
@@ -183,6 +202,9 @@ pub fn find_all_databases(
                             ));
                         },
                     };
+                    if let Err(_) = database.validate_errors() {
+                        continue;
+                    }
 
                     let database_dto = DatabaseDto::new(
                         database.name,
@@ -215,6 +237,9 @@ pub fn find_database(
         if path.is_file() {
             if entry.file_name() == format!("{db_name}.{DB_FILE_EXTENSION}").as_str() {
                 let database = deserialize_database(&fs::read(&path)?)?;
+                if let Err(_) = database.validate_errors() {
+                    return Ok(None);
+                }
 
                 if database.name() == db_name {
                     let database_dto = DatabaseDto::new(
@@ -245,8 +270,8 @@ pub fn find_database_by_file_path(
     }
 
     let database = deserialize_database(&fs::read(file_path)?)?;
-    if database.name().is_empty() {
-        return Ok(None);
+    if let Err(_) = database.validate_errors() {
+        return Ok(None)
     }
 
     let database_dto = DatabaseDto::new(
