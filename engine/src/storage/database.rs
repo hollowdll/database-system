@@ -303,10 +303,10 @@ mod tests {
     fn test_change_database_description() {
         let description = "Test desc";
         let db_name = "test";
-        let mut database = Database::from(db_name);
-        let db_buf = serialize_database(&database).unwrap();
-        database.description = String::from(description);
-        let expected_db_buf = serialize_database(&database).unwrap();
+        let mut db = Database::from(db_name);
+        let db_buf = serialize_database(&db).unwrap();
+        db.description = String::from(description);
+        let expected_db_buf = serialize_database(&db).unwrap();
     
         let dir = tempdir().unwrap();
         let file_path = dir

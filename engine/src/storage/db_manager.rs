@@ -324,7 +324,7 @@ impl<'a> DatabaseManager<'a> {
         if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
             return Err(DatabaseOperationVerboseError::new(
                 DatabaseOperationErrorKind::FindDatabaseMany,
-                format!("Failed to create databases directory: {}", err)
+                format!("Failed to create database directory: {}", err)
             ));
         }
 
