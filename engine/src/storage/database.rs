@@ -245,6 +245,10 @@ pub fn find_database_by_file_path(
     }
 
     let database = deserialize_database(&fs::read(file_path)?)?;
+    if database.name().is_empty() {
+        return Ok(None);
+    }
+
     let database_dto = DatabaseDto::new(
         database.name,
         database.description,
@@ -254,7 +258,6 @@ pub fn find_database_by_file_path(
 
     Ok(Some(database_dto))
 }
-
 
 
 
@@ -268,15 +271,15 @@ mod tests {
 
     #[test]
     fn test_create_database_file() {
-        let db_name = "test";
-        let expected_db_buf = serialize_database(&Database::from(db_name)).unwrap();
+        let db = Database::from("test");
+        let expected_db_buf = serialize_database(&db).unwrap();
 
         let dir = tempdir().unwrap();
         let file_path = dir
             .path()
-            .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
 
-        assert!(create_database_file(db_name, &file_path).is_ok());
+        assert!(create_database_file(db.name(), &file_path).is_ok());
         assert_eq!(fs::read(&file_path).unwrap(), expected_db_buf);
 
         dir.close().unwrap();
@@ -284,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_delete_database_file() {
-        let db_name = "";
+        let db_name = "test";
         let dir = tempdir().unwrap();
         let file_path = dir
             .path()
@@ -292,7 +295,7 @@ mod tests {
         let file = File::create(&file_path).unwrap();
 
         assert_eq!(file_path.try_exists().unwrap(), true);
-        assert!(delete_database_file(file_path.as_path()).is_ok());
+        assert!(delete_database_file(&file_path).is_ok());
         assert_eq!(file_path.try_exists().unwrap(), false);
         
         drop(file);
@@ -302,8 +305,7 @@ mod tests {
     #[test]
     fn test_change_database_description() {
         let description = "Test desc";
-        let db_name = "test";
-        let mut db = Database::from(db_name);
+        let mut db = Database::from("test");
         let db_buf = serialize_database(&db).unwrap();
         db.description = String::from(description);
         let expected_db_buf = serialize_database(&db).unwrap();
@@ -311,7 +313,7 @@ mod tests {
         let dir = tempdir().unwrap();
         let file_path = dir
             .path()
-            .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
         let mut file = File::create(&file_path).unwrap();
     
         assert!(file.write_all(&db_buf).is_ok());
@@ -324,35 +326,61 @@ mod tests {
     
     #[test]
     fn test_find_all_databases() {
-        let dir = tempdir().unwrap();
-        let databases = find_all_databases(dir.path()).unwrap();
-        assert!(databases.len() == 0);
+        let db = Database::from("test");
+        let db_buf = serialize_database(&db).unwrap();
 
+        let dir = tempdir().unwrap();
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write_all(&db_buf).is_ok());
+        let databases = find_all_databases(dir.path()).unwrap();
+        assert_eq!(databases.get(0).unwrap().name(), db.name());
+        assert!(databases.len() == 1);
+
+        drop(file);
         dir.close().unwrap();
     }
 
     #[test]
     fn test_find_database() {
-        let db_name = "test";
-        let dir = tempdir().unwrap();
-        let db = find_database(db_name, dir.path()).unwrap();
-        assert!(db.is_none());
+        let db = Database::from("test");
+        let db_buf = serialize_database(&db).unwrap();
 
+        let dir = tempdir().unwrap();
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write_all(&db_buf).is_ok());
+        let found_db = find_database(db.name(), dir.path()).unwrap();
+        assert!(found_db.is_some());
+        assert_eq!(found_db.unwrap().name(), db.name());
+
+        drop(file);
         dir.close().unwrap();
     }
 
     #[test]
     fn test_find_database_by_file_path() {
-        let db_name = "test";
+        let db = Database::from("test");
+        let db_buf = serialize_database(&db).unwrap();
+
         let dir = tempdir().unwrap();
         let file_path = dir
             .path()
-            .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
         let mut file = File::create(&file_path).unwrap();
 
-        let db = find_database_by_file_path(&file_path).unwrap();
-        assert!(db.is_some());
+        assert!(file.write_all(&db_buf).is_ok());
+        let found_db = find_database_by_file_path(&file_path).unwrap();
+        assert!(found_db.is_some());
+        assert_eq!(found_db.unwrap().name(), db.name());
 
+        drop(file);
         dir.close().unwrap();
     }
 }
