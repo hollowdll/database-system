@@ -138,6 +138,8 @@ pub fn create_database_file(
 }
 
 /// Deletes a database file.
+/// 
+/// Checks if the file contains a valid database.
 pub fn delete_database_file(
     file_path: &Path
 ) -> Result<(), Box<dyn Error>>
@@ -145,6 +147,12 @@ pub fn delete_database_file(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
+
+    let database = deserialize_database(&fs::read(file_path)?)?;
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
+
     fs::remove_file(file_path)?;
     
     Ok(())
@@ -312,13 +320,16 @@ mod tests {
 
     #[test]
     fn test_delete_database_file() {
-        let db_name = "test";
+        let db = Database::from("test");
+        let db_buf = serialize_database(&db).unwrap();
+
         let dir = tempdir().unwrap();
         let file_path = dir
             .path()
-            .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
-        let file = File::create(&file_path).unwrap();
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
+        let mut file = File::create(&file_path).unwrap();
 
+        assert!(file.write_all(&db_buf).is_ok());
         assert_eq!(file_path.try_exists().unwrap(), true);
         assert!(delete_database_file(&file_path).is_ok());
         assert_eq!(file_path.try_exists().unwrap(), false);
