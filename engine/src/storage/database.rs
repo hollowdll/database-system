@@ -148,11 +148,7 @@ pub fn delete_database_file(
         return Err(Box::new(DatabaseError::NotFound));
     }
 
-    let database = deserialize_database(&fs::read(file_path)?)?;
-    if let Err(e) = database.validate_errors() {
-        return Err(Box::new(e));
-    }
-
+    deserialize_database(&fs::read(file_path)?)?;
     fs::remove_file(file_path)?;
     
     Ok(())

@@ -33,6 +33,17 @@ impl pb::Collection {
     pub fn id_count(&self) -> &u64 {
         &self.id_count
     }
+
+    /// Validates collection by checking its field values.
+    /// 
+    /// Returns any errors that may occur during the process.
+    pub fn validate_errors(&self) -> Result<(), CollectionError> {
+        if self.name.is_empty() {
+            return Err(CollectionError::EmptyName);
+        }
+
+        Ok(())
+    }
 }
 
 impl From<&str> for pb::Collection {
@@ -57,10 +68,9 @@ impl CollectionDto {
     pub fn name(&self) -> &str {
         &self.name
     }
-}
 
-impl From<&str> for CollectionDto {
-    fn from(name: &str) -> Self {
+    /// Creates a new instance of `CollectionDto`.
+    pub fn new(name: &str) -> Self {
         Self {
             name: String::from(name),
         }
@@ -68,17 +78,6 @@ impl From<&str> for CollectionDto {
 }
 
 
-
-/// Checks if a collection exists in a database.
-pub fn collection_exists(db: &pb::Database, collection_name: &str) -> bool {
-    for collection in db.collections() {
-        if collection.name() == collection_name {
-            return true;
-        }
-    }
-
-    false
-}
 
 /// Creates a new collection to a database.
 /// 
@@ -91,14 +90,24 @@ pub fn create_collection_to_database(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
+
     let mut database = deserialize_database(&fs::read(file_path)?)?;
-    
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
+
     // If collection already exists
-    if collection_exists(&database, collection_name) {
-        return Err(Box::new(CollectionError::Exists));
+    for collection in database.collections() {
+        if collection.name() == collection_name {
+            return Err(Box::new(CollectionError::Exists));
+        }
     }
 
     let collection = pb::Collection::from(collection_name);
+    if let Err(e) = collection.validate_errors() {
+        return Err(Box::new(e));
+    }
+
     database.collections_mut().push(collection);
     let buf = serialize_database(&database)?;
 
@@ -121,6 +130,10 @@ pub fn delete_collection_from_database(
     }
 
     let mut database = deserialize_database(&fs::read(file_path)?)?;
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
+
     let mut collection_exists = false;
 
     for collection in database.collections() {
@@ -159,14 +172,23 @@ pub fn find_all_collections_from_database(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-    let mut collections = Vec::new();
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
 
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
+    
+    let mut collections = Vec::new();
     for collection in database.collections() {
-        let collection_dto = CollectionDto::from(
-            collection.name()
-        );
-        
+        if let Err(e) = collection.validate_errors() {
+            let collection_dto = CollectionDto::new(
+                &format!("{} (Invalid collection: {})", collection.name(), e)
+            );
+            collections.push(collection_dto);
+            continue;
+        }
+
+        let collection_dto = CollectionDto::new(collection.name());
         collections.push(collection_dto);
     }
     
@@ -184,14 +206,21 @@ pub fn find_collection_from_database(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
+
     let mut database = deserialize_database(&fs::read(file_path)?)?;
+    if let Err(e) = database.validate_errors() {
+        return Err(Box::new(e));
+    }
 
-    if collection_exists(&database, collection_name) {
-        let collection_dto = CollectionDto::from(
-            collection_name
-        );
+    for collection in database.collections() {
+        if collection.name() == collection_name {
+            if let Err(e) = collection.validate_errors() {
+                return Err(Box::new(e));
+            }
 
-        return Ok(Some(collection_dto));
+            let collection_dto = CollectionDto::new(collection_name);
+            return Ok(Some(collection_dto));
+        }
     }
 
     Ok(None)
