@@ -350,66 +350,86 @@ pub fn find_document_from_collection_by_id(
 
 
 
-/*
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::io::{self, Write, Read};
     use tempfile::tempdir;
     use std::fs::File;
+    use crate::storage::pb::{
+        Database,
+        Collection,
+        Document,
+        document::{
+            DataType,
+            data_type,
+        }
+    };
 
+    // Inserts some data to documents that are created in tests
     fn insert_document_test_data(data: &mut HashMap<String, DataType>) {
         data.insert(
             String::from("first_name"),
-            DataType::Text(String::from("John"))
+            DataType {
+                data_type: Some(data_type::DataType::Text(String::from("John")))
+            }
         );
         data.insert(
             String::from("last_name"),
-            DataType::Text(String::from("Smith"))
+            DataType {
+                data_type: Some(data_type::DataType::Text(String::from("Smith")))
+            }
         );
         data.insert(
             String::from("age"),
-            DataType::Int32(30)
+            DataType {
+                data_type: Some(data_type::DataType::Int32(30))
+            }
         );
     }
 
     #[test]
     fn test_create_document_to_collection() {
-        let mut database = Database::from("test");
+        let mut db = Database::from("test");
         let collection_name = "test_collection";
-        database.collections_mut().push(DocumentCollection::from(collection_name));
-        let json = serde_json::to_string_pretty(&database).unwrap();
+        let mut collection = Collection::from(collection_name);
+        db.collections_mut().push(collection);
+        let db_buf = serialize_database(&db).unwrap();
 
         let mut data = HashMap::new();
         insert_document_test_data(&mut data);
         assert!(data.len() > 0);
 
-        let mut document = Document::from(&mut database);
+        let mut document = Document::new(
+            db.collections_mut()
+            .get_mut(0)
+            .unwrap());
         document.data = data.clone();
-        database
+        db
             .collections_mut()
             .get_mut(0)
             .unwrap()
             .documents_mut()
             .push(document);
-        let expected_json = serde_json::to_string_pretty(&database).unwrap();
+        let expected_db_buf = serialize_database(&db).unwrap();
 
         let dir = tempdir().unwrap();
-        let file_path = dir.path().join("test.json");
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
         let mut file = File::create(&file_path).unwrap();
 
-        assert!(file.write(json.as_bytes()).is_ok());
-        assert!(create_document(
+        assert!(file.write_all(&db_buf).is_ok());
+        let created_document = create_document_to_collection(
             &file_path,
             collection_name,
             data
-        ).is_ok());
-
-        let buf = fs::read_to_string(&file_path).unwrap();
-        assert_eq!(buf, expected_json);
+        ).unwrap();
+        assert!(created_document.id == 1);
+        assert_eq!(fs::read(&file_path).unwrap(), expected_db_buf);
 
         drop(file);
-        dir.close().expect("Failed to clean up tempdir before dropping.");
+        dir.close().unwrap();
     }
 
     /*
@@ -419,6 +439,7 @@ mod tests {
     }
     */
 
+    /*
     #[test]
     fn test_delete_document() {
         let mut database = Database::from("test");
@@ -510,6 +531,6 @@ mod tests {
 
         drop(file);
         dir.close().expect("Failed to clean up tempdir before dropping.");
-    }
+    }*/
 }
-*/
+
