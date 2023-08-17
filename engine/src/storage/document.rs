@@ -372,7 +372,7 @@ pub fn find_document_from_collection_by_id(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{self, Write, Read};
+    use std::{io::{self, Write, Read}, hash::Hash};
     use tempfile::tempdir;
     use std::fs::File;
     use crate::storage::pb::{
@@ -424,8 +424,7 @@ mod tests {
             .get_mut(0)
             .unwrap());
         document.data = data.clone();
-        db
-            .collections_mut()
+        db.collections_mut()
             .get_mut(0)
             .unwrap()
             .documents_mut()
@@ -451,12 +450,61 @@ mod tests {
         dir.close().unwrap();
     }
 
-    /*
+    
     #[test]
     fn test_replace_document_in_collection() {
+        let mut db = Database::from("test");
+        let collection_name = "test_collection";
+        let mut collection = Collection::from(collection_name);
+        db.collections_mut().push(collection);
 
+        let mut data = HashMap::new();
+        insert_document_test_data(&mut data);
+        assert!(data.len() > 0);
+
+        let mut document = Document::new(
+            db.collections_mut()
+            .get_mut(0)
+            .unwrap());
+        document.data = data;
+        db.collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .push(document);
+        let db_buf = serialize_database(&db).unwrap();
+
+        let mut new_data = HashMap::new();
+        new_data.insert(
+            String::from("name"),
+            DataType {
+                data_type: Some(data_type::DataType::Text(String::from("John Smith")))
+            }
+        );
+        let document = db.collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .get_mut(0)
+            .unwrap();
+        document.data = new_data.clone();
+        let expected_db_buf = serialize_database(&db).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write_all(&db_buf).is_ok());
+        assert!(replace_document_in_collection(&file_path, &1, collection_name, new_data).is_ok());
+        assert_eq!(fs::read(&file_path).unwrap(), expected_db_buf);
+
+        drop(file);
+        dir.close().unwrap();
     }
 
+    /*
     #[test]
     fn test_delete_document_from_collection() {
         let mut database = Database::from("test");
