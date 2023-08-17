@@ -41,6 +41,19 @@ impl pb::Document {
             data: HashMap::new(),
         }
     }
+
+    /// Validates document by checking its data.
+    /// 
+    /// Returns any errors that may occur during the process.
+    pub fn validate_errors(&self) -> Result<(), DocumentError> {
+        for (key, value) in self.data.iter() {
+            if key.is_empty() {
+                return Err(DocumentError::EmptyFieldName);
+            }
+        }
+
+        Ok(())
+    }
 }
 
 /// Document data transfer object (DTO).
@@ -150,6 +163,9 @@ pub fn create_document_to_collection(
         {
             let mut document = pb::Document::new(collection);
             document.data = data;
+            if let Err(e) = document.validate_errors() {
+                return Err(Box::new(e));
+            }
             let document_dto = DocumentDto::new(
                 document.id,
                 &document.data
@@ -191,6 +207,9 @@ pub fn replace_document_in_collection(
                 .find(|document| document.id() == document_id)
             {
                 document.data = data;
+                if let Err(e) = document.validate_errors() {
+                    return Err(Box::new(e));
+                }
                 let buf = serialize_database(&database)?;
 
                 match write_database_to_file(&buf, file_path) {
@@ -434,14 +453,12 @@ mod tests {
 
     /*
     #[test]
-    fn test_delete_document_from_collection() {
-        assert!(false);
-    }
-    */
+    fn test_replace_document_in_collection() {
 
-    /*
+    }
+
     #[test]
-    fn test_delete_document() {
+    fn test_delete_document_from_collection() {
         let mut database = Database::from("test");
         let collection_name = "test_collection";
         database.collections_mut().push(DocumentCollection::from(collection_name));
