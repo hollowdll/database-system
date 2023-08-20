@@ -551,29 +551,47 @@ mod tests {
         dir.close().unwrap();
     }
 
-    /*
+    
     #[test]
-    fn test_find_all_documents_of_collection() {
-        let mut database = Database::from("test");
+    fn test_find_all_documents_from_collection() {
+        let mut db = Database::from("test");
         let collection_name = "test_collection";
-        database.collections_mut().push(DocumentCollection::from(collection_name));
-        let json = serde_json::to_string_pretty(&database).unwrap();
+        let mut collection = Collection::from(collection_name);
+        db.collections_mut().push(collection);
+
+        let mut data = HashMap::new();
+        insert_document_test_data(&mut data);
+        assert!(data.len() > 0);
+
+        let mut document = Document::new(
+            db.collections_mut()
+            .get_mut(0)
+            .unwrap());
+        document.data = data;
+        db.collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .push(document);
+        let db_buf = serialize_database(&db).unwrap();
 
         let dir = tempdir().unwrap();
-        let file_path = dir.path().join("test.json");
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
         let mut file = File::create(&file_path).unwrap();
-        assert!(file.write(json.as_bytes()).is_ok());
 
+        assert!(file.write_all(&db_buf).is_ok());
         let documents = find_all_documents_from_collection(
             &file_path,
             collection_name
         ).unwrap();
-        assert!(documents.len() == 0);
+        assert!(documents.len() == 1);
 
         drop(file);
-        dir.close().expect("Failed to clean up tempdir before dropping.");
+        dir.close().unwrap();
     }
-
+    /*
     #[test]
     fn test_find_document_by_id() {
         let mut database = Database::from("test");
