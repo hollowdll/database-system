@@ -26,9 +26,16 @@ use crate::{
 /// 
 /// Storage API methods return this.
 pub struct StorageRequestResult<T> {
+    /// Whether result is successful.
     pub success: bool,
+
+    /// Possible error.
     pub error: Option<DatabaseOperationVerboseError>,
+
+    /// Data that is returned.
     pub data: Option<T>,
+
+    /// Possible error that occurred during logging.
     pub log_error: Option<LogError>,
 }
 
@@ -64,7 +71,7 @@ impl<'a> StorageApi<'a> {
     pub fn create_database_to_db_dir(
         &self,
         db_name: &str,
-    ) -> StorageRequestResult<DatabaseDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.create_database_to_db_dir(db_name) {
             Ok(()) => {
@@ -117,7 +124,7 @@ impl<'a> StorageApi<'a> {
         &self,
         db_name: &str,
         db_file_path: &Path,
-    ) -> StorageRequestResult<DatabaseDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.create_database_by_file_path(db_name, db_file_path) {
             Ok(()) => {
@@ -169,7 +176,7 @@ impl<'a> StorageApi<'a> {
     pub fn delete_database(
         &self,
         db_file_path: &Path,
-    ) -> StorageRequestResult<DatabaseDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.delete_database(db_file_path) {
             Ok(()) => {
@@ -222,7 +229,7 @@ impl<'a> StorageApi<'a> {
         &self,
         db_file_path: &Path,
         description: &str,
-    ) -> StorageRequestResult<DatabaseDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.change_database_description(db_file_path, description) {
             Ok(()) => {
@@ -275,7 +282,7 @@ impl<'a> StorageApi<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> StorageRequestResult<CollectionDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.create_collection(collection_name, db_file_path) {
             Ok(()) => {
@@ -333,7 +340,7 @@ impl<'a> StorageApi<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> StorageRequestResult<CollectionDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.delete_collection(collection_name, db_file_path) {
             Ok(()) => {
@@ -453,7 +460,7 @@ impl<'a> StorageApi<'a> {
         document_id: &u64,
         collection_name: &str,
         data: Vec<DocumentInputDataField>,
-    ) -> StorageRequestResult<DocumentDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager
             .replace_document(db_file_path, document_id, collection_name, data)
@@ -516,7 +523,7 @@ impl<'a> StorageApi<'a> {
         db_file_path: &Path,
         document_id: &u64,
         collection_name: &str,
-    ) -> StorageRequestResult<DocumentDto>
+    ) -> StorageRequestResult<()>
     {
         match self.db_manager.delete_document(db_file_path, document_id, collection_name) {
             Ok(()) => {
