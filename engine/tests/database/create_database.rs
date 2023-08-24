@@ -1,21 +1,15 @@
 use engine::{
-    config::Config,
     Logger,
     Engine,
     storage::DB_FILE_EXTENSION,
 };
-use tempfile::tempdir;
+use crate::common::ConfigSettings;
 
 #[test]
 fn create_database_to_db_dir_success() {
-    let db_dir = tempdir().unwrap();
-    let logs_dir = tempdir().unwrap();
-    let config = Config::new(
-        db_dir.path(),
-        logs_dir.path()
-    );
-    let logger = Logger::build(&config);
-    let engine = Engine::build(&config, &logger);
+    let config_settings = ConfigSettings::new();
+    let logger = Logger::build(&config_settings.config);
+    let engine = Engine::build(&config_settings.config, &logger);
     let db_name = "test";
 
     let result = engine
@@ -36,22 +30,17 @@ fn create_database_to_db_dir_success() {
     assert!(db.is_some());
     assert_eq!(db.unwrap().name(), db_name);
 
-    db_dir.close().unwrap();
-    logs_dir.close().unwrap();
+    config_settings.db_dir.close().unwrap();
+    config_settings.logs_dir.close().unwrap();
 }
 
 #[test]
 fn create_database_by_file_path_success() {
-    let db_dir = tempdir().unwrap();
-    let logs_dir = tempdir().unwrap();
-    let config = Config::new(
-        db_dir.path(),
-        logs_dir.path()
-    );
-    let logger = Logger::build(&config);
-    let engine = Engine::build(&config, &logger);
+    let config_settings = ConfigSettings::new();
+    let logger = Logger::build(&config_settings.config);
+    let engine = Engine::build(&config_settings.config, &logger);
     let db_name = "test";
-    let file_path = db_dir
+    let file_path = config_settings.db_dir
         .path()
         .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
 
@@ -73,6 +62,6 @@ fn create_database_by_file_path_success() {
     assert!(db.is_some());
     assert_eq!(db.unwrap().name(), db_name);
 
-    db_dir.close().unwrap();
-    logs_dir.close().unwrap();
+    config_settings.db_dir.close().unwrap();
+    config_settings.logs_dir.close().unwrap();
 }

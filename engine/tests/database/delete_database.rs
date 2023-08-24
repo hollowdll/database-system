@@ -1,23 +1,17 @@
 use engine::{
-    config::Config,
     Logger,
     Engine,
     storage::DB_FILE_EXTENSION,
 };
-use tempfile::tempdir;
+use crate::common::ConfigSettings;
 
 #[test]
 fn delete_database_success() {
-    let db_dir = tempdir().unwrap();
-    let logs_dir = tempdir().unwrap();
-    let config = Config::new(
-        db_dir.path(),
-        logs_dir.path()
-    );
-    let logger = Logger::build(&config);
-    let engine = Engine::build(&config, &logger);
+    let config_settings = ConfigSettings::new();
+    let logger = Logger::build(&config_settings.config);
+    let engine = Engine::build(&config_settings.config, &logger);
     let db_name = "test";
-    let file_path = db_dir
+    let file_path = config_settings.db_dir
         .path()
         .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
 
@@ -46,6 +40,6 @@ fn delete_database_success() {
     assert!(result.success);
     assert!(result.data.unwrap().is_none());
 
-    db_dir.close().unwrap();
-    logs_dir.close().unwrap();
+    config_settings.db_dir.close().unwrap();
+    config_settings.logs_dir.close().unwrap();
 }
