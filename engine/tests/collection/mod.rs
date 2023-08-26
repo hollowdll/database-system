@@ -2,3 +2,4 @@
 
 mod create_collection;
 mod delete_collection;
+mod find_collection;
