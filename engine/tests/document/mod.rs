@@ -2,3 +2,4 @@
 
 mod create_document;
 mod replace_document;
+mod delete_document;
