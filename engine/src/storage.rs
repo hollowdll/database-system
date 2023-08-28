@@ -35,7 +35,7 @@ use prost::{
 pub const DB_FILE_EXTENSION: &str = "db";
 
 /// Creates databases directory if it doesn't exist.
-pub fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
+fn create_db_dir_if_not_exists(path: &Path) -> io::Result<()> {
     if !path.is_dir() {
         fs::create_dir(path)?;
     }

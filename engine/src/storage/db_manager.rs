@@ -14,7 +14,6 @@ use crate::{
         self,
         error::{
             DatabaseOperationError,
-            DatabaseOperationVerboseError,
             DatabaseOperationErrorKind,
         },
         pb::document::DataType,
@@ -63,10 +62,10 @@ impl<'a> DatabaseManager<'a> {
     pub fn create_database_to_db_dir(
         &self,
         db_name: &str,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::CreateDatabase,
                 format!("Failed to create databases directory: {}", err)
             ));
@@ -76,7 +75,7 @@ impl<'a> DatabaseManager<'a> {
             db_name,
             &self.db_file_path(db_name)
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::CreateDatabase,
                 err.to_string()
             ));
@@ -90,13 +89,13 @@ impl<'a> DatabaseManager<'a> {
         &self,
         db_name: &str,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = create_database_file(
             db_name,
             db_file_path
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::CreateDatabase,
                 err.to_string()
             ));
@@ -109,10 +108,10 @@ impl<'a> DatabaseManager<'a> {
     pub fn delete_database(
         &self,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = delete_database_file(db_file_path) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::DeleteDatabase,
                 err.to_string()
             ));
@@ -126,13 +125,13 @@ impl<'a> DatabaseManager<'a> {
         &self,
         db_file_path: &Path,
         description: &str,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = change_database_description(
             description,
             db_file_path
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::ModifyDatabase,
                 err.to_string()
             ));
@@ -146,13 +145,13 @@ impl<'a> DatabaseManager<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = create_collection_to_database(
             collection_name,
             db_file_path
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::CreateCollection,
                 err.to_string()
             ));
@@ -166,13 +165,13 @@ impl<'a> DatabaseManager<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = delete_collection_from_database(
             collection_name,
             db_file_path
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::DeleteCollection,
                 err.to_string()
             ));
@@ -191,7 +190,7 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
         collection_name: &str,
         input_data: Vec<DocumentInputDataField>,
-    ) -> Result<DocumentDto, DatabaseOperationVerboseError>
+    ) -> Result<DocumentDto, DatabaseOperationError>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
@@ -199,7 +198,7 @@ impl<'a> DatabaseManager<'a> {
         for data_field in input_data {
             // Don't allow empty field name
             if data_field.field().is_empty() {
-                return Err(DatabaseOperationVerboseError::new(
+                return Err(DatabaseOperationError::new(
                     DatabaseOperationErrorKind::CreateDocument,
                     DocumentError::EmptyFieldName.to_string()
                 ));
@@ -210,7 +209,7 @@ impl<'a> DatabaseManager<'a> {
                 data_field.data_type()
             ) {
                 Ok(converted_value) => converted_value,
-                Err(err) => return Err(DatabaseOperationVerboseError::new(
+                Err(err) => return Err(DatabaseOperationError::new(
                     DatabaseOperationErrorKind::CreateDocument,
                     format!(
                         "Data type '{}' is not valid: {}",
@@ -229,7 +228,7 @@ impl<'a> DatabaseManager<'a> {
             document_data
         ) {
             Ok(created_document) => created_document,
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::CreateDocument,
                 err.to_string()
             )),
@@ -247,7 +246,7 @@ impl<'a> DatabaseManager<'a> {
         document_id: &u64,
         collection_name: &str,
         input_data: Vec<DocumentInputDataField>,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         let mut document_data: HashMap<String, DataType> = HashMap::new();
 
@@ -255,7 +254,7 @@ impl<'a> DatabaseManager<'a> {
         for data_field in input_data {
             // Don't allow empty field name
             if data_field.field().is_empty() {
-                return Err(DatabaseOperationVerboseError::new(
+                return Err(DatabaseOperationError::new(
                     DatabaseOperationErrorKind::ReplaceDocument,
                     DocumentError::EmptyFieldName.to_string()
                 ));
@@ -266,7 +265,7 @@ impl<'a> DatabaseManager<'a> {
                 data_field.data_type()
             ) {
                 Ok(converted_value) => converted_value,
-                Err(err) => return Err(DatabaseOperationVerboseError::new(
+                Err(err) => return Err(DatabaseOperationError::new(
                     DatabaseOperationErrorKind::ReplaceDocument,
                     format!(
                         "Data type '{}' is not valid: {}",
@@ -285,7 +284,7 @@ impl<'a> DatabaseManager<'a> {
             collection_name,
             document_data
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::ReplaceDocument,
                 err.to_string()
             ));
@@ -300,14 +299,14 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
         document_id: &u64,
         collection_name: &str,
-    ) -> Result<(), DatabaseOperationVerboseError>
+    ) -> Result<(), DatabaseOperationError>
     {
         if let Err(err) = delete_document_from_collection(
             db_file_path,
             document_id,
             collection_name,
         ) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::DeleteDocument,
                 err.to_string()
             ));
@@ -319,10 +318,10 @@ impl<'a> DatabaseManager<'a> {
     /// Finds all databases from database directory.
     pub fn find_all_databases(
         &self,
-    ) -> Result<Vec<DatabaseDto>, DatabaseOperationVerboseError>
+    ) -> Result<Vec<DatabaseDto>, DatabaseOperationError>
     {
         if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDatabaseMany,
                 format!("Failed to create database directory: {}", err)
             ));
@@ -330,7 +329,7 @@ impl<'a> DatabaseManager<'a> {
 
         match find_all_databases(&self.db_dir_path()) {
             Ok(databases) => return Ok(databases),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDatabaseMany,
                 err.to_string()
             )),
@@ -341,10 +340,10 @@ impl<'a> DatabaseManager<'a> {
     pub fn find_database(
         &self,
         db_name: &str,
-    ) -> Result<Option<DatabaseDto>, DatabaseOperationVerboseError>
+    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
         if let Err(err) = create_db_dir_if_not_exists(&self.db_dir_path()) {
-            return Err(DatabaseOperationVerboseError::new(
+            return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDatabaseOne,
                 format!("Failed to create databases directory: {}", err)
             ));
@@ -352,7 +351,7 @@ impl<'a> DatabaseManager<'a> {
 
         match find_database(db_name, &self.db_dir_path()) {
             Ok(database) => return Ok(database),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDatabaseOne,
                 err.to_string()
             )),
@@ -363,11 +362,11 @@ impl<'a> DatabaseManager<'a> {
     pub fn find_database_by_file_path(
         &self,
         db_file_path: &Path,
-    ) -> Result<Option<DatabaseDto>, DatabaseOperationVerboseError>
+    ) -> Result<Option<DatabaseDto>, DatabaseOperationError>
     {
         match find_database_by_file_path(db_file_path) {
             Ok(db) => return Ok(db),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDatabaseOne,
                 err.to_string()
             )),
@@ -378,11 +377,11 @@ impl<'a> DatabaseManager<'a> {
     pub fn find_all_collections(
         &self,
         db_file_path: &Path,
-    ) -> Result<Vec<CollectionDto>, DatabaseOperationVerboseError>
+    ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
     {
         match find_all_collections_from_database(db_file_path) {
             Ok(collections) => return Ok(collections),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindCollectionMany,
                 err.to_string()
             )),
@@ -394,14 +393,14 @@ impl<'a> DatabaseManager<'a> {
         &self,
         collection_name: &str,
         db_file_path: &Path,
-    ) -> Result<Option<CollectionDto>, DatabaseOperationVerboseError>
+    ) -> Result<Option<CollectionDto>, DatabaseOperationError>
     {
         match find_collection_from_database(
             collection_name,
             db_file_path
         ) {
             Ok(collection) => return Ok(collection),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindCollectionOne,
                 err.to_string()
             )),
@@ -413,14 +412,14 @@ impl<'a> DatabaseManager<'a> {
         &self,
         db_file_path: &Path,
         collection_name: &str,
-    ) -> Result<Vec<DocumentDto>, DatabaseOperationVerboseError>
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match find_all_documents_from_collection(
             db_file_path,
             collection_name
         ) {
             Ok(document) => return Ok(document),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDocumentMany,
                 err.to_string()
             )),
@@ -433,7 +432,7 @@ impl<'a> DatabaseManager<'a> {
         db_file_path: &Path,
         collection_name: &str,
         limit: usize,
-    ) -> Result<Vec<DocumentDto>, DatabaseOperationVerboseError>
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match find_documents_from_collection_limit(
             db_file_path,
@@ -441,7 +440,7 @@ impl<'a> DatabaseManager<'a> {
             limit
         ) {
             Ok(document) => return Ok(document),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDocumentMany,
                 err.to_string()
             )),
@@ -454,7 +453,7 @@ impl<'a> DatabaseManager<'a> {
         document_id: &u64,
         db_file_path: &Path,
         collection_name: &str,
-    ) -> Result<Option<DocumentDto>, DatabaseOperationVerboseError>
+    ) -> Result<Option<DocumentDto>, DatabaseOperationError>
     {
         match find_document_from_collection_by_id(
             db_file_path,
@@ -462,7 +461,7 @@ impl<'a> DatabaseManager<'a> {
             collection_name,
         ) {
             Ok(document) => return Ok(document),
-            Err(err) => return Err(DatabaseOperationVerboseError::new(
+            Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDocumentOne,
                 err.to_string()
             )),

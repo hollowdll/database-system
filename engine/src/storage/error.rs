@@ -124,26 +124,7 @@ impl Error for ParseError {}
 
 /// Error type for database operation failures.
 #[derive(Debug)]
-pub struct DatabaseOperationError(pub String);
-
-impl fmt::Display for DatabaseOperationError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Database operation failed: {}",
-            self.0
-        )
-    }
-}
-
-impl Error for DatabaseOperationError {}
-
-/// Error type for database operation failures.
-/// 
-/// This is a verbose version of `DatabaseOperationError`
-/// with separated error kind and message.
-#[derive(Debug)]
-pub struct DatabaseOperationVerboseError {
+pub struct DatabaseOperationError {
     /// Database operation that failed.
     pub kind: DatabaseOperationErrorKind,
 
@@ -196,7 +177,7 @@ pub enum DatabaseOperationErrorKind {
     FindDocumentMany,
 }
 
-impl fmt::Display for DatabaseOperationVerboseError {
+impl fmt::Display for DatabaseOperationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -222,8 +203,8 @@ impl fmt::Display for DatabaseOperationVerboseError {
     }
 }
 
-impl DatabaseOperationVerboseError {
-    /// Creates a new `DatabaseOperationVerboseError`.
+impl DatabaseOperationError {
+    /// Creates a new `DatabaseOperationError`.
     pub fn new(kind: DatabaseOperationErrorKind, message: String) -> Self {
         Self {
             kind,
@@ -232,4 +213,4 @@ impl DatabaseOperationVerboseError {
     }
 }
 
-impl Error for DatabaseOperationVerboseError {}
+impl Error for DatabaseOperationError {}

@@ -5,10 +5,7 @@ use crate::{
     DatabaseManager,
     Logger,
     storage::{
-        error::{
-            DatabaseOperationError,
-            DatabaseOperationVerboseError,
-        },
+        error::DatabaseOperationError,
         database::DatabaseDto,
         collection::CollectionDto,
         document::DocumentDto,
@@ -20,7 +17,8 @@ use crate::{
     },
 };
 
-/// Result for storage API calls that handle database operations.
+/// Result for storage API calls.
+/// Storage API calls `DatabaseManager` methods to do database operations.
 /// 
 /// T = Type for returned data.
 /// 
@@ -29,8 +27,8 @@ pub struct StorageRequestResult<T> {
     /// Whether result is successful.
     pub success: bool,
 
-    /// Possible error.
-    pub error: Option<DatabaseOperationVerboseError>,
+    /// Possible database operation error.
+    pub error: Option<DatabaseOperationError>,
 
     /// Data that is returned.
     pub data: Option<T>,
