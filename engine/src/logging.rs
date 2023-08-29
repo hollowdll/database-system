@@ -17,7 +17,10 @@ use chrono::{
 use self::error::LogError;
 use crate::Config;
 
-pub const DB_EVENTS_LOG: &str = "events.log";
+/// Events log file name.
+pub const EVENTS_LOG: &str = "events.log";
+
+/// Errors log file name.
 pub const ERRORS_LOG: &str = "errors.log";
 
 /// Event log that can be written to log files.
@@ -100,7 +103,7 @@ impl<'a> Logger<'a> {
 
     /// Gets database events log file path.
     pub fn get_db_events_log_path(&self) -> PathBuf {
-        self.logs_dir_path().join(DB_EVENTS_LOG)
+        self.logs_dir_path().join(EVENTS_LOG)
     }
 
     /// Gets errors log file path.
