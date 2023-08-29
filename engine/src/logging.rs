@@ -1,5 +1,5 @@
 // Logging module that handles logs.
-// All database events and errors are logged to .log files.
+// All events and errors are logged to .log files.
 
 //#![allow(unused)]
 
@@ -20,13 +20,13 @@ use crate::Config;
 pub const DB_EVENTS_LOG: &str = "events.log";
 pub const ERRORS_LOG: &str = "errors.log";
 
-/// Database event log to write to log file.
-struct DatabaseEventLog {
+/// Event log that can be written to log files.
+struct EventLog {
     created: DateTime<Local>,
     content: String,
 }
 
-impl DatabaseEventLog {
+impl EventLog {
     fn format(&self) -> String {
         format!(
             "[{}] {}\n",
@@ -34,10 +34,8 @@ impl DatabaseEventLog {
             self.content
         )
     }
-}
 
-impl DatabaseEventLog {
-    fn from(content: &str) -> Self {
+    fn new(content: &str) -> Self {
         Self {
             created: Local::now(),
             content: String::from(content),
@@ -45,7 +43,7 @@ impl DatabaseEventLog {
     }
 }
 
-/// Error log to write to log file.
+/// Error log that can be written to log files.
 struct ErrorLog {
     created: DateTime<Local>,
     error_type: ErrorLogType,
@@ -61,10 +59,8 @@ impl ErrorLog {
             self.content
         )
     }
-}
 
-impl ErrorLog {
-    fn from(error_type: ErrorLogType, content: &str) -> Self {
+    fn new(error_type: ErrorLogType, content: &str) -> Self {
         Self {
             created: Local::now(),
             error_type,
@@ -114,13 +110,13 @@ impl<'a> Logger<'a> {
 }
 
 impl<'a> Logger<'a> {
-    /// Logs an event to log file.
+    /// Logs an event to event log file.
     pub fn log_event(
         &self,
         content: &str,
     ) -> Result<(), LogError>
     {
-        let log = DatabaseEventLog::from(content).format();
+        let log = EventLog::new(content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
             return Err(LogError::CreateDir(e.to_string()));
@@ -140,14 +136,14 @@ impl<'a> Logger<'a> {
         Ok(())
     }
 
-    /// Logs an error to log file.
+    /// Logs an error to error log file.
     pub fn log_error(
         &self,
         error_type: ErrorLogType,
         content: &str,
     ) -> Result<(), LogError>
     {
-        let log = ErrorLog::from(error_type, content).format();
+        let log = ErrorLog::new(error_type, content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
             return Err(LogError::CreateDir(e.to_string()));
@@ -199,7 +195,7 @@ fn write_log_file(file_path: &Path, content: &str) -> io::Result<()> {
 }
 
 
-/* DISABLED. WILL BE UPDATED
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,7 +214,7 @@ mod tests {
 
         base_dir.close().expect("Failed to clean up tempdir before dropping.");
     }
-
+    /*
     #[test]
     fn test_create_log_file_if_not_exists() {
         let base_dir = tempdir().unwrap();
@@ -298,6 +294,6 @@ mod tests {
 
         drop(file);
         dir.close().expect("Failed to clean up tempdir before dropping.");
-    }
+    }*/
 }
 */
