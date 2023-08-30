@@ -14,7 +14,10 @@ use chrono::{
     DateTime,
     Local,
 };
-use self::error::LogError;
+use self::error::{
+    LogError,
+    LogErrorKind,
+};
 use crate::Config;
 
 /// Events log file name.
@@ -124,18 +127,18 @@ impl<'a> Logger<'a> {
         let log = EventLog::new(content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
-            return Err(LogError::CreateDir(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateDir, e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(
             &self.get_events_log_path()
         ) {
-            return Err(LogError::CreateFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateFile, e.to_string()));
         }
         if let Err(e) = write_log_file(
             &self.get_events_log_path(),
             &log
         ) {
-            return Err(LogError::WriteFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::WriteFile, e.to_string()));
         }
 
         Ok(())
@@ -153,18 +156,18 @@ impl<'a> Logger<'a> {
         let log = ErrorLog::new(error_type, content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
-            return Err(LogError::CreateDir(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateDir, e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(
             &self.get_errors_log_path()
         ) {
-            return Err(LogError::CreateFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateFile, e.to_string()));
         }
         if let Err(e) = write_log_file(
             &self.get_errors_log_path(),
             &log
         ) {
-            return Err(LogError::WriteFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::WriteFile, e.to_string()));
         }
 
         Ok(())
