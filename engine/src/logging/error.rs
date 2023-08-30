@@ -1,5 +1,3 @@
-// Errors types for logging
-
 use std::error::Error;
 use std::fmt;
 

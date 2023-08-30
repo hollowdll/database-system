@@ -101,8 +101,8 @@ impl<'a> Logger<'a> {
         &self.config.logs_dir_path
     }
 
-    /// Gets database events log file path.
-    pub fn get_db_events_log_path(&self) -> PathBuf {
+    /// Gets events log file path.
+    pub fn get_events_log_path(&self) -> PathBuf {
         self.logs_dir_path().join(EVENTS_LOG)
     }
 
@@ -114,6 +114,8 @@ impl<'a> Logger<'a> {
 
 impl<'a> Logger<'a> {
     /// Logs an event to event log file.
+    /// 
+    /// Writes the data to the file by appending.
     pub fn log_event(
         &self,
         content: &str,
@@ -125,12 +127,12 @@ impl<'a> Logger<'a> {
             return Err(LogError::CreateDir(e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(
-            &self.get_db_events_log_path()
+            &self.get_events_log_path()
         ) {
             return Err(LogError::CreateFile(e.to_string()));
         }
         if let Err(e) = write_log_file(
-            &self.get_db_events_log_path(),
+            &self.get_events_log_path(),
             &log
         ) {
             return Err(LogError::WriteFile(e.to_string()));
@@ -140,6 +142,8 @@ impl<'a> Logger<'a> {
     }
 
     /// Logs an error to error log file.
+    /// 
+    /// Writes the data to the file by appending.
     pub fn log_error(
         &self,
         error_type: ErrorLogType,
