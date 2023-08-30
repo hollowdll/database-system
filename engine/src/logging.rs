@@ -14,10 +14,16 @@ use chrono::{
     DateTime,
     Local,
 };
-use self::error::LogError;
+use self::error::{
+    LogError,
+    LogErrorKind,
+};
 use crate::Config;
 
-pub const DB_EVENTS_LOG: &str = "events.log";
+/// Events log file name.
+pub const EVENTS_LOG: &str = "events.log";
+
+/// Errors log file name.
 pub const ERRORS_LOG: &str = "errors.log";
 
 /// Event log that can be written to log files.
@@ -98,9 +104,9 @@ impl<'a> Logger<'a> {
         &self.config.logs_dir_path
     }
 
-    /// Gets database events log file path.
-    pub fn get_db_events_log_path(&self) -> PathBuf {
-        self.logs_dir_path().join(DB_EVENTS_LOG)
+    /// Gets events log file path.
+    pub fn get_events_log_path(&self) -> PathBuf {
+        self.logs_dir_path().join(EVENTS_LOG)
     }
 
     /// Gets errors log file path.
@@ -111,6 +117,8 @@ impl<'a> Logger<'a> {
 
 impl<'a> Logger<'a> {
     /// Logs an event to event log file.
+    /// 
+    /// Writes the data to the file by appending.
     pub fn log_event(
         &self,
         content: &str,
@@ -119,24 +127,26 @@ impl<'a> Logger<'a> {
         let log = EventLog::new(content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
-            return Err(LogError::CreateDir(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateDir, e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(
-            &self.get_db_events_log_path()
+            &self.get_events_log_path()
         ) {
-            return Err(LogError::CreateFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateFile, e.to_string()));
         }
         if let Err(e) = write_log_file(
-            &self.get_db_events_log_path(),
+            &self.get_events_log_path(),
             &log
         ) {
-            return Err(LogError::WriteFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::WriteFile, e.to_string()));
         }
 
         Ok(())
     }
 
     /// Logs an error to error log file.
+    /// 
+    /// Writes the data to the file by appending.
     pub fn log_error(
         &self,
         error_type: ErrorLogType,
@@ -146,18 +156,18 @@ impl<'a> Logger<'a> {
         let log = ErrorLog::new(error_type, content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
-            return Err(LogError::CreateDir(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateDir, e.to_string()));
         }
         if let Err(e) = create_log_file_if_not_exists(
             &self.get_errors_log_path()
         ) {
-            return Err(LogError::CreateFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::CreateFile, e.to_string()));
         }
         if let Err(e) = write_log_file(
             &self.get_errors_log_path(),
             &log
         ) {
-            return Err(LogError::WriteFile(e.to_string()));
+            return Err(LogError::new(LogErrorKind::WriteFile, e.to_string()));
         }
 
         Ok(())

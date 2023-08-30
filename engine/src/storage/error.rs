@@ -132,6 +132,7 @@ pub struct DatabaseOperationError {
     pub message: String,
 }
 
+/// Kind of database operation error.
 #[derive(Debug)]
 pub enum DatabaseOperationErrorKind {
     /// Failed to create database.
