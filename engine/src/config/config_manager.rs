@@ -32,15 +32,13 @@ impl<'a> ConfigManager<'a> {
 }
 
 impl<'a> ConfigManager<'a> {
-    /// Loads configuration data from config file.
+    /// Loads configuration data from config file. Creates the file
+    /// with default configs if it doesn't exist.
     /// 
     /// Configuration loading is intended to be done only once.
-    /// 
-    /// Will panic if cannot get config file path.
-    pub fn load_config() -> io::Result<Config> {
-        let file_path = get_config_file_path();
-        create_config_file_if_not_exists(&file_path)?;
-        let contents = read_config_file(&file_path)?;
+    pub fn load_config(file_path: &Path) -> io::Result<Config> {
+        create_config_file_if_not_exists(file_path)?;
+        let contents = read_config_file(file_path)?;
         let config = deserialize_config_from_json(&contents)?;
 
         Ok(config)

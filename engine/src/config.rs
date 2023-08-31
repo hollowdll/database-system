@@ -82,10 +82,13 @@ fn set_default_config_dir_paths(config: &mut Config) -> io::Result<()> {
     Ok(())
 }
 
-/// Gets file path to config file.
+/// Gets file path to config file. The file will locate in the same directory
+/// as the executable using this library.
 /// 
-/// Use this when building `ConfigManager`.
-fn get_config_file_path() -> PathBuf {
+/// Use this when building `ConfigManager` and loading configs.
+/// 
+/// Panics if cannot get file path.
+pub fn get_config_file_path() -> PathBuf {
     let mut dir = match current_exe() {
         Ok(dir) => dir,
         Err(e) => {
