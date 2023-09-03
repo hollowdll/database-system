@@ -32,18 +32,6 @@ impl<'a> ConfigManager<'a> {
 }
 
 impl<'a> ConfigManager<'a> {
-    /// Loads configuration data from config file. Creates the file
-    /// with default configs if it doesn't exist.
-    /// 
-    /// Configuration loading is intended to be done only once.
-    pub fn load_config(file_path: &Path) -> io::Result<Config> {
-        create_config_file_if_not_exists(file_path)?;
-        let contents = read_config_file(file_path)?;
-        let config = deserialize_config_from_json(&contents)?;
-
-        Ok(config)
-    }
-
     /// Sets database directory path config and saves it to config file.
     /// 
     /// A program restart is required for the changes to take effect.

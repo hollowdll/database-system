@@ -17,8 +17,8 @@ use engine::{
     self,
     config::{
         Config,
-        config_manager::ConfigManager,
         get_config_file_path,
+        load_config,
     },
     Logger,
 };
@@ -99,7 +99,7 @@ impl ConnectedDatabase {
 
 /// Runs the program.
 pub fn run() {
-    let config = match ConfigManager::load_config(&get_config_file_path()) {
+    let config = match load_config(&get_config_file_path()) {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Failed to load configurations from config file: {}", e);

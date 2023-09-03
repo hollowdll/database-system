@@ -57,7 +57,7 @@ impl Config {
     {
         Config {
             db_dir_path: PathBuf::from(db_dir_path),
-            logs_dir_path: PathBuf::from(logs_dir_path)
+            logs_dir_path: PathBuf::from(logs_dir_path),
         }
     }
 }
@@ -65,19 +65,24 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            db_dir_path: PathBuf::from("./databases"),
-            logs_dir_path: PathBuf::from("./logs")
+            db_dir_path: PathBuf::from(""),
+            logs_dir_path: PathBuf::from(""),
         }
     }
 }
 
-/// Sets default directory paths to config.
-fn set_default_config_dir_paths(config: &mut Config) -> io::Result<()> {
-    let mut dir = current_exe()?;
-    dir.pop();
+/// Sets default values to config file.
+fn set_default_config_values(file_path: &Path, config: &mut Config) -> io::Result<()> {
+    let parent_dir = file_path.parent();
 
-    config.db_dir_path = dir.join("databases");
-    config.logs_dir_path = dir.join("logs");
+    if let Some(dir) = parent_dir {
+        config.db_dir_path = dir.join("databases");
+        config.logs_dir_path = dir.join("logs");
+    } else {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Config file does not have parent directory"));
+    }
 
     Ok(())
 }
@@ -102,6 +107,18 @@ pub fn get_config_file_path() -> PathBuf {
     file_path
 }
 
+/// Loads configuration data from config file. Creates the file
+/// with default configs if it doesn't exist.
+/// 
+/// Configuration loading is intended to be done only once.
+pub fn load_config(file_path: &Path) -> io::Result<Config> {
+    create_config_file_if_not_exists(file_path)?;
+    let contents = read_config_file(file_path)?;
+    let config = deserialize_config_from_json(&contents)?;
+
+    Ok(config)
+}
+
 /// Deserializes config data from JSON string.
 fn deserialize_config_from_json(json: &str) -> serde_json::Result<Config> {
     Ok(serde_json::from_str(&json)?)
@@ -117,7 +134,7 @@ fn create_config_file_if_not_exists(file_path: &Path) -> io::Result<()> {
     if !file_path.is_file() {
         let mut file = File::create(file_path)?;
         let mut config = Config::default();
-        set_default_config_dir_paths(&mut config)?;
+        set_default_config_values(file_path, &mut config)?;
         let json = serialize_config_to_json(&config)?;
 
         file.write_all(json.as_bytes())?;
