@@ -30,8 +30,7 @@ fn create_database_to_db_dir_success() {
     assert!(db.is_some());
     assert_eq!(db.unwrap().name(), db_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }
 
 #[test]
@@ -62,6 +61,5 @@ fn create_database_by_file_path_success() {
     assert!(db.is_some());
     assert_eq!(db.unwrap().name(), db_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

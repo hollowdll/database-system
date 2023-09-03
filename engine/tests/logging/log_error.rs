@@ -22,6 +22,5 @@ fn log_error_success() {
     assert!(file_path.is_file());
     assert!(read_to_string(&file_path).unwrap().contains(log_content));
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

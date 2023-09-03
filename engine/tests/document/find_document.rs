@@ -49,8 +49,7 @@ fn find_all_documents_success() {
     assert_eq!(documents.get(0).unwrap().id(), document.id());
     assert_eq!(documents.get(0).unwrap().data().len(), document.data().len());
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }
 
 #[test]
@@ -93,6 +92,5 @@ fn find_document_by_id_success() {
     assert_eq!(document.id(), created_document.id());
     assert_eq!(document.data().len(), created_document.data().len());
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

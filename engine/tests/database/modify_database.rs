@@ -29,6 +29,5 @@ fn change_database_description_success() {
     assert!(result.error.is_none());
     assert!(result.log_error.is_none());
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

@@ -26,9 +26,7 @@ fn set_db_dir_path_success() {
     assert!(content.contains(&format!("{:?}", new_dir.path())));
 
     drop(config_file);
-    config_settings.config_dir.close().unwrap();
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
     new_dir.close().unwrap();
 }
 
@@ -50,8 +48,6 @@ fn set_db_dir_path_and_load_config() {
     assert_eq!(config.logs_dir_path(), config_settings.logs_dir.path());
     
     drop(config_file);
-    config_settings.config_dir.close().unwrap();
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
     new_dir.close().unwrap();
 }

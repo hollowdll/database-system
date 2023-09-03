@@ -70,6 +70,5 @@ fn replace_document_success() {
     assert_eq!(document.data().len(), new_data_field_count);
     assert!(document.data().len() != data_field_count);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

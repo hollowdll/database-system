@@ -25,4 +25,12 @@ impl ConfigSettings {
 
         Self { config_dir, db_dir, logs_dir, config }
     }
+
+    // Close temp dirs and consume self.
+    // We will know in tests if they error.
+    pub fn close_temp_dirs(self) {
+        self.config_dir.close().unwrap();
+        self.db_dir.close().unwrap();
+        self.logs_dir.close().unwrap();
+    }
 }

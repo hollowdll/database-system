@@ -36,8 +36,7 @@ fn find_all_collections_success() {
     let collections = result.data.unwrap();
     assert_eq!(collections.len(), 1);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }
 
 #[test]
@@ -71,6 +70,5 @@ fn find_collection_success() {
     let collection = result.data.unwrap();
     assert_eq!(collection.unwrap().name(), collection_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

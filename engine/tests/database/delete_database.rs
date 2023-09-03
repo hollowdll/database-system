@@ -40,6 +40,5 @@ fn delete_database_success() {
     assert!(result.success);
     assert!(result.data.unwrap().is_none());
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

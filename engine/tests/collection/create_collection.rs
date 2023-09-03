@@ -37,6 +37,5 @@ fn create_collection_success() {
     let collection = result.data.unwrap();
     assert_eq!(collection.unwrap().name(), collection_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }

@@ -33,8 +33,7 @@ fn find_all_databases_success() {
     assert_eq!(databases.len(), 1);
     assert_eq!(first_db.name(), db_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }
 
 #[test]
@@ -64,8 +63,7 @@ fn find_database_success() {
     assert!(db.is_some());
     assert_eq!(db.unwrap().name(), db_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }
 
 #[test]
@@ -95,6 +93,5 @@ fn find_database_by_file_path_success() {
     assert!(db.is_some());
     assert_eq!(db.unwrap().name(), db_name);
 
-    config_settings.db_dir.close().unwrap();
-    config_settings.logs_dir.close().unwrap();
+    config_settings.close_temp_dirs();
 }
