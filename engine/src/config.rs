@@ -173,3 +173,26 @@ fn save_config(file_path: &Path, config: &Config) -> io::Result<()> {
 
     Ok(())
 }
+
+
+
+#[cfg(test)]
+mod tests {
+    use std::{ffi::OsStr, env::current_exe};
+    use super::{
+        get_config_file_path,
+        CONFIG_FILE_NAME,
+    };
+
+    // Tests only file path. Does not create file so no tempdir needed.
+    #[test]
+    fn test_get_config_file_path() {
+        let file_path = get_config_file_path();
+        let mut dir = current_exe().unwrap();
+        dir.pop();
+        let expected_file_path = dir.join(CONFIG_FILE_NAME);
+
+        assert_eq!(file_path.file_name(), Some(OsStr::new(CONFIG_FILE_NAME)));
+        assert_eq!(file_path, expected_file_path);
+    }
+}
