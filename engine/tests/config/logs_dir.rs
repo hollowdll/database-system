@@ -7,7 +7,7 @@ use crate::common::ConfigSettings;
 use std::fs;
 
 #[test]
-fn set_db_dir_path_success() {
+fn set_logs_dir_path_success() {
     let config_settings = ConfigSettings::new();
     let logger = Logger::build(&config_settings.config);
     let engine = Engine::build(&config_settings.config, &logger);
@@ -16,7 +16,7 @@ fn set_db_dir_path_success() {
 
     let result = engine
         .config_api()
-        .set_db_dir_path(dir.path());
+        .set_logs_dir_path(dir.path());
     assert!(result.success);
     assert!(result.error.is_none());
     assert!(result.log_error.is_none());
