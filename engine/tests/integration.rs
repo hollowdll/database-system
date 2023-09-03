@@ -6,3 +6,4 @@ mod database;
 mod collection;
 mod document;
 mod logging;
+mod config;

@@ -1,4 +1,4 @@
-// Module used to read and write to config file
+// Module used to handle engine configurations.
 
 //#![allow(unused)]
 
@@ -26,7 +26,13 @@ use serde::{
 };
 
 /// Configuration file name. Config file uses JSON format.
-const CONFIG_FILE_NAME: &str = "engine.config.json";
+pub const CONFIG_FILE_NAME: &str = "engine.config.json";
+
+/// Default database directory name.
+pub const DB_DIR_DEFAULT_NAME: &str = "databases";
+
+/// Default logs directory name.
+pub const LOGS_DIR_DEFAULT_NAME: &str = "logs";
 
 /// Engine configuration.
 /// 
@@ -76,8 +82,8 @@ fn set_default_config_values(file_path: &Path, config: &mut Config) -> io::Resul
     let parent_dir = file_path.parent();
 
     if let Some(dir) = parent_dir {
-        config.db_dir_path = dir.join("databases");
-        config.logs_dir_path = dir.join("logs");
+        config.db_dir_path = dir.join(DB_DIR_DEFAULT_NAME);
+        config.logs_dir_path = dir.join(LOGS_DIR_DEFAULT_NAME);
     } else {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
