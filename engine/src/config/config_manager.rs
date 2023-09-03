@@ -1,9 +1,6 @@
 use std::{
     io,
-    path::{
-        PathBuf,
-        Path,
-    },
+    path::Path,
 };
 use super::*;
 
@@ -12,7 +9,6 @@ use super::*;
 /// Manages configuration loading and changes.
 pub struct ConfigManager<'a> {
     config: &'a Config,
-    config_file_path: PathBuf,
 }
 
 impl<'a> ConfigManager<'a> {
@@ -20,14 +16,13 @@ impl<'a> ConfigManager<'a> {
     pub fn build(config: &'a Config) -> Self {
         Self {
             config,
-            config_file_path: get_config_file_path(),
         }
     }
 }
 
 impl<'a> ConfigManager<'a> {
     fn config_file_path(&self) -> &Path {
-        &self.config_file_path
+        &self.config.config_file_path
     }
 }
 
@@ -37,6 +32,7 @@ impl<'a> ConfigManager<'a> {
     /// A program restart is required for the changes to take effect.
     pub fn set_db_dir_path(&self, path: &Path) -> io::Result<()> {
         let new_config = Config::new(
+            &self.config.config_file_path(),
             path,
             &self.config.logs_dir_path(),
         );
@@ -50,6 +46,7 @@ impl<'a> ConfigManager<'a> {
     /// A program restart is required for the changes to take effect.
     pub fn set_logs_dir_path(&self, path: &Path) -> io::Result<()> {
         let new_config = Config::new(
+            &self.config.config_file_path(),
             &self.config.db_dir_path(),
             path,
         );

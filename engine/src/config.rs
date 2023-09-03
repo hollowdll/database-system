@@ -40,11 +40,16 @@ pub const LOGS_DIR_DEFAULT_NAME: &str = "logs";
 /// The contents of the config file are parsed into this.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
+    pub config_file_path: PathBuf,
     pub db_dir_path: PathBuf,
     pub logs_dir_path: PathBuf,
 }
 
 impl Config {
+    pub fn config_file_path(&self) -> &Path {
+        &self.config_file_path
+    }
+
     pub fn db_dir_path(&self) -> &Path {
         &self.db_dir_path
     }
@@ -57,11 +62,13 @@ impl Config {
 impl Config {
     /// Creates a new config.
     pub fn new(
+        config_file_path: &Path,
         db_dir_path: &Path,
         logs_dir_path: &Path,
     ) -> Config
     {
         Config {
+            config_file_path: PathBuf::from(config_file_path),
             db_dir_path: PathBuf::from(db_dir_path),
             logs_dir_path: PathBuf::from(logs_dir_path),
         }
@@ -71,6 +78,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            config_file_path: PathBuf::from(""),
             db_dir_path: PathBuf::from(""),
             logs_dir_path: PathBuf::from(""),
         }
@@ -82,6 +90,7 @@ fn set_default_config_values(file_path: &Path, config: &mut Config) -> io::Resul
     let parent_dir = file_path.parent();
 
     if let Some(dir) = parent_dir {
+        config.config_file_path = PathBuf::from(file_path);
         config.db_dir_path = dir.join(DB_DIR_DEFAULT_NAME);
         config.logs_dir_path = dir.join(LOGS_DIR_DEFAULT_NAME);
     } else {
