@@ -4,6 +4,7 @@ use tempfile::{tempdir, TempDir};
 // Holds temporary directories.
 // Directories are removed after test has completed.
 pub struct ConfigSettings {
+    pub config_dir: TempDir,
     pub db_dir: TempDir,
     pub logs_dir: TempDir,
     pub config: Config,
@@ -22,6 +23,6 @@ impl ConfigSettings {
             logs_dir.path()
         );
 
-        Self { db_dir, logs_dir, config }
+        Self { config_dir, db_dir, logs_dir, config }
     }
 }
