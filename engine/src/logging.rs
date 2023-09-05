@@ -18,7 +18,6 @@ use self::error::{
     LogError,
     LogErrorKind,
 };
-use crate::Config;
 
 /// Events log file name.
 pub const EVENTS_LOG: &str = "events.log";

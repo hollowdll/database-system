@@ -1,5 +1,4 @@
 use engine::{
-    Logger,
     Engine,
     config::load_config,
 };
@@ -10,8 +9,7 @@ use std::fs;
 #[test]
 fn set_db_dir_path_success() {
     let config_settings = ConfigSettings::new();
-    let logger = Logger::build(&config_settings.config);
-    let engine = Engine::build(&config_settings.config, &logger);
+    let engine = Engine::build(&config_settings.config);
     let new_dir = tempdir().unwrap();
     let config_file = fs::File::create(config_settings.config.config_file_path()).unwrap();
 
@@ -33,8 +31,7 @@ fn set_db_dir_path_success() {
 #[test]
 fn set_db_dir_path_and_load_config() {
     let config_settings = ConfigSettings::new();
-    let logger = Logger::build(&config_settings.config);
-    let engine = Engine::build(&config_settings.config, &logger);
+    let engine = Engine::build(&config_settings.config);
     let new_dir = tempdir().unwrap();
     let config_file = fs::File::create(config_settings.config.config_file_path()).unwrap();
 

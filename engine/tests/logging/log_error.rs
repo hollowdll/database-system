@@ -11,7 +11,7 @@ use std::fs::read_to_string;
 #[test]
 fn log_error_success() {
     let config_settings = ConfigSettings::new();
-    let logger = Logger::build(&config_settings.config);
+    let logger = Logger::build(&config_settings.config.logs_dir_path());
     let file_path = config_settings.config
         .logs_dir_path()
         .join(ERRORS_LOG);

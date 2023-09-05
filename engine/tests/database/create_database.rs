@@ -1,5 +1,4 @@
 use engine::{
-    Logger,
     Engine,
     storage::DB_FILE_EXTENSION,
 };
@@ -8,8 +7,7 @@ use crate::common::ConfigSettings;
 #[test]
 fn create_database_to_db_dir_success() {
     let config_settings = ConfigSettings::new();
-    let logger = Logger::build(&config_settings.config);
-    let engine = Engine::build(&config_settings.config, &logger);
+    let engine = Engine::build(&config_settings.config);
     let db_name = "test";
 
     let result = engine
@@ -36,8 +34,7 @@ fn create_database_to_db_dir_success() {
 #[test]
 fn create_database_by_file_path_success() {
     let config_settings = ConfigSettings::new();
-    let logger = Logger::build(&config_settings.config);
-    let engine = Engine::build(&config_settings.config, &logger);
+    let engine = Engine::build(&config_settings.config);
     let db_name = "test";
     let file_path = config_settings.db_dir
         .path()
