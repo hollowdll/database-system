@@ -34,7 +34,7 @@ fn display_document(document: &DocumentDto) {
     println!("{}", "}");
 }
 
-impl<'a> Cli<'a> {
+impl Cli {
     /// Show menu to create a new document to a collection.
     pub fn create_document(&self) {
         let connected_db = match &self.connected_db {

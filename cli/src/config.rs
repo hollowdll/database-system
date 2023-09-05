@@ -11,7 +11,7 @@ fn config_save_success() {
     println!("Restart the program for the changes to take effect");
 }
 
-impl<'a> Cli<'a> {
+impl Cli {
     /// Lists the current configurations the program is using.
     pub fn list_all_configs(config: &Config) {
         println!("  Database directory: {}", config.db_dir_path().display());

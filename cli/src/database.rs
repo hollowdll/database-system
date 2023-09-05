@@ -10,7 +10,7 @@ use crate::{
     error_log_failed,
 };
 
-impl<'a> Cli<'a> {
+impl Cli {
     /// Resets connected database to `None` if it doesn't exist anymore.
     pub fn refresh_connected_db(&mut self) {
         let connected_db = match &self.connected_db {

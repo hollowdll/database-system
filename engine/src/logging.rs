@@ -87,26 +87,34 @@ pub enum ErrorLogType {
 /// 
 /// Logger is enabled by default. To disable it, you need to set it explicitly.
 #[derive(Debug)]
-pub struct Logger<'a> {
-    config: &'a Config,
+pub struct Logger {
+    logs_dir_path: PathBuf,
     /// True if this logger is disabled and should not log anything.
     pub disabled: bool,
 }
 
-impl<'a> Logger<'a> {
+impl Logger {
     /// Builds a new logger.
-    pub fn build(config: &'a Config) -> Self {
+    pub fn build(logs_dir_path: &Path) -> Self {
         Self {
-            config,
+            logs_dir_path: PathBuf::from(logs_dir_path),
             disabled: false,
+        }
+    }
+
+    /// Builds a new logger that is disabled.
+    pub fn build_disabled(logs_dir_path: &Path) -> Self {
+        Self {
+            logs_dir_path: PathBuf::from(logs_dir_path),
+            disabled: true,
         }
     }
 }
 
-impl<'a> Logger<'a> {
+impl Logger {
     /// Gets logs directory path.
     pub fn logs_dir_path(&self) -> &Path {
-        &self.config.logs_dir_path
+        &self.logs_dir_path
     }
 
     /// Gets events log file path.
@@ -120,7 +128,7 @@ impl<'a> Logger<'a> {
     }
 }
 
-impl<'a> Logger<'a> {
+impl Logger {
     /// Logs an event to event log file.
     /// 
     /// Writes the data to the file by appending.

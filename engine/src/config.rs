@@ -38,7 +38,7 @@ pub const LOGS_DIR_DEFAULT_NAME: &str = "logs";
 /// 
 /// Configuration file contains configs used by the system.
 /// The contents of the config file are parsed into this.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub config_file_path: PathBuf,
     pub db_dir_path: PathBuf,

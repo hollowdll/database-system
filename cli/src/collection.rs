@@ -9,7 +9,7 @@ use crate::{
     error_log_failed,
 };
 
-impl<'a> Cli<'a> {
+impl Cli {
     /// Checks if collection exists.
     pub fn collection_exists(
         &self,

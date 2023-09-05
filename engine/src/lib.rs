@@ -26,13 +26,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Database engine.
 /// 
 /// Holds all the engine APIs and metadata.
-pub struct Engine<'a> {
-    storage_api: StorageApi<'a>,
-    config_api: ConfigApi<'a>,
+pub struct Engine {
+    storage_api: StorageApi,
+    config_api: ConfigApi,
     version: &'static str,
 }
 
-impl<'a> Engine<'a> {
+impl Engine {
     /// Gets an immutable reference to the storage API.
     pub fn storage_api(&self) -> &StorageApi {
         &self.storage_api
@@ -49,32 +49,33 @@ impl<'a> Engine<'a> {
     }
 }
 
-impl<'a> Engine<'a> {
-    /// Builds engine structure.
-    pub fn build(config: &'a Config, logger: &'a Logger) -> Engine<'a> {
+impl Engine {
+    /// Builds the engine.
+    pub fn build(config: &Config) -> Engine {
         Engine {
             storage_api: StorageApi::build(
-                DatabaseManager::build(config),
-                logger,
+                DatabaseManager::build(config.db_dir_path()),
+                Logger::build(config.logs_dir_path()),
             ),
             config_api: ConfigApi::build(
                 ConfigManager::build(config),
-                logger,
+                Logger::build(config.logs_dir_path()),
             ),
             version: VERSION,
         }
     }
 }
 
-/// Minimal database engine.
+/// Database engine for database drivers.
 /// 
-/// This can be used in database drivers that don't need config file.
-pub struct EngineMinimal<'a> {
-    storage_api: StorageApi<'a>,
+/// This doesn't involve a config file so it is more minimal.
+/// Use this If the database driver doesn't need a config file.
+pub struct DriverEngine {
+    storage_api: StorageApi,
     version: &'static str,
 }
 
-impl<'a> EngineMinimal<'a> {
+impl DriverEngine {
     /// Gets an immutable reference to the storage API.
     pub fn storage_api(&self) -> &StorageApi {
         &self.storage_api
@@ -86,12 +87,24 @@ impl<'a> EngineMinimal<'a> {
     }
 }
 
-impl<'a> EngineMinimal<'a> {
-    pub fn build(config: &'a Config, logger: &'a Logger) -> EngineMinimal<'a> {
-        EngineMinimal {
+impl DriverEngine {
+    /// Builds the engine with logger enabled.
+    pub fn build(config: &Config) -> DriverEngine {
+        DriverEngine {
             storage_api: StorageApi::build(
-                DatabaseManager::build(config),
-                logger,
+                DatabaseManager::build(config.db_dir_path()),
+                Logger::build(config.logs_dir_path()),
+            ),
+            version: VERSION,
+        }
+    }
+
+    /// Builds the engine with logger disabled.
+    pub fn build_logger_disabled(config: &Config) -> DriverEngine {
+        DriverEngine {
+            storage_api: StorageApi::build(
+                DatabaseManager::build(config.db_dir_path()),
+                Logger::build_disabled(config.logs_dir_path()),
             ),
             version: VERSION,
         }

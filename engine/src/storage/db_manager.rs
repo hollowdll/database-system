@@ -31,23 +31,23 @@ use super::error::DocumentError;
 /// 
 /// Stores and retrieves data from databases.
 #[derive(Debug)]
-pub struct DatabaseManager<'a> {
-    config: &'a Config,
+pub struct DatabaseManager {
+    db_dir_path: PathBuf,
 }
 
-impl<'a> DatabaseManager<'a> {
+impl DatabaseManager {
     /// Builds database manager.
-    pub fn build(config: &'a Config) -> Self {
+    pub fn build(db_dir_path: &Path) -> Self {
         Self {
-            config
+            db_dir_path: PathBuf::from(db_dir_path),
         }
     }
 }
 
-impl<'a> DatabaseManager<'a> {
+impl DatabaseManager {
     /// Gets databases directory path.
     fn db_dir_path(&self) -> &Path {
-        &self.config.db_dir_path
+        &self.db_dir_path
     }
 
     /// Gets database file path.
@@ -57,7 +57,7 @@ impl<'a> DatabaseManager<'a> {
     }
 }
 
-impl<'a> DatabaseManager<'a> {
+impl DatabaseManager {
     /// Creates a new database to database directory.
     pub fn create_database_to_db_dir(
         &self,
