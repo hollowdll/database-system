@@ -23,7 +23,7 @@ use storage::{
 // Engine version
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Engine structure.
+/// Database engine.
 /// 
 /// Holds all the engine APIs and metadata.
 pub struct Engine<'a> {
@@ -59,6 +59,38 @@ impl<'a> Engine<'a> {
             ),
             config_api: ConfigApi::build(
                 ConfigManager::build(config),
+                logger,
+            ),
+            version: VERSION,
+        }
+    }
+}
+
+/// Minimal database engine.
+/// 
+/// This can be used in database drivers that don't need config file.
+pub struct EngineMinimal<'a> {
+    storage_api: StorageApi<'a>,
+    version: &'static str,
+}
+
+impl<'a> EngineMinimal<'a> {
+    /// Gets an immutable reference to the storage API.
+    pub fn storage_api(&self) -> &StorageApi {
+        &self.storage_api
+    }
+
+    /// Gets engine version.
+    pub fn version(&self) -> &'static str {
+        &self.version
+    }
+}
+
+impl<'a> EngineMinimal<'a> {
+    pub fn build(config: &'a Config, logger: &'a Logger) -> EngineMinimal<'a> {
+        EngineMinimal {
+            storage_api: StorageApi::build(
+                DatabaseManager::build(config),
                 logger,
             ),
             version: VERSION,

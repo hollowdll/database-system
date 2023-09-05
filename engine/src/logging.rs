@@ -84,16 +84,21 @@ pub enum ErrorLogType {
 }
 
 /// Logger that logs events and errors to log files.
+/// 
+/// Logger is enabled by default. To disable it, you need to set it explicitly.
 #[derive(Debug)]
 pub struct Logger<'a> {
     config: &'a Config,
+    /// True if this logger is disabled and should not log anything.
+    pub disabled: bool,
 }
 
 impl<'a> Logger<'a> {
     /// Builds a new logger.
     pub fn build(config: &'a Config) -> Self {
         Self {
-            config
+            config,
+            disabled: false,
         }
     }
 }
@@ -124,6 +129,10 @@ impl<'a> Logger<'a> {
         content: &str,
     ) -> Result<(), LogError>
     {
+        if self.disabled {
+            return Ok(());
+        }
+
         let log = EventLog::new(content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
@@ -153,6 +162,10 @@ impl<'a> Logger<'a> {
         content: &str,
     ) -> Result<(), LogError>
     {
+        if self.disabled {
+            return Ok(());
+        }
+
         let log = ErrorLog::new(error_type, content).format();
 
         if let Err(e) = create_logs_dir_if_not_exists(&self.logs_dir_path()) {
