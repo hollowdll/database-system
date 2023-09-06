@@ -32,17 +32,17 @@ pub struct ConfigRequestResult {
 /// Provides methods to change engine configurations.
 /// 
 /// Logs errors and events before forwarding results to the caller.
-pub struct ConfigApi<'a> {
-    config_manager: ConfigManager<'a>,
-    logger: &'a Logger<'a>,
+pub struct ConfigApi {
+    config_manager: ConfigManager,
+    logger: Logger,
 }
 
-impl<'a> ConfigApi<'a> {
+impl ConfigApi {
     /// Builds config API.
     pub fn build(
-        config_manager: ConfigManager<'a>,
-        logger: &'a Logger<'a>,
-    ) -> ConfigApi<'a>
+        config_manager: ConfigManager,
+        logger: Logger,
+    ) -> ConfigApi
     {
         ConfigApi {
             config_manager,
@@ -51,7 +51,7 @@ impl<'a> ConfigApi<'a> {
     }
 }
 
-impl<'a> ConfigApi<'a> {
+impl ConfigApi {
     /// Requests `ConfigManager` to set database directory path config.
     /// 
     /// Forwards the result to the caller.

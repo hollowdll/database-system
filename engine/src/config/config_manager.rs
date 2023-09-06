@@ -7,26 +7,26 @@ use super::*;
 /// Configuration manager.
 /// 
 /// Manages configuration loading and changes.
-pub struct ConfigManager<'a> {
-    config: &'a Config,
+pub struct ConfigManager {
+    config: Config,
 }
 
-impl<'a> ConfigManager<'a> {
+impl ConfigManager {
     /// Builds config manager.
-    pub fn build(config: &'a Config) -> Self {
+    pub fn build(config: &Config) -> Self {
         Self {
-            config,
+            config: config.to_owned(),
         }
     }
 }
 
-impl<'a> ConfigManager<'a> {
+impl ConfigManager {
     fn config_file_path(&self) -> &Path {
         &self.config.config_file_path
     }
 }
 
-impl<'a> ConfigManager<'a> {
+impl ConfigManager {
     /// Sets database directory path config and saves it to config file.
     /// 
     /// A program restart is required for the changes to take effect.

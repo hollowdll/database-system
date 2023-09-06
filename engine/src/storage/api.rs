@@ -42,17 +42,17 @@ pub struct StorageRequestResult<T> {
 /// Provides methods to do database operations.
 /// 
 /// Logs errors and events before forwarding results to the caller.
-pub struct StorageApi<'a> {
-    db_manager: DatabaseManager<'a>,
-    logger: &'a Logger<'a>,
+pub struct StorageApi {
+    db_manager: DatabaseManager,
+    logger: Logger,
 }
 
-impl<'a> StorageApi<'a> {
+impl StorageApi {
     /// Builds storage API.
     pub fn build(
-        db_manager: DatabaseManager<'a>,
-        logger: &'a Logger<'a>,
-    ) -> StorageApi<'a>
+        db_manager: DatabaseManager,
+        logger: Logger,
+    ) -> StorageApi
     {
         StorageApi {
             db_manager,
@@ -62,7 +62,7 @@ impl<'a> StorageApi<'a> {
 }
 
 
-impl<'a> StorageApi<'a> {
+impl StorageApi {
     /// Requests `DatabaseManager` to create a database to database directory.
     /// 
     /// Forwards the result to the caller.

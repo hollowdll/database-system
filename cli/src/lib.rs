@@ -20,7 +20,6 @@ use engine::{
         get_config_file_path,
         load_config,
     },
-    Logger,
 };
 use util::*;
 
@@ -29,20 +28,17 @@ const NO_CONNECTED_DB: &str = "No connected database";
 const CONFIRM_OPTION_YES: &str = "Y";
 
 /// Program structure.
-pub struct Cli<'a> {
-    engine: engine::Engine<'a>,
+pub struct Cli {
+    engine: engine::Engine,
     version: &'static str,
     connected_db: Option<ConnectedDatabase>,
 }
 
-impl<'a> Cli<'a> {
+impl Cli {
     /// Builds program structure.
-    pub fn build(
-        config: &'a Config,
-        logger: &'a engine::Logger,
-    ) -> Self {
+    pub fn build(config: &Config) -> Self {
         Self {
-            engine: engine::Engine::build(config, logger),
+            engine: engine::Engine::build(config),
             version: VERSION,
             connected_db: None,
         }
@@ -53,7 +49,7 @@ impl<'a> Cli<'a> {
     }
 }
 
-impl<'a> Cli<'a> {
+impl Cli {
     /// Displays the program version.
     fn display_version(&self) {
         println!("Client version: {}", &self.version);
@@ -108,8 +104,7 @@ pub fn run() {
             panic!("Failed to load configs: {}", e)
         },
     };
-    let logger = Logger::build(&config);
-    let mut cli = Cli::build(&config, &logger);
+    let mut cli = Cli::build(&config);
 
     let help_message = "Write /help for all available commands";
     let mut connected_db_name;

@@ -1,5 +1,4 @@
 use engine::{
-    Logger,
     Engine,
     storage::DB_FILE_EXTENSION,
     DocumentInputDataField,
@@ -12,8 +11,7 @@ use crate::common::{
 #[test]
 fn replace_document_success() {
     let config_settings = ConfigSettings::new();
-    let logger = Logger::build(&config_settings.config);
-    let engine = Engine::build(&config_settings.config, &logger);
+    let engine = Engine::build(&config_settings.config);
     let db_name = "test";
     let collection_name = "people";
     let file_path = config_settings.db_dir
