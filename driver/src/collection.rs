@@ -1,10 +1,14 @@
-pub struct Collection {
+use crate::client::DatabaseClient;
+
+pub struct Collection<'a> {
+    client: &'a DatabaseClient,
     pub name: String,
 }
 
-impl Collection {
-    pub fn new(name: &str) -> Collection {
+impl<'a> Collection<'a> {
+    pub fn new(client: &'a DatabaseClient, name: &str) -> Collection<'a> {
         Collection {
+            client,
             name: name.to_string()
         }
     }
