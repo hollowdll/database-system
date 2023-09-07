@@ -36,7 +36,7 @@ impl<'a> Database<'a> {
     /// Creates and returns a collection API.
     /// 
     /// This will fail if the collection doesn't exist.
-    pub fn get_collection(&self, name: &str) -> Result<Collection, DatabaseClientError> {
+    pub fn get_collection<T>(&self, name: &str) -> Result<Collection<T>, DatabaseClientError> {
         let result = self.client.engine
             .storage_api()
             .find_collection(name, self.connection_string());
