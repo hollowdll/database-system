@@ -1,11 +1,66 @@
-pub struct Database {
-    pub name: String,
+use std::path::{
+    Path,
+    PathBuf,
+};
+use crate::collection::Collection;
+use crate::client::{
+    error::{
+        DatabaseClientError,
+        DatabaseClientErrorKind,
+    },
+    DatabaseClient,
+};
+
+/// Database API.
+/// 
+/// The connection string is a file path to the database.
+pub struct Database<'a> {
+    client: &'a DatabaseClient,
+    pub connection_string: PathBuf,
 }
 
-impl Database {
-    pub fn new(name: &str) -> Database {
+impl<'a> Database<'a> {
+    pub fn connection_string(&self) -> &Path {
+        &self.connection_string
+    }
+}
+
+impl<'a> Database<'a> {
+    pub fn new(client: &'a DatabaseClient, connection_string: &Path) -> Database<'a> {
         Database {
-            name: name.to_string()
+            client,
+            connection_string: PathBuf::from(connection_string),
         }
+    }
+
+    /// Creates and returns a collection API.
+    /// 
+    /// This will fail if the collection doesn't exist.
+    pub fn get_collection<T>(&self, name: &str) -> Result<Collection<T>, DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .find_collection(name, self.connection_string());
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::GetCollection,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(collection) = result.data {
+                if let Some(collection) = collection {
+                    return Ok(Collection::new(self.client, collection.name()));
+                }
+            }
+        } else {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::Unexpected,
+                "Failed to get collection".to_string()));
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::CollectionNotFound,
+            format!("Tried to get collection with name '{}'", name)));
     }
 }

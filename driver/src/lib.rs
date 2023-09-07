@@ -1,4 +1,5 @@
 #![allow(unused)]
 
-mod client;
-mod database;
+pub mod client;
+pub mod database;
+pub mod collection;
