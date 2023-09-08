@@ -50,7 +50,7 @@ impl<'a> Database<'a> {
         if result.success {
             if let Some(collection) = result.data {
                 if let Some(collection) = collection {
-                    return Ok(Collection::new(self.client, collection.name()));
+                    return Ok(Collection::new(self.client, self, collection.name()));
                 }
             }
         } else {
