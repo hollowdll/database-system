@@ -40,7 +40,7 @@ impl<'a, T> Collection<'a, T> {
     /// Inserts a document to this collection.
     /// 
     /// Returns the id of the inserted document.
-    pub fn insert_one() -> Result<u64, DatabaseOperationError> {
+    pub fn insert_one(document: T) -> Result<u64, DatabaseOperationError> {
         Ok(0)
     }
 
