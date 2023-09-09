@@ -1,11 +1,9 @@
 [package]
-name = "cli"
-version = "0.0.0"
+name = "driver-test"
+version = "0.1.0"
 edition = "2021"
-description = "Database engine CLI client."
-default-run = "cli"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-engine = { path = "../engine" }
+driver = { path = "../../driver" }
