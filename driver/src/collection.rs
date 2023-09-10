@@ -13,8 +13,14 @@ use crate::{
 pub struct Collection<'a, T> {
     client: &'a DatabaseClient,
     database: &'a Database<'a>,
-    pub name: String,
+    name: String,
     document_model: PhantomData<T>,
+}
+
+impl<'a, T> Collection<'a, T> {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 impl<'a, T> Collection<'a, T> {

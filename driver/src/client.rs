@@ -7,8 +7,21 @@ use std::{
         Path,
     }
 };
-use engine::{DriverEngine, config::Config};
-use crate::{database::Database, collection::Collection};
+use engine::{
+    DriverEngine,
+    config::Config,
+    storage::{
+        error::{
+            DatabaseOperationError,
+            DatabaseOperationErrorKind,
+        },
+        DB_FILE_EXTENSION,
+    },
+};
+use crate::{
+    database::Database,
+    collection::Collection
+};
 use self::error::{
     DatabaseClientError,
     DatabaseClientErrorKind,
@@ -29,13 +42,17 @@ impl DatabaseClient {
         }
     }
 
-    /// Creates and returns a database API.
+    /// Gets a database using the database name.
     /// 
-    /// This will fail if the connection string is not a valid path to the database file.
-    pub fn get_database(&self, connection_string: &Path) -> Result<Database, DatabaseClientError> {
+    /// Creates the database if it doesn't exist.
+    /// Databases will be created to the crate root.
+    pub fn get_database(&self, name: &str) -> Result<Database, DatabaseClientError> {
+        let dir_path = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let file_path = dir_path.join(&format!("{}.{}", name, DB_FILE_EXTENSION));
+
         let result = self.engine
             .storage_api()
-            .find_database_by_file_path(connection_string);
+            .find_database_by_file_path(&file_path);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
@@ -45,18 +62,41 @@ impl DatabaseClient {
 
         if result.success {
             if let Some(db) = result.data {
-                if let Some(db) = db {
-                    return Ok(Database::new(&self, connection_string));
+                if let None = db {
+                    if let Err(e) = self.create_database(name, &file_path) {
+                        return Err(DatabaseClientError::new(
+                            DatabaseClientErrorKind::CreateDatabase,
+                            e.message));
+                    }
                 }
+
+                return Ok(Database::new(&self, &file_path));
             }
-        } else {
-            return Err(DatabaseClientError::new(
-                DatabaseClientErrorKind::Unexpected,
-                "Failed to get database".to_string()));
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::DatabaseNotFound,
-            format!("Tried to connect to '{}'", connection_string.display())));
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to get database".to_string()));
+    }
+}
+
+impl DatabaseClient {
+    /// Creates a database with the given name and file path.
+    fn create_database(&self, name: &str, file_path: &Path) -> Result<(), DatabaseOperationError> {
+        let result = self.engine
+            .storage_api()
+            .create_database_by_file_path(name, file_path);
+
+        if let Some(e) = result.error {
+            return Err(e);
+        }
+
+        if result.success {
+            return Ok(());
+        }
+
+        return Err(DatabaseOperationError::new(
+            DatabaseOperationErrorKind::CreateDatabase,
+            "Unexpected error creating database".to_string()));
     }
 }
