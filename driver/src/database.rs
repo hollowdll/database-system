@@ -37,6 +37,9 @@ impl<'a> Database<'a> {
     /// 
     /// This will fail if the collection doesn't exist.
     pub fn get_collection<T>(&self, name: &str) -> Result<Collection<T>, DatabaseClientError> {
+        // TODO
+        // change this method so it tries to find collection. if it does not exist, try to create it
+
         let result = self.client.engine
             .storage_api()
             .find_collection(name, self.connection_string());
