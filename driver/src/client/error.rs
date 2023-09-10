@@ -23,6 +23,8 @@ pub enum DatabaseClientErrorKind {
     GetCollection,
     /// Failed to create database.
     CreateDatabase,
+    /// Failed to create collection.
+    CreateCollection,
 }
 
 impl fmt::Display for DatabaseClientError {
@@ -37,6 +39,7 @@ impl fmt::Display for DatabaseClientError {
                 DatabaseClientErrorKind::ConnectionFailed => "Failed to connect to database",
                 DatabaseClientErrorKind::GetCollection => "Failed to get collection",
                 DatabaseClientErrorKind::CreateDatabase => "Failed to create database",
+                DatabaseClientErrorKind::CreateCollection => "Failed to create collection",
             },
             self.message,
         )

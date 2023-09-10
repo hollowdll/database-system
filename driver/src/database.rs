@@ -2,6 +2,10 @@ use std::path::{
     Path,
     PathBuf,
 };
+use engine::storage::error::{
+    DatabaseOperationError,
+    DatabaseOperationErrorKind,
+};
 use crate::collection::Collection;
 use crate::client::{
     error::{
@@ -16,7 +20,7 @@ use crate::client::{
 /// The connection string is a file path to the database.
 pub struct Database<'a> {
     client: &'a DatabaseClient,
-    pub connection_string: PathBuf,
+    connection_string: PathBuf,
 }
 
 impl<'a> Database<'a> {
@@ -33,13 +37,10 @@ impl<'a> Database<'a> {
         }
     }
 
-    /// Creates and returns a collection API.
+    /// Gets a collection from this database using the collection name.
     /// 
-    /// This will fail if the collection doesn't exist.
+    /// Creates the collection if it doesn't exist.
     pub fn get_collection<T>(&self, name: &str) -> Result<Collection<T>, DatabaseClientError> {
-        // TODO
-        // change this method so it tries to find collection. if it does not exist, try to create it
-
         let result = self.client.engine
             .storage_api()
             .find_collection(name, self.connection_string());
@@ -52,18 +53,38 @@ impl<'a> Database<'a> {
 
         if result.success {
             if let Some(collection) = result.data {
-                if let Some(collection) = collection {
-                    return Ok(Collection::new(self.client, self, collection.name()));
+                if let None = collection {
+                    if let Err(e) = self.create_collection(name) {
+                        return Err(DatabaseClientError::new(
+                            DatabaseClientErrorKind::CreateCollection,
+                            e.message));
+                    }
                 }
+
+                return Ok(Collection::new(self.client, self, name));
             }
-        } else {
-            return Err(DatabaseClientError::new(
-                DatabaseClientErrorKind::Unexpected,
-                "Failed to get collection".to_string()));
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::CollectionNotFound,
-            format!("Tried to get collection with name '{}'", name)));
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to get collection".to_string()));
+    }
+
+    fn create_collection(&self, name: &str) -> Result<(), DatabaseOperationError> {
+        let result = self.client.engine
+            .storage_api()
+            .create_collection(name, self.connection_string());
+
+        if let Some(e) = result.error {
+            return Err(e);
+        }
+
+        if result.success {
+            return Ok(());
+        }
+
+        return Err(DatabaseOperationError::new(
+            DatabaseOperationErrorKind::CreateCollection,
+            "Unexpected error creating collection".to_string()));
     }
 }
