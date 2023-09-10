@@ -78,7 +78,9 @@ impl DatabaseClient {
             DatabaseClientErrorKind::Unexpected,
             "Failed to get database".to_string()));
     }
+}
 
+impl DatabaseClient {
     /// Creates a database with the given name and file path.
     fn create_database(&self, name: &str, file_path: &Path) -> Result<(), DatabaseOperationError> {
         let result = self.engine

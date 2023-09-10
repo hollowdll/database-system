@@ -13,12 +13,14 @@ pub struct DatabaseClientError {
 pub enum DatabaseClientErrorKind {
     /// Unexpected error.
     Unexpected,
-    /// Database not found with the connection string.
+    /// Database not found.
     DatabaseNotFound,
     /// Collection not found.
     CollectionNotFound,
     /// Failed to connect to database.
     ConnectionFailed,
+    /// Failed to get database.
+    GetDatabase,
     /// Failed to get collection.
     GetCollection,
     /// Failed to create database.
@@ -34,9 +36,10 @@ impl fmt::Display for DatabaseClientError {
             "{}: {}",
             match self.kind {
                 DatabaseClientErrorKind::Unexpected => "Unexpected error",
-                DatabaseClientErrorKind::DatabaseNotFound => "Database was not found with this connection string",
+                DatabaseClientErrorKind::DatabaseNotFound => "Database was not found",
                 DatabaseClientErrorKind::CollectionNotFound => "Collection was not found",
                 DatabaseClientErrorKind::ConnectionFailed => "Failed to connect to database",
+                DatabaseClientErrorKind::GetDatabase => "Failed to get database",
                 DatabaseClientErrorKind::GetCollection => "Failed to get collection",
                 DatabaseClientErrorKind::CreateDatabase => "Failed to create database",
                 DatabaseClientErrorKind::CreateCollection => "Failed to create collection",

@@ -2,9 +2,12 @@ use std::path::{
     Path,
     PathBuf,
 };
-use engine::storage::error::{
-    DatabaseOperationError,
-    DatabaseOperationErrorKind,
+use engine::storage::{
+    database::DatabaseDto,
+    error::{
+        DatabaseOperationError,
+        DatabaseOperationErrorKind,
+    },
 };
 use crate::collection::Collection;
 use crate::client::{
@@ -70,6 +73,38 @@ impl<'a> Database<'a> {
             "Failed to get collection".to_string()));
     }
 
+    /// Gets this database's metadata.
+    pub fn get_metadata(&self) -> Result<DatabaseDto, DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .find_database_by_file_path(self.connection_string());
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::GetDatabase,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(db) = result.data {
+                if let Some(db) = db {
+                    return Ok(db);
+                } else {
+                    return Err(DatabaseClientError::new(
+                        DatabaseClientErrorKind::DatabaseNotFound,
+                        format!("Failed to get database '{}'", self.connection_string().display())));
+                }
+            }
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to get database".to_string()));
+    }
+}
+
+impl<'a> Database<'a> {
+    /// Creates a collection to this database.
     fn create_collection(&self, name: &str) -> Result<(), DatabaseOperationError> {
         let result = self.client.engine
             .storage_api()
