@@ -86,6 +86,7 @@ name = "driver"
 version = "0.0.0"
 dependencies = [
  "engine",
+ "tempfile",
 ]
 
 [[package]]

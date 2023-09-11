@@ -5,7 +5,8 @@ use std::{
     path::{
         PathBuf,
         Path,
-    }, env::current_exe
+    },
+    env::current_exe,
 };
 use engine::{
     DriverEngine,
@@ -26,6 +27,7 @@ use self::error::{
     DatabaseClientError,
     DatabaseClientErrorKind,
 };
+use tempfile::tempdir;
 
 /// Connect to databases using this. Multiple databases can be connected
 /// using the same database client.
@@ -59,7 +61,7 @@ impl DatabaseClient {
         };
         dir_path.pop();
         let file_path = dir_path.join(&format!("{}.{}", name, DB_FILE_EXTENSION));
-
+        
         let result = self.engine
             .storage_api()
             .find_database_by_file_path(&file_path);
