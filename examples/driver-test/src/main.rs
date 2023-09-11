@@ -1,4 +1,5 @@
+use driver_test::run;
+
 fn main() {
-    let dir = env!("CARGO_MANIFEST_DIR");
-    println!("{}", dir);
+    run();
 }
