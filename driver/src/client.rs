@@ -5,7 +5,7 @@ use std::{
     path::{
         PathBuf,
         Path,
-    }
+    }, env::current_exe
 };
 use engine::{
     DriverEngine,
@@ -27,18 +27,22 @@ use self::error::{
     DatabaseClientErrorKind,
 };
 
-/// Database client communicates with the database engine.
+/// Connect to databases using this. Multiple databases can be connected
+/// using the same database client.
 /// 
-/// Connect to databases with connection strings from this client.
+/// Database client communicates with the database engine and handles
+/// transforming input and output data.
 pub struct DatabaseClient {
     pub engine: DriverEngine
 }
 
 impl DatabaseClient {
     /// Builds a new database client.
-    pub fn build(config: &Config) -> DatabaseClient {
+    pub fn build() -> DatabaseClient {
+        let config = Config::default();
+
         DatabaseClient {
-            engine: DriverEngine::build_logger_disabled(config),
+            engine: DriverEngine::build_logger_disabled(&config),
         }
     }
 
@@ -47,7 +51,13 @@ impl DatabaseClient {
     /// Creates the database if it doesn't exist.
     /// Databases will be created to the crate root.
     pub fn get_database(&self, name: &str) -> Result<Database, DatabaseClientError> {
-        let dir_path = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let mut dir_path = match current_exe() {
+            Ok(dir_path) => dir_path,
+            Err(e) => return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::GetDatabase,
+                e.to_string())),
+        };
+        dir_path.pop();
         let file_path = dir_path.join(&format!("{}.{}", name, DB_FILE_EXTENSION));
 
         let result = self.engine
