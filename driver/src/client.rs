@@ -35,36 +35,34 @@ use tempfile::tempdir;
 /// Database client communicates with the database engine and handles
 /// transforming input and output data.
 pub struct DatabaseClient {
-    pub engine: DriverEngine
+    pub engine: DriverEngine,
+    pub db_dir: PathBuf,
 }
 
 impl DatabaseClient {
-    /// Builds a new database client.
-    pub fn build() -> DatabaseClient {
-        let config = Config::default();
+    /// Builds a new database client using the database directory.
+    /// 
+    /// Database directory is where databases will be created to and accessed from. 
+    pub fn build(db_dir: &Path) -> DatabaseClient {
+        let mut config = Config::default();
+        config.db_dir_path = PathBuf::from(db_dir);
 
         DatabaseClient {
             engine: DriverEngine::build_logger_disabled(&config),
+            db_dir: PathBuf::from(db_dir),
         }
     }
 
     /// Gets a database using the database name.
     /// 
     /// Creates the database if it doesn't exist.
-    /// Databases will be created to the crate root.
+    /// Databases will be created to the database directory.
     pub fn get_database(&self, name: &str) -> Result<Database, DatabaseClientError> {
-        let mut dir_path = match current_exe() {
-            Ok(dir_path) => dir_path,
-            Err(e) => return Err(DatabaseClientError::new(
-                DatabaseClientErrorKind::GetDatabase,
-                e.to_string())),
-        };
-        dir_path.pop();
-        let file_path = dir_path.join(&format!("{}.{}", name, DB_FILE_EXTENSION));
+        let file_path = self.db_dir.join(&format!("{}.{}", name, DB_FILE_EXTENSION));
         
         let result = self.engine
             .storage_api()
-            .find_database_by_file_path(&file_path);
+            .find_database(name);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
@@ -75,7 +73,7 @@ impl DatabaseClient {
         if result.success {
             if let Some(db) = result.data {
                 if let None = db {
-                    if let Err(e) = self.create_database(name, &file_path) {
+                    if let Err(e) = self.create_database(name) {
                         return Err(DatabaseClientError::new(
                             DatabaseClientErrorKind::CreateDatabase,
                             e.message));
@@ -93,11 +91,11 @@ impl DatabaseClient {
 }
 
 impl DatabaseClient {
-    /// Creates a database with the given name and file path.
-    fn create_database(&self, name: &str, file_path: &Path) -> Result<(), DatabaseOperationError> {
+    /// Creates a database with the given name.
+    fn create_database(&self, name: &str) -> Result<(), DatabaseOperationError> {
         let result = self.engine
             .storage_api()
-            .create_database_by_file_path(name, file_path);
+            .create_database_to_db_dir(name);
 
         if let Some(e) = result.error {
             return Err(e);

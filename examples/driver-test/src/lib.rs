@@ -1,5 +1,7 @@
 #![allow(unused)]
 
+use std::env::current_exe;
+
 use driver::{
     client::DatabaseClient,
     document::{
@@ -19,9 +21,12 @@ pub fn run() {
     person.data.insert("first_name", DataType::Text("John".to_string()));
     person.data.insert("last_name", DataType::Text("Smith".to_string()));
 
-    let client = DatabaseClient::build();
+    let mut db_dir = current_exe().unwrap();
+    db_dir.pop();
+
+    let client = DatabaseClient::build(&db_dir);
     let database = client
-        .get_database("DriverTestPeople")
+        .get_database("  .  a. ....")
         .expect("Cannot construct database");
     let people_collection = database
         .get_collection("people")
