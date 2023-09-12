@@ -1,53 +1,55 @@
 use std::marker::PhantomData;
-use engine::storage::error::DatabaseOperationError;
+use engine::{
+    storage::error::DatabaseOperationError,
+    DocumentInputDataField,
+};
 use crate::{
     client::DatabaseClient,
-    database::Database
+    database::Database,
+    document::DocumentModel,
 };
 
 /// Collection API.
 /// 
-/// This offers methods to work with a collection's documents.
+/// This provides methods to work with a collection's documents.
 /// 
 /// T = type for this collection's document model.
-pub struct Collection<'a, T> {
+pub struct Collection<'a> {
     client: &'a DatabaseClient,
     database: &'a Database<'a>,
     name: String,
-    document_model: PhantomData<T>,
 }
 
-impl<'a, T> Collection<'a, T> {
+impl<'a> Collection<'a> {
     pub fn name(&self) -> &str {
         &self.name
     }
 }
 
-impl<'a, T> Collection<'a, T> {
-    pub fn new(client: &'a DatabaseClient, database: &'a Database, name: &str) -> Collection<'a, T> {
+impl<'a> Collection<'a> {
+    pub fn new(client: &'a DatabaseClient, database: &'a Database, name: &str) -> Collection<'a> {
         Collection {
             client,
             database,
             name: name.to_string(),
-            document_model: PhantomData,
         }
     }
 
     /// Finds all documents in this collection.
-    pub fn find_all() -> Result<Vec<T>, DatabaseOperationError> {
+    pub fn find_all() -> Result<Vec<DocumentModel>, DatabaseOperationError> {
         Ok(Vec::new())
     }
 
     /// Finds a document by id from this collection.
-    pub fn find_one_by_id(id: &u64) -> Result<Option<T>, DatabaseOperationError> {
+    pub fn find_one_by_id(id: &u64) -> Result<Option<DocumentModel>, DatabaseOperationError> {
         Ok(None)
     }
 
     /// Inserts a document to this collection.
     /// 
     /// Returns the id of the inserted document.
-    pub fn insert_one(document: T) -> Result<u64, DatabaseOperationError> {
-        Ok(0)
+    pub fn insert_one(document: DocumentModel) -> Result<DocumentModel, DatabaseOperationError> {
+        Ok(DocumentModel::new())
     }
 
     /// Replaces a document in this collection with a new one.

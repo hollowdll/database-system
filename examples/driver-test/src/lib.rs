@@ -1,21 +1,35 @@
 #![allow(unused)]
 
-use driver::client::DatabaseClient;
+use std::env::current_exe;
+
+use driver::{
+    client::DatabaseClient,
+    document::{
+        DocumentModel,
+        DataType,
+    },
+};
 
 struct Person {
     pub id: u64,
     pub first_name: &'static str,
     pub last_name: &'static str,
-    pub age: u16,
 }
 
 pub fn run() {
-    let client = DatabaseClient::build();
+    let mut person = DocumentModel::new();
+    person.data.insert("first_name", DataType::Text("John".to_string()));
+    person.data.insert("last_name", DataType::Text("Smith".to_string()));
+
+    let mut db_dir = current_exe().unwrap();
+    db_dir.pop();
+
+    let client = DatabaseClient::build(&db_dir);
     let database = client
-        .get_database("DriverTestPeople")
+        .get_database("  .  a. ....")
         .expect("Cannot construct database");
     let people_collection = database
-        .get_collection::<Person>("people")
+        .get_collection("people")
         .expect("Cannot construct collection");
     let db_data = database
         .get_metadata()

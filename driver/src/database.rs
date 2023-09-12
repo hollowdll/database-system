@@ -20,6 +20,8 @@ use crate::client::{
 
 /// Database API.
 /// 
+/// This provides methods to work with a database.
+/// 
 /// The connection string is a file path to the database.
 pub struct Database<'a> {
     client: &'a DatabaseClient,
@@ -43,7 +45,7 @@ impl<'a> Database<'a> {
     /// Gets a collection from this database using the collection name.
     /// 
     /// Creates the collection if it doesn't exist.
-    pub fn get_collection<T>(&self, name: &str) -> Result<Collection<T>, DatabaseClientError> {
+    pub fn get_collection(&self, name: &str) -> Result<Collection, DatabaseClientError> {
         let result = self.client.engine
             .storage_api()
             .find_collection(name, self.connection_string());
