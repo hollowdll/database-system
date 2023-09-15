@@ -1,12 +1,20 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, collections::HashMap};
 use engine::{
-    storage::error::DatabaseOperationError,
+    storage::{
+        error::DatabaseOperationError,
+        document::DocumentDto,
+        pb::document::data_type,
+    },
     DocumentInputDataField,
 };
 use crate::{
     client::DatabaseClient,
     database::Database,
-    document::DocumentModel,
+    document::{
+        DocumentModel,
+        DataType,
+        DocumentId
+    },
 };
 
 /// Collection API.
@@ -63,4 +71,46 @@ impl<'a> Collection<'a> {
     pub fn delete_one_by_id(id: &u64) -> Result<(), DatabaseOperationError> {
         Ok(())
     }
+}
+
+/// Transforms driver document model to engine input data.
+fn transform_document_to_input(document: DocumentModel) -> Vec<DocumentInputDataField> {
+    let mut data = Vec::new();
+
+    for (key, value) in document.data {
+        let (data_type, data_value) = match value {
+            DataType::Int32(v) => ("Int32", v.to_string()),
+            DataType::Int64(v) => ("Int64", v.to_string()),
+            DataType::Decimal(v) => ("Decimal", v.to_string()),
+            DataType::Bool(v) => ("Bool", v.to_string()),
+            DataType::Text(v) => ("Text", v.to_string()),
+        };
+
+        data.push(DocumentInputDataField::new(&key, data_type, &data_value));
+    }
+
+    return data;
+}
+
+/// Transforms engine `DocumentDto` to driver document model.
+fn transform_document_dto_to_document(document_dto: DocumentDto) -> DocumentModel {
+    let mut data = HashMap::new();
+
+    for (key, value) in document_dto.data {
+        let data_type = match value.data_type {
+            Some(data_type::DataType::Int32(v)) => DataType::Int32(v),
+            Some(data_type::DataType::Int64(v)) => DataType::Int64(v),
+            Some(data_type::DataType::Decimal(v)) => DataType::Decimal(v),
+            Some(data_type::DataType::Bool(v)) => DataType::Bool(v),
+            Some(data_type::DataType::Text(v)) => DataType::Text(v),
+            _ => continue,
+        };
+
+        data.insert(key, data_type);
+    }
+
+    return DocumentModel {
+        id: DocumentId(document_dto.id),
+        data
+    };
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 /// Data type for document id.
 /// 
 /// DocumentId is an unsigned 64-bit integer.
-pub struct DocumentId(u64);
+pub struct DocumentId(pub u64);
 
 /// Data type for document data fields.
 pub enum DataType {
@@ -24,7 +24,7 @@ pub enum DataType {
 /// Use this to create documents that can be saved to databases.
 pub struct DocumentModel {
     pub id: DocumentId,
-    pub data: HashMap<&'static str, DataType>
+    pub data: HashMap<String, DataType>
 }
 
 impl DocumentModel {

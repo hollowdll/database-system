@@ -18,8 +18,8 @@ struct Person {
 
 pub fn run() {
     let mut person = DocumentModel::new();
-    person.data.insert("first_name", DataType::Text("John".to_string()));
-    person.data.insert("last_name", DataType::Text("Smith".to_string()));
+    person.data.insert("first_name".to_string(), DataType::Text("John".to_string()));
+    person.data.insert("last_name".to_string(), DataType::Text("Smith".to_string()));
 
     let mut db_dir = current_exe().unwrap();
     db_dir.pop();
