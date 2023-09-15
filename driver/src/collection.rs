@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, collections::HashMap};
+use std::collections::HashMap;
 use engine::{
     storage::{
         error::DatabaseOperationError,
@@ -8,7 +8,13 @@ use engine::{
     DocumentInputDataField,
 };
 use crate::{
-    client::DatabaseClient,
+    client::{
+        DatabaseClient,
+        error::{
+            DatabaseClientError,
+            DatabaseClientErrorKind,
+        },
+    },
     database::Database,
     document::{
         DocumentModel,
@@ -55,9 +61,29 @@ impl<'a> Collection<'a> {
 
     /// Inserts a document to this collection.
     /// 
-    /// Returns the id of the inserted document.
-    pub fn insert_one(document: DocumentModel) -> Result<DocumentModel, DatabaseOperationError> {
-        Ok(DocumentModel::new())
+    /// Returns the new document with id populated.
+    pub fn insert_one(&self, document: DocumentModel) -> Result<DocumentModel, DatabaseClientError> {
+        let input_data = transform_document_to_input(document);
+
+        let result = self.client.engine
+            .storage_api()
+            .create_document(self.database.connection_string(), self.name(), input_data);
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::InsertOneDocument,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(document) = result.data {
+                return Ok(transform_document_dto_to_document(document));
+            }
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to insert a document".to_string()));
     }
 
     /// Replaces a document in this collection with a new one.
