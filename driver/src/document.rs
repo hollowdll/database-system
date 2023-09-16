@@ -1,9 +1,15 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 /// Data type for document id.
 /// 
 /// DocumentId is an unsigned 64-bit integer.
 pub struct DocumentId(pub u64);
+
+impl fmt::Display for DocumentId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 /// Data type for document data fields.
 pub enum DataType {
@@ -17,6 +23,22 @@ pub enum DataType {
     Bool(bool),
     /// UTF-8 string for dynamic text.
     Text(String),
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DataType::Int64(value) => value.to_string(),
+                DataType::Int32(value) => value.to_string(),
+                DataType::Decimal(value) => value.to_string(),
+                DataType::Bool(value) => value.to_string(),
+                DataType::Text(value) => value.to_string(),
+            }
+        )
+    }
 }
 
 /// Model for database documents.
