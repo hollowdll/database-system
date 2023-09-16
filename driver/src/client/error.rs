@@ -29,6 +29,8 @@ pub enum DatabaseClientErrorKind {
     CreateCollection,
     /// Failed to insert a document.
     InsertOneDocument,
+    /// Failed to find all documents from collection.
+    FindAllDocuments,
 }
 
 impl fmt::Display for DatabaseClientError {
@@ -46,6 +48,7 @@ impl fmt::Display for DatabaseClientError {
                 DatabaseClientErrorKind::CreateDatabase => "Failed to create database",
                 DatabaseClientErrorKind::CreateCollection => "Failed to create collection",
                 DatabaseClientErrorKind::InsertOneDocument => "Failed to insert a document",
+                DatabaseClientErrorKind::FindAllDocuments => "Failed to find all documents from collection",
             },
             self.message,
         )

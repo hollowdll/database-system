@@ -50,8 +50,31 @@ impl<'a> Collection<'a> {
     }
 
     /// Finds all documents in this collection.
-    pub fn find_all() -> Result<Vec<DocumentModel>, DatabaseOperationError> {
-        Ok(Vec::new())
+    pub fn find_all(&self) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .find_all_documents(self.database.connection_string(), self.name());
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindAllDocuments,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(document_dtos) = result.data {
+                let documents: Vec<DocumentModel> = document_dtos
+                    .into_iter()
+                    .map(|document| transform_document_dto_to_document(document))
+                    .collect();
+
+                return Ok(documents);
+            }
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to find all documents from collection".to_string()));
     }
 
     /// Finds a document by id from this collection.
