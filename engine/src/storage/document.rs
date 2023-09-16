@@ -61,8 +61,8 @@ impl pb::Document {
 /// Exposes document data that clients can use.
 #[derive(Debug)]
 pub struct DocumentDto {
-    id: u64,
-    data: HashMap<String, DataType>,
+    pub id: u64,
+    pub data: HashMap<String, DataType>,
 }
 
 impl DocumentDto {

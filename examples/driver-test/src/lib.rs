@@ -18,26 +18,41 @@ struct Person {
 
 pub fn run() {
     let mut person = DocumentModel::new();
-    person.data.insert("first_name", DataType::Text("John".to_string()));
-    person.data.insert("last_name", DataType::Text("Smith".to_string()));
+    person.data.insert("first_name".to_string(), DataType::Text("John".to_string()));
+    person.data.insert("last_name".to_string(), DataType::Text("Smith".to_string()));
 
     let mut db_dir = current_exe().unwrap();
     db_dir.pop();
 
     let client = DatabaseClient::build(&db_dir);
     let database = client
-        .get_database("  .  a. ....")
+        .get_database("DriverPeopleDatabase")
         .expect("Cannot construct database");
-    let people_collection = database
-        .get_collection("people")
-        .expect("Cannot construct collection");
     let db_data = database
         .get_metadata()
         .expect("Cannot get database metadata");
 
-    println!("Database info:");
+    println!("Database info");
+    println!("-------------");
     println!("Name: {}", db_data.name());
     println!("Description: {}", db_data.description());
     println!("Size: {} B", db_data.size());
     println!("Location: {}", db_data.file_path().display());
+
+    let people_collection = database
+        .get_collection("people")
+        .expect("Cannot construct collection");
+
+    println!("\nInserting a document to collection 'people'");
+    let new_person = people_collection
+        .insert_one(person)
+        .unwrap();
+    
+    println!("Document info");
+    println!("-------------");
+    println!("_id: {}", new_person.id);
+
+    for (key, value) in new_person.data {
+        println!("{}: {}", key, value);
+    }
 }
