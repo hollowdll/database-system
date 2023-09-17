@@ -112,11 +112,11 @@ impl<'a> Collection<'a> {
     /// 
     /// Returns the new document with id populated.
     pub fn insert_one(&self, document: DocumentModel) -> Result<DocumentModel, DatabaseClientError> {
-        let input_data = transform_document_to_input(document);
+        let input = transform_document_to_input(document);
 
         let result = self.client.engine
             .storage_api()
-            .create_document(self.database.connection_string(), self.name(), input_data);
+            .create_document(self.database.connection_string(), self.name(), input);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
@@ -138,16 +138,48 @@ impl<'a> Collection<'a> {
     /// Replaces a document in this collection with a new one.
     /// 
     /// Only the data is replaced, id remains the same.
-    pub fn replace_one_by_id(id: &u64) -> Result<(), DatabaseClientError> {
-        Ok(())
+    pub fn replace_one_by_id(&self, id: &DocumentId, document: DocumentModel) -> Result<(), DatabaseClientError> {
+        let input = transform_document_to_input(document);
+        
+        let result = self.client.engine
+            .storage_api()
+            .replace_document(self.database.connection_string(), &id.0, self.name(), input);
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::ReplaceOneDocument,
+                e.message));
+        }
+
+        if result.success {
+            return Ok(());
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to replace a document".to_string()));
     }
 
-    /// Deletes a document in this collection.
-    pub fn delete_one_by_id(id: &u64) -> Result<(), DatabaseClientError> {
-        Ok(())
-    }
+    /// Deletes a document by id from this collection.
+    pub fn delete_one_by_id(&self, id: &DocumentId) -> Result<(), DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .delete_document(self.database.connection_string(), &id.0, self.name());
 
-    
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::DeleteOneDocument,
+                e.message));
+        }
+
+        if result.success {
+            return Ok(());
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to delete a document".to_string()));
+    }
 }
 
 /// Transforms driver document model to engine input data.
