@@ -50,13 +50,62 @@ impl<'a> Collection<'a> {
     }
 
     /// Finds all documents in this collection.
-    pub fn find_all() -> Result<Vec<DocumentModel>, DatabaseOperationError> {
-        Ok(Vec::new())
+    /// 
+    /// Returns the found documents.
+    pub fn find_all(&self) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .find_all_documents(self.database.connection_string(), self.name());
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindAllDocuments,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(document_dtos) = result.data {
+                let documents: Vec<DocumentModel> = document_dtos
+                    .into_iter()
+                    .map(|document| transform_document_dto_to_document(document))
+                    .collect();
+
+                return Ok(documents);
+            }
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to find all documents from collection".to_string()));
     }
 
     /// Finds a document by id from this collection.
-    pub fn find_one_by_id(id: &u64) -> Result<Option<DocumentModel>, DatabaseOperationError> {
-        Ok(None)
+    /// 
+    /// Returns the found document.
+    pub fn find_one_by_id(&self, id: &DocumentId) -> Result<Option<DocumentModel>, DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .find_document_by_id(&id.0, self.database.connection_string(), self.name());
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindOneDocument,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(data) = result.data {
+                if let Some(document_dto) = data {
+                    return Ok(Some(transform_document_dto_to_document(document_dto)));
+                } else {
+                    return Ok(None);
+                }
+            }
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to find document from collection".to_string()));
     }
 
     /// Inserts a document to this collection.
@@ -89,14 +138,16 @@ impl<'a> Collection<'a> {
     /// Replaces a document in this collection with a new one.
     /// 
     /// Only the data is replaced, id remains the same.
-    pub fn replace_one_by_id(id: &u64) -> Result<(), DatabaseOperationError> {
+    pub fn replace_one_by_id(id: &u64) -> Result<(), DatabaseClientError> {
         Ok(())
     }
 
     /// Deletes a document in this collection.
-    pub fn delete_one_by_id(id: &u64) -> Result<(), DatabaseOperationError> {
+    pub fn delete_one_by_id(id: &u64) -> Result<(), DatabaseClientError> {
         Ok(())
     }
+
+    
 }
 
 /// Transforms driver document model to engine input data.

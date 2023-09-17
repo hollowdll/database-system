@@ -57,4 +57,12 @@ impl DocumentModel {
             data: HashMap::new(),
         }
     }
+
+    pub fn id(&self) -> &DocumentId {
+        &self.id
+    }
+
+    pub fn data(&self) -> &HashMap<String, DataType> {
+        &self.data
+    }
 }
