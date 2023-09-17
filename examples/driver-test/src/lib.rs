@@ -43,15 +43,29 @@ pub fn run() {
         .get_collection("people")
         .expect("Cannot construct collection");
 
-    println!("\nInserting a document to collection 'people'");
+    println!("\nInserting a document to collection 'people'...");
     let new_person = people_collection.insert_one(person).unwrap();
+    let found_person = people_collection.find_one_by_id(new_person.id()).unwrap();
     
-    println!("Inserted document info");
+    println!("\nInserted document info");
     println!("----------------------");
-    println!("_id: {}", new_person.id);
+    println!("_id: {}", new_person.id());
 
     for (key, value) in new_person.data {
         println!("{}: {}", key, value);
+    }
+
+    println!("\nFind inserted document by id");
+    println!("----------------------------");
+
+    if let Some(found_person) = found_person {
+        println!("_id: {}", found_person.id());
+    
+        for (key, value) in found_person.data {
+            println!("{}: {}", key, value);
+        }
+    } else {
+        println!("Document not found");
     }
 
     let people = people_collection.find_all().unwrap();
