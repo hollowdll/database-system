@@ -68,7 +68,7 @@ impl Engine {
 
 /// Database engine for database drivers.
 /// 
-/// This doesn't involve a config file so it is more minimal.
+/// This doesn't include a config file so it is more minimal.
 /// Use this If the database driver doesn't need a config file.
 pub struct DriverEngine {
     storage_api: StorageApi,
