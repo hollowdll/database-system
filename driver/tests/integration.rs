@@ -3,3 +3,4 @@
 mod common;
 mod client;
 mod database;
+mod collection;
