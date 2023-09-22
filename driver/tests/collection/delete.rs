@@ -6,7 +6,7 @@ use driver::client::DatabaseClient;
 use engine::storage::DB_FILE_EXTENSION;
 
 #[test]
-pub fn insert_document_success() {
+pub fn delete_one_document_by_id_success() {
     let config = Config::new();
     let client = DatabaseClient::build(config.db_dir.path());
     let db_name = "testdb123";
@@ -21,13 +21,12 @@ pub fn insert_document_success() {
 
     let collection = database.get_collection(collection_name).unwrap();
     let document = create_test_document();
-    let document_id = document.id.0;
-    let field_count = document.data.len();
     let created_document = collection.insert_one(document).unwrap();
-
-    assert_ne!(created_document.id.0, document_id);
-    assert_eq!(created_document.id.0, 1);
-    assert_eq!(created_document.data.len(), field_count);
+    let found_document = collection.find_one_by_id(created_document.id()).unwrap().unwrap();
+    collection.delete_one_by_id(found_document.id()).unwrap();
+    
+    let found_document = collection.find_one_by_id(found_document.id()).unwrap();
+    assert!(found_document.is_none());
 
     config.close_temp_dirs();
 }

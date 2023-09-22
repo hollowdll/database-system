@@ -20,8 +20,6 @@ pub fn find_all_documents_success() {
     assert!(file_path.is_file());
 
     let collection = database.get_collection(collection_name).unwrap();
-    assert_eq!(collection.name(), collection_name);
-
     let document = create_test_document();
     let created_document = collection.insert_one(document).unwrap();
     let found_documents = collection.find_all().unwrap();
@@ -48,8 +46,6 @@ pub fn find_one_document_by_id_success() {
     assert!(file_path.is_file());
 
     let collection = database.get_collection(collection_name).unwrap();
-    assert_eq!(collection.name(), collection_name);
-
     let document = create_test_document();
     let created_document = collection.insert_one(document).unwrap();
     let found_document = collection.find_one_by_id(created_document.id()).unwrap();
