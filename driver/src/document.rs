@@ -3,6 +3,7 @@ use std::{collections::HashMap, fmt};
 /// Data type for document id.
 /// 
 /// DocumentId is an unsigned 64-bit integer.
+#[derive(Debug, Clone)]
 pub struct DocumentId(pub u64);
 
 impl fmt::Display for DocumentId {
@@ -12,6 +13,7 @@ impl fmt::Display for DocumentId {
 }
 
 /// Data type for document data fields.
+#[derive(Debug, Clone)]
 pub enum DataType {
     /// 64-bit signed integer.
     Int64(i64),
@@ -44,6 +46,7 @@ impl fmt::Display for DataType {
 /// Model for database documents.
 /// 
 /// Use this to create documents that can be saved to databases.
+#[derive(Debug, Clone)]
 pub struct DocumentModel {
     pub id: DocumentId,
     pub data: HashMap<String, DataType>
