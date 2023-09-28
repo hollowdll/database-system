@@ -1,7 +1,11 @@
 use driver::{
     client::error::DatabaseClientError,
     database::Database,
-    collection::Collection, document::DocumentModel,
+    collection::Collection,
+    document::{
+        DocumentModel,
+        DataType,
+    },
 };
 
 pub struct Book {
@@ -9,8 +13,14 @@ pub struct Book {
 }
 
 impl Book {
-    pub fn new() -> Book {
-        Book { document: DocumentModel::new() }
+    /// Creates a new book with name, publish year, and author.
+    pub fn new(name: &str, year: i32, author: &str) -> Book {
+        let mut document = DocumentModel::new();
+        document.data.insert("name".to_string(), DataType::Text(name.to_string()));
+        document.data.insert("year".to_string(), DataType::Int32(year));
+        document.data.insert("author".to_string(), DataType::Text(author.to_string()));
+
+        Book { document }
     }
 }
 
