@@ -5,4 +5,5 @@ members = [
     "engine",
     "driver",
     "examples/driver-test",
+    "examples/bookstore",
 ]
