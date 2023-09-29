@@ -40,13 +40,13 @@ Find a book
 
 # Example
 
-Add an example book to the database
+Add a book to the database
 ```bash
 ./bookstore book add --name "Software Engineering" --year 2023 --author "John Smith"
 ```
 
 Output
-```json
+```
 {
   _id: 1
   name: Software Engineering
