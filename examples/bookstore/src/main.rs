@@ -7,6 +7,8 @@ use clap::{
 use bookstore::{
     create_db_client,
     get_bookstore_db,
+    display_document,
+    display_document_list,
     book::{BookDbContext, Book},
 };
 
@@ -31,12 +33,14 @@ struct BookArgs {
 
 #[derive(Subcommand)]
 enum BookCommands {
-    /// Adds a book to the database to collection "books"
-    Add(AddBook),
+    /// Add a book to the database
+    Add(AddBookArgs),
+    /// Find all books from the database
+    FindAll(FindAllBooksArgs),
 }
 
 #[derive(Args)]
-struct AddBook {
+struct AddBookArgs {
     /// Name of the book
     #[arg(short, long)]
     name: String,
@@ -50,6 +54,9 @@ struct AddBook {
     author: String,
 }
 
+#[derive(Args)]
+struct FindAllBooksArgs {}
+
 fn main() {
     let client = create_db_client();
     let book_db = get_bookstore_db(&client).unwrap();
@@ -60,22 +67,22 @@ fn main() {
         Some(Commands::Book(args)) => {
             match &args.command {
                 Some(BookCommands::Add(args)) => {
-                    println!("Name: {}", &args.name);
-                    println!("Year: {}", &args.year);
-                    println!("Author: {}", &args.author);
-
                     let book = Book::new(&args.name, args.year, &args.author);
                     let inserted_book = book_db_context.book_collection
                         .insert_one(book.document)
                         .unwrap();
 
-                    println!("\nInserted document");
-                    println!("-----------------");
-                    println!("_id: {}", inserted_book.id());
+                    println!("Inserted book");
+                    println!("-------------");
+                    display_document(&inserted_book);
+                },
+                Some(BookCommands::FindAll(_args)) => {
+                    let books = book_db_context.book_collection
+                        .find_all()
+                        .unwrap();
 
-                    for (key, value) in inserted_book.data {
-                        println!("{}: {}", key, value);
-                    }
+                    println!("Books found: {}", books.len());
+                    display_document_list(&books);
                 },
                 None => return,
             }
