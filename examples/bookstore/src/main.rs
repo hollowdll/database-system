@@ -3,14 +3,16 @@ use clap::{
     Subcommand,
     Args,
 };
-
 use bookstore::{
     create_db_client,
     get_bookstore_db,
-    display_document,
-    display_document_list,
+    document::{
+        display_document,
+        display_document_list,
+    },
     book::{BookDbContext, Book},
 };
+use driver::document::DocumentId;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -37,6 +39,8 @@ enum BookCommands {
     Add(AddBookArgs),
     /// Find all books from the database
     FindAll(FindAllBooksArgs),
+    /// Find a book from the database
+    Find(FindBookArgs),
 }
 
 #[derive(Args)]
@@ -56,6 +60,13 @@ struct AddBookArgs {
 
 #[derive(Args)]
 struct FindAllBooksArgs {}
+
+#[derive(Args)]
+struct FindBookArgs {
+    /// Id of the book
+    #[arg(short, long)]
+    id: u64,
+}
 
 fn main() {
     let client = create_db_client();
@@ -83,6 +94,19 @@ fn main() {
 
                     println!("Books found: {}", books.len());
                     display_document_list(&books);
+                },
+                Some(BookCommands::Find(args)) => {
+                    let book = book_db_context.book_collection
+                        .find_one_by_id(&DocumentId(args.id))
+                        .unwrap();
+
+                    if let Some(book) = book {
+                        println!("Found book");
+                        println!("----------");
+                        display_document(&book);
+                    } else {
+                        println!("No book found");
+                    }
                 },
                 None => return,
             }
