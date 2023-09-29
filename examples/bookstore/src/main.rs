@@ -1,72 +1,21 @@
-use clap::{
-    Parser,
-    Subcommand,
-    Args,
-};
 use bookstore::{
-    create_db_client,
-    get_bookstore_db,
+    db::{
+        create_db_client,
+        get_bookstore_db,
+    },
     document::{
         display_document,
         display_document_list,
     },
+    cli::{
+        Cli,
+        Commands,
+        BookCommands,
+    },
     book::{BookDbContext, Book},
 };
 use driver::document::DocumentId;
-
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    #[command(subcommand)]
-    command: Option<Commands>,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Book related features
-    Book(BookArgs),
-}
-
-#[derive(Args)]
-struct BookArgs {
-    #[command(subcommand)]
-    command: Option<BookCommands>,
-}
-
-#[derive(Subcommand)]
-enum BookCommands {
-    /// Add a book to the database
-    Add(AddBookArgs),
-    /// Find all books from the database
-    FindAll(FindAllBooksArgs),
-    /// Find a book from the database
-    Find(FindBookArgs),
-}
-
-#[derive(Args)]
-struct AddBookArgs {
-    /// Name of the book
-    #[arg(short, long)]
-    name: String,
-
-    /// Year published
-    #[arg(short, long)]
-    year: i32,
-
-    /// Name of the author
-    #[arg(short, long)]
-    author: String,
-}
-
-#[derive(Args)]
-struct FindAllBooksArgs {}
-
-#[derive(Args)]
-struct FindBookArgs {
-    /// Id of the book
-    #[arg(short, long)]
-    id: u64,
-}
+use clap::Parser;
 
 fn main() {
     let client = create_db_client();

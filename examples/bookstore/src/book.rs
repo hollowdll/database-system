@@ -24,6 +24,7 @@ impl Book {
     }
 }
 
+/// Database context holding the collections of the book database.
 pub struct BookDbContext<'a> {
     pub book_collection: Collection<'a>,
 }
