@@ -52,7 +52,7 @@ Documents can also follow the same schema, which is recommended when using stron
 
 Here is an example document:
 
-```
+```rs
 {
     [DocumentId] _id: 1
     [Text] "name": "John Smith"
