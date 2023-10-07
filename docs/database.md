@@ -6,7 +6,7 @@ Databases consist of two primary things: collections and documents. Collections 
 
 Here is an example of the structure of a database:
 
-```json
+```
 Database
     +-Metadata
     +-Collections
@@ -52,7 +52,7 @@ Documents can also follow the same schema, which is recommended when using stron
 
 Here is an example document:
 
-```json
+```
 {
     [DocumentId] _id: 1
     [Text] "name": "John Smith"

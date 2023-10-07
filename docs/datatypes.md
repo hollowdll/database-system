@@ -4,7 +4,7 @@ The database uses strongly typed data types for document data. Each field in a d
 
 For example:
 
-```json
+```
 {
     [DocumentId] _id: 1
     [Text] "name": "Some name"
@@ -37,7 +37,7 @@ Note that these might change in the future. New data types will be added in late
 
 Here is an example usage of all the data types:
 
-```json
+```
 {
     [DocumentId] _id: 1
     [Int32] "int32_field": 1234567
