@@ -1,10 +1,17 @@
 // Utility functions
 
-use std::io::{self, Write};
-use crate::{
-    engine::logging::error::LogError,
-    NO_CONNECTED_DB,
+use std::{
+    io::{self, Write},
+    process,
 };
+use crate::database::NO_CONNECTED_DB;
+use engine::logging::error::LogError;
+
+/// Exits the program.
+pub fn exit_program() {
+    println!("Exiting...");
+    process::exit(0);
+}
 
 /// Prints a message telling there is no connected database.
 pub fn db_not_connected() {

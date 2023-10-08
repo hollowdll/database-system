@@ -1,14 +1,44 @@
-use std::path::Path;
+use std::path::{
+    Path,
+    PathBuf,
+};
 use crate::{
-    Cli,
+    cli::Cli,
     ask_user_input,
     ask_action_confirm,
-    CONFIRM_OPTION_YES,
-    ConnectedDatabase,
+    cli::CONFIRM_OPTION_YES,
     db_not_connected,
     event_log_failed,
     error_log_failed,
 };
+
+/// Display text that tells there is no connected database.
+pub const NO_CONNECTED_DB: &str = "No connected database";
+
+/// Represents the connected database.
+/// 
+/// Holds its name and file path.
+pub struct ConnectedDatabase {
+    name: String,
+    file_path: PathBuf,
+}
+
+impl ConnectedDatabase {
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn file_path(&self) -> &Path {
+        &self.file_path
+    }
+
+    pub fn new(name: &str, file_path: &Path) -> Self {
+        Self {
+            name: String::from(name),
+            file_path: PathBuf::from(file_path),
+        }
+    }
+}
 
 impl Cli {
     /// Resets connected database to `None` if it doesn't exist anymore.
