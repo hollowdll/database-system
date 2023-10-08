@@ -102,7 +102,7 @@ pub fn run() {
                 println!(
 "
   /help                          List all available commands
-  /q                             Quit program
+  /q, exit                       Quit program
   /status                        Display currently connected database
   /version                       Display client and engine versions
 
@@ -146,7 +146,10 @@ pub fn run() {
 More commands in the future...");
             },
             "/q" => {
-                exit_program()
+                exit_program();
+            },
+            "exit" => {
+                exit_program();
             },
             "/status" => {
                 cli.display_connection_status();
