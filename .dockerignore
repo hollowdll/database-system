@@ -1,0 +1,12 @@
+# Exclude these from Docker containers
+target
+README.md
+LICENSE
+Dockerfile*
+.dockerignore
+Cargo.lock
+logs
+*.log
+databases
+*.db
+engine.config.json
