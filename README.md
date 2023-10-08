@@ -1,19 +1,26 @@
 # Overview
 
-Small document-oriented NoSQL database engine built with Rust.
+Small NoSQL document database system built with Rust.
 
-No database server. The engine can be included as a library to a client application.
+No database server. The database engine is embedded to the application using it. If you are familiar with SQLite, the concept is similar to it.
 
-Databases are stored to single database files that contain everything the database needs.
+Databases are stored to local database files in binary format. The database engine uses Protocol Buffers data format to store data.
 
-Currently there is only a CLI client but a GUI client is being planned.
+Currently there are 3 main components:
+- `engine` - The database engine
+- `shell` - The database shell
+- `driver` - Database driver to use in Rust applications
 
-NOTE! This project is in early development and code will likely change a lot.
-Currently documentation is very limited because things keep changing.
+No releases yet.
 
-# Data storage
+# Documentation
 
-The engine uses Protocol Buffers for storing data.
-Protocol Buffers is a very fast and efficient data format for serialized structured data.
-It replaced the previously used JSON, as JSON wasn't very fast for large database files.
+For more information and to get started, read the [docs](./docs)
 
+> **NOTE**
+>
+> Documentation is not final. This is still in early development.
+
+# License
+
+This project is licensed under MIT license. It is guaranteed to stay 100% free and open source.
