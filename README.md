@@ -17,9 +17,30 @@ No releases yet.
 
 For more information and to get started, read the [docs](./docs)
 
-> **NOTE**
->
-> Documentation is not final. This is still in early development.
+# Docker
+
+The easiest way to get started is using Docker. [See instructions here](./docs/docker.md)
+
+# Build
+
+Alternatively, you can build from source code with Rust tools like Cargo. Because the engine uses Protocol Buffers, you need `protoc` compiler on your system to compile the `.proto` files. This is also needed when using the database driver.
+
+You can install protobuf compiler [here](https://github.com/protocolbuffers/protobuf#protobuf-compiler-installation)
+
+Compile and run the database shell
+```
+cd database-system
+```
+```bash
+cargo run
+```
+
+Or just compile without running
+```bash
+cargo build
+```
+
+Binaries, files, and directories will be created to `target` directory.
 
 # License
 
