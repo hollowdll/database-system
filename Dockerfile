@@ -1,3 +1,6 @@
+# This Dockerfile is needed to build the database shell image
+
+# Rust official base image
 FROM rust:latest as build
 WORKDIR /app
 
