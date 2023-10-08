@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "cli",
+    "shell",
     "engine",
     "driver",
     "examples/driver-test",

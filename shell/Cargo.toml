@@ -1,9 +1,9 @@
 [package]
-name = "cli"
+name = "shell"
 version = "0.0.0"
 edition = "2021"
-description = "Database engine CLI client."
-default-run = "cli"
+description = "Database shell."
+default-run = "shell"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

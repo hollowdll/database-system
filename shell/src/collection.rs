@@ -1,9 +1,9 @@
 use crate::{
-    Cli,
+    cli::Cli,
     ask_user_input,
     ask_action_confirm,
-    CONFIRM_OPTION_YES,
-    ConnectedDatabase,
+    cli::CONFIRM_OPTION_YES,
+    database::ConnectedDatabase,
     db_not_connected,
     event_log_failed,
     error_log_failed,

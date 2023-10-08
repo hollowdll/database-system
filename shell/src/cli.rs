@@ -1,18 +1,3 @@
-// #![allow(unused)]
-
-mod database;
-mod collection;
-mod document;
-pub mod util;
-pub mod config;
-
-use std::{
-    process,
-    path::{
-        PathBuf,
-        Path,
-    },
-};
 use engine::{
     self,
     config::{
@@ -21,17 +6,24 @@ use engine::{
         load_config,
     },
 };
-use util::*;
+use crate::{
+    util::*,
+    database::{
+        ConnectedDatabase,
+        NO_CONNECTED_DB,
+    },
+};
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const NO_CONNECTED_DB: &str = "No connected database";
-const CONFIRM_OPTION_YES: &str = "Y";
+/// Client version.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+/// The input to give to confirm Y/N questions.
+pub const CONFIRM_OPTION_YES: &str = "Y";
 
 /// Program structure.
 pub struct Cli {
-    engine: engine::Engine,
-    version: &'static str,
-    connected_db: Option<ConnectedDatabase>,
+    pub engine: engine::Engine,
+    pub version: &'static str,
+    pub connected_db: Option<ConnectedDatabase>,
 }
 
 impl Cli {
@@ -68,31 +60,6 @@ impl Cli {
     }
 }
 
-/// Represents the connected database.
-/// 
-/// Holds its name and file path.
-pub struct ConnectedDatabase {
-    name: String,
-    file_path: PathBuf,
-}
-
-impl ConnectedDatabase {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn file_path(&self) -> &Path {
-        &self.file_path
-    }
-
-    fn new(name: &str, file_path: &Path) -> Self {
-        Self {
-            name: String::from(name),
-            file_path: PathBuf::from(file_path),
-        }
-    }
-}
-
 /// Runs the program.
 pub fn run() {
     let config = match load_config(&get_config_file_path()) {
@@ -105,13 +72,11 @@ pub fn run() {
         },
     };
     let mut cli = Cli::build(&config);
-
     let help_message = "Write /help for all available commands";
     let mut connected_db_name;
 
-    println!("NOTE: This is an early version. Nothing is final.");
-    println!("\nVersion: {}", cli.version);
-    println!("Database engine CLI client");
+    println!("Database shell");
+    println!("Version: {}", cli.version);
     println!("\n{}", help_message);
 
     // Program main loop
@@ -137,7 +102,7 @@ pub fn run() {
                 println!(
 "
   /help                          List all available commands
-  /q                             Quit program
+  /q, exit                       Quit program
   /status                        Display currently connected database
   /version                       Display client and engine versions
 
@@ -181,7 +146,10 @@ pub fn run() {
 More commands in the future...");
             },
             "/q" => {
-                exit_program()
+                exit_program();
+            },
+            "exit" => {
+                exit_program();
             },
             "/status" => {
                 cli.display_connection_status();
@@ -253,24 +221,10 @@ More commands in the future...");
                 cli.create_test_documents();
             },
             _ => {
-                println!("Command not found!");
+                println!("Command not found");
                 println!("{}", help_message);
                 continue
             },
         }
     }
 }
-
-/// Exits the program.
-fn exit_program() {
-    println!("Exiting...");
-    process::exit(0);
-}
-
-
-
-#[cfg(test)]
-mod tests {
-    
-}
-

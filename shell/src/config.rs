@@ -1,6 +1,6 @@
 use engine::config::Config;
 use crate::{
-    Cli,
+    cli::Cli,
     ask_user_input,
     event_log_failed,
     error_log_failed,

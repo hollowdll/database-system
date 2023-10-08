@@ -1,4 +1,4 @@
-use cli::run;
+use shell::cli::run;
 
 fn main() {
     run();
