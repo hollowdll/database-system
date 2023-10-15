@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  shell:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shell
+    volumes:
+      - databases:/app/databases
+      - logs:/app/logs
+
+volumes:
+  databases:
+  logs:
