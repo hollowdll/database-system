@@ -242,7 +242,7 @@ impl Cli {
             event_log_failed(result.log_error);
 
             if let Some(databases) = result.data {
-                println!("\nNumber of databases: {}", databases.len());
+                println!("Number of databases: {}", databases.len());
 
                 for database in databases {
                     println!(

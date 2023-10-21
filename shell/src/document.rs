@@ -224,7 +224,7 @@ impl Cli {
             event_log_failed(result.log_error);
 
             if let Some(documents) = result.data {
-                println!("\nNumber of documents: {}", documents.len());
+                println!("Number of documents: {}", documents.len());
 
                 for document in documents {
                     display_document(&document);
@@ -265,7 +265,7 @@ impl Cli {
             event_log_failed(result.log_error);
 
             if let Some(documents) = result.data {
-                println!("\nNumber of documents: {}", documents.len());
+                println!("Number of documents: {}", documents.len());
 
                 for document in documents {
                     display_document(&document);
