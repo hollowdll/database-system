@@ -114,6 +114,7 @@ pub fn run() {
   /create db                     Create a new database
   /delete db                     Delete the connected database
   /change db desc                Change description of the connected database
+  /db details                    Show details of the connected database
 
   ** COLLECTION COMMANDS **
 
@@ -175,6 +176,9 @@ More commands in the future...");
             "/change db desc" => {
                 cli.change_database_description();
             },
+            "/db details" => {
+                cli.show_database_details();
+            }
             "/get cols" => {
                 cli.list_all_collections();
             },

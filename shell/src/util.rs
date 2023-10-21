@@ -18,14 +18,14 @@ pub fn db_not_connected() {
     println!("{}", NO_CONNECTED_DB);
 }
 
-/// Prints an error message telling event logging failed.
+/// Prints an error message telling event logging failed in case of error.
 pub fn event_log_failed(err: Option<LogError>) {
     if let Some(err) = err {
         eprintln!("Error: Failed to log event: {}", err);
     }
 }
 
-/// Prints an error message telling error logging failed.
+/// Prints an error message telling error logging failed in case of error.
 pub fn error_log_failed(err: Option<LogError>) {
     if let Some(err) = err {
         eprintln!("Error: Failed to log error: {}", err);

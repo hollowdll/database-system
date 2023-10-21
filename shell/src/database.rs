@@ -11,6 +11,7 @@ use crate::{
     event_log_failed,
     error_log_failed,
 };
+use engine::storage::database::DatabaseDto;
 
 /// Display text that tells there is no connected database.
 pub const NO_CONNECTED_DB: &str = "No connected database";
@@ -38,6 +39,19 @@ impl ConnectedDatabase {
             file_path: PathBuf::from(file_path),
         }
     }
+}
+
+fn print_database_details(database: &DatabaseDto) {
+    println!(
+"
+    Name:        {}
+    Size:        {} bytes
+    Description: {}
+    File path:   {}",
+    database.name(),
+    database.size(),
+    database.description(),
+    database.file_path().display());
 }
 
 impl Cli {
@@ -242,19 +256,39 @@ impl Cli {
             event_log_failed(result.log_error);
 
             if let Some(databases) = result.data {
-                println!("\nNumber of databases: {}", databases.len());
+                println!("Number of databases: {}", databases.len());
 
                 for database in databases {
-                    println!(
-"
-  Name:        {}
-  Size:        {} bytes
-  Description: {}
-  File path:   {}",
-                    database.name(),
-                    database.size(),
-                    database.description(),
-                    database.file_path().display());
+                    print_database_details(&database);
+                }
+            }
+        } else {
+            error_log_failed(result.log_error);
+
+            if let Some(e) = result.error {
+                eprintln!("Error: {}", e);
+            }
+        }
+    }
+
+    /// Show the connected database's details.
+    pub fn show_database_details(&self) {
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
+        };
+        let result = self.engine
+            .storage_api()
+            .find_database_by_file_path(connected_db.file_path());
+
+        if result.success {
+            event_log_failed(result.log_error);
+
+            if let Some(db) = result.data {
+                if let Some(db) = db {
+                    print_database_details(&db);
+                } else {
+                    println!("Database was not found");
                 }
             }
         } else {

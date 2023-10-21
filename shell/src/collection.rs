@@ -48,7 +48,7 @@ impl Cli {
             Some(db) => db,
             None => return db_not_connected(),
         };
-        let collection_name = match ask_user_input("Collection: ") {
+        let collection_name = match ask_user_input("Collection name: ") {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
@@ -123,7 +123,7 @@ impl Cli {
             event_log_failed(result.log_error);
 
             if let Some(collections) = result.data {
-                println!("\nNumber of collections: {}", collections.len());
+                println!("Number of collections: {}", collections.len());
 
                 for collection in collections {
                     println!("{}", collection.name());
