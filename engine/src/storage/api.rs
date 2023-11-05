@@ -2,7 +2,7 @@
 
 use std::path::Path;
 use crate::{
-    DatabaseManager,
+    storage::db_manager::DatabaseManager,
     Logger,
     storage::{
         error::DatabaseOperationError,
