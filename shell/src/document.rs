@@ -7,32 +7,7 @@ use crate::{
     event_log_failed,
     error_log_failed,
 };
-use engine::{
-    storage::{
-        pb::document::data_type::DataType,
-        document::DocumentDto,
-    },
-    DocumentInputDataField,
-};
-
-/// Displays document in a more readable format.
-fn display_document(document: &DocumentDto) {
-    println!("{}\n  [DocumentId] _id: {}", "{", document.id());
-    for (key, value) in document.data().iter() {
-        // Get data type and value
-        let (data_type, field_value) = match &value.data_type {
-            Some(DataType::Int32(value)) => ("Int32", value.to_string()),
-            Some(DataType::Int64(value)) => ("Int64", value.to_string()),
-            Some(DataType::Decimal(value)) => ("Decimal", value.to_string()),
-            Some(DataType::Bool(value)) => ("Bool", value.to_string()),
-            Some(DataType::Text(value)) => ("Text", format!("\"{}\"", value)),
-            _ => return eprintln!("Invalid document data type"),
-        };
-
-        println!("  [{data_type}] \"{key}\": {field_value}");
-    }
-    println!("{}", "}");
-}
+use engine::DocumentInputDataField;
 
 impl Cli {
     /// Show menu to create a new document to a collection.
@@ -227,7 +202,7 @@ impl Cli {
                 println!("Number of documents: {}", documents.len());
 
                 for document in documents {
-                    display_document(&document);
+                    println!("{}", &document);
                 }
             }
         } else {
@@ -268,7 +243,7 @@ impl Cli {
                 println!("Number of documents: {}", documents.len());
 
                 for document in documents {
-                    display_document(&document);
+                    println!("{}", &document);
                 }
             }
         } else {
@@ -307,7 +282,7 @@ impl Cli {
 
             if let Some(data) = result.data {
                 if let Some(document) = data {
-                    display_document(&document);
+                    println!("{}", &document);
                 } else {
                     println!("Document with this ID was not found");
                 }

@@ -5,7 +5,8 @@ use std::{
         Path,
         PathBuf,
     },
-    error::Error, fmt::Display,
+    error::Error,
+    fmt::Display,
 };
 use crate::storage::{
     error::DatabaseError,
