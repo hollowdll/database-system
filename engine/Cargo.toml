@@ -1,8 +1,10 @@
 [package]
 name = "engine"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
-description = "Database engine library."
+description = "Database engine"
+license = "MIT"
+repository = "https://github.com/hollowdll/database-system"
 
 [dependencies]
 serde_json = "1"
