@@ -6,22 +6,19 @@ use std::{
     collections::HashMap,
     fmt::{self, Display},
 };
-use crate::{
-    DocumentInputDataField,
-    storage::{
-        error::{
-            DatabaseError,
-            CollectionError,
-            DocumentError,
-        },
-        pb,
-        pb::document::DataType,
-        pb::document::data_type,
-        serialize_database,
-        deserialize_database,
-        write_database_to_file,
-        DB_FILE_EXTENSION,
+use crate::storage::{
+    error::{
+        DatabaseError,
+        CollectionError,
+        DocumentError,
     },
+    pb,
+    pb::document::DataType,
+    pb::document::data_type,
+    serialize_database,
+    deserialize_database,
+    write_database_to_file,
+    DB_FILE_EXTENSION,
 };
 
 // Implements methods for protobuf type

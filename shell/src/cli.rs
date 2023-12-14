@@ -140,10 +140,6 @@ pub fn run() {
   /config get logs_dir_path      Get directory where logs are created. 
   /config set logs_dir_path      Set directory where logs will be created.
 
-  ** COMMANDS FOR TESTING **
-
-  /create test docs            Creates test documents to a collection
-
 More commands in the future...");
             },
             "/q" => {
@@ -221,12 +217,8 @@ More commands in the future...");
             "/config get logs_dir_path" => {
                 println!("{}", config.logs_dir_path().display());
             },
-            "/create test docs" => {
-                cli.create_test_documents();
-            },
             _ => {
-                println!("Command not found");
-                println!("{}", help_message);
+                println!("Command not found\n{}", help_message);
                 continue
             },
         }
