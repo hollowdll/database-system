@@ -108,8 +108,8 @@ pub fn run() {
 
   ** DATABASE COMMANDS **
 
-  /connect db name               Connect to a database by its name. Tries to find it in the database directory.
-  /connect db file_path          Connect to a database by its file path.
+  /connect db name               Connect to a database by its name. Tries to find it in the database directory
+  /connect db file_path          Connect to a database by its file path
   /get dbs                       List all databases
   /create db                     Create a new database
   /delete db                     Delete the connected database
@@ -118,31 +118,27 @@ pub fn run() {
 
   ** COLLECTION COMMANDS **
 
-  /get cols                      List all collections of the connected database
-  /create col                    Create a new collection to the connected database
-  /delete col                    Delete a collection and all its documents from the connected database
+  /get collections               List all collections in the connected database
+  /create collection             Create a new collection to the connected database
+  /delete collection             Delete a collection. The collection has to be empty
 
   ** DOCUMENT COMMANDS **
 
-  /get all docs                  List all documents of a collection
-  /get docs                      List the first documents of a collection specified by limit
-                                 This command will be changed in the future to support different kinds of queries.
-  /get doc                       List a single document of a collection
-  /create doc                    Create a new document to a collection
-  /replace doc                   Replace a document with new data
-  /delete doc                    Delete a document from a collection
+  /get all documents             List all documents in a collection
+  /get documents                 List the first documents in a collection specified by limit
+                                 This command will be changed in the future to support different kinds of queries
+  /get document                  List a single document in a collection
+  /create document               Create a new document to a collection
+  /replace document              Replace a document with new data
+  /delete document               Delete a document from a collection
 
   ** CONFIG COMMANDS **
 
   /config get all                List all configurations
   /config get db_dir_path        Get directory where databases are created
   /config set db_dir_path        Set directory where databases will be created
-  /config get logs_dir_path      Get directory where logs are created. 
-  /config set logs_dir_path      Set directory where logs will be created.
-
-  ** COMMANDS FOR TESTING **
-
-  /create test docs            Creates test documents to a collection
+  /config get logs_dir_path      Get directory where logs are created
+  /config set logs_dir_path      Set directory where logs will be created
 
 More commands in the future...");
             },
@@ -179,31 +175,31 @@ More commands in the future...");
             "/db details" => {
                 cli.show_database_details();
             }
-            "/get cols" => {
+            "/get collections" => {
                 cli.list_all_collections();
             },
-            "/create col" => {
+            "/create collection" => {
                 cli.create_collection();
             },
-            "/delete col" => {
+            "/delete collection" => {
                 cli.delete_collection();
             },
-            "/get all docs" => {
+            "/get all documents" => {
                 cli.list_all_documents();
             },
-            "/get docs" => {
+            "/get documents" => {
                 cli.list_documents();
             },
-            "/get doc" => {
+            "/get document" => {
                 cli.list_single_document();
             },
-            "/create doc" => {
+            "/create document" => {
                 cli.create_document();
             },
-            "/replace doc" => {
+            "/replace document" => {
                 cli.replace_document();
             },
-            "/delete doc" => {
+            "/delete document" => {
                 cli.delete_document();
             },
             "/config get all" => {
@@ -221,12 +217,8 @@ More commands in the future...");
             "/config get logs_dir_path" => {
                 println!("{}", config.logs_dir_path().display());
             },
-            "/create test docs" => {
-                cli.create_test_documents();
-            },
             _ => {
-                println!("Command not found");
-                println!("{}", help_message);
+                println!("Command not found\n{}", help_message);
                 continue
             },
         }
