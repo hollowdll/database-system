@@ -11,7 +11,6 @@ use crate::{
     event_log_failed,
     error_log_failed,
 };
-use engine::storage::database::DatabaseDto;
 
 /// Display text that tells there is no connected database.
 pub const NO_CONNECTED_DB: &str = "No connected database";
@@ -39,19 +38,6 @@ impl ConnectedDatabase {
             file_path: PathBuf::from(file_path),
         }
     }
-}
-
-fn print_database_details(database: &DatabaseDto) {
-    println!(
-"
-  Name:        {}
-  Size:        {} bytes
-  Description: {}
-  File path:   {}",
-    database.name(),
-    database.size(),
-    database.description(),
-    database.file_path().display());
 }
 
 impl Cli {
@@ -258,8 +244,8 @@ impl Cli {
             if let Some(databases) = result.data {
                 println!("Number of databases: {}", databases.len());
 
-                for database in databases {
-                    print_database_details(&database);
+                for db in databases {
+                    println!("{}", &db);
                 }
             }
         } else {
@@ -286,7 +272,7 @@ impl Cli {
 
             if let Some(db) = result.data {
                 if let Some(db) = db {
-                    print_database_details(&db);
+                    println!("{}", &db);
                 } else {
                     println!("Database was not found");
                 }

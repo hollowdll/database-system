@@ -6,6 +6,7 @@ use std::{
         PathBuf,
     },
     error::Error,
+    fmt::Display,
 };
 use crate::storage::{
     error::DatabaseError,
@@ -110,6 +111,23 @@ impl DatabaseDto {
             size,
             file_path,
         }
+    }
+}
+
+impl Display for DatabaseDto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "
+  Name:        {}
+  Size:        {} bytes
+  Description: {}
+  File path:   {}",
+            self.name(),
+            self.size(),
+            self.description(),
+            self.file_path().display(),
+        )
     }
 }
 

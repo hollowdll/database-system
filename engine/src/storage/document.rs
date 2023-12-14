@@ -4,20 +4,24 @@ use std::{
     path::Path,
     error::Error,
     collections::HashMap,
-    fmt,
+    fmt::{self, Display},
 };
-use crate::storage::{
-    error::{
-        DatabaseError,
-        CollectionError,
-        DocumentError,
+use crate::{
+    DocumentInputDataField,
+    storage::{
+        error::{
+            DatabaseError,
+            CollectionError,
+            DocumentError,
+        },
+        pb,
+        pb::document::DataType,
+        pb::document::data_type,
+        serialize_database,
+        deserialize_database,
+        write_database_to_file,
+        DB_FILE_EXTENSION,
     },
-    pb,
-    pb::document::DataType,
-    serialize_database,
-    deserialize_database,
-    write_database_to_file,
-    DB_FILE_EXTENSION,
 };
 
 // Implements methods for protobuf type
@@ -83,7 +87,33 @@ impl DocumentDto {
     }
 }
 
-/* Disabled for now
+impl Display for DocumentDto {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut data = Vec::new();
+        for (key, value) in self.data().iter() {
+            // Get data type and value
+            let (data_type, field_value) = match &value.data_type {
+                Some(data_type::DataType::Int32(value)) => ("Int32", value.to_string()),
+                Some(data_type::DataType::Int64(value)) => ("Int64", value.to_string()),
+                Some(data_type::DataType::Decimal(value)) => ("Decimal", value.to_string()),
+                Some(data_type::DataType::Bool(value)) => ("Bool", value.to_string()),
+                Some(data_type::DataType::Text(value)) => ("Text", format!("\"{}\"", value)),
+                _ => ("Invalid document data type", "Invalid value".to_string()),
+            };
+    
+            data.push(format!("  [{}] \"{}\": {}", data_type, key, field_value));
+        }
+
+        write!(
+            f,
+            "{{\n  [DocumentId] _id: {}\n{}\n}}",
+            self.id(),
+            data.join("\n"),
+        )
+    }
+}
+
+/* Disabled for now. Currently defined in generated protocol buffers code.
 /// Data type for document fields
 #[derive(Debug, PartialEq, Clone)]
 pub enum DataType {
