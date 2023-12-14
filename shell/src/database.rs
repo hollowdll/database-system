@@ -44,10 +44,10 @@ impl ConnectedDatabase {
 fn print_database_details(database: &DatabaseDto) {
     println!(
 "
-    Name:        {}
-    Size:        {} bytes
-    Description: {}
-    File path:   {}",
+  Name:        {}
+  Size:        {} bytes
+  Description: {}
+  File path:   {}",
     database.name(),
     database.size(),
     database.description(),
