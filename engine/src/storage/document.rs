@@ -294,10 +294,12 @@ pub fn delete_document_from_collection(
 /// Deletes all documents from a collection.
 /// 
 /// Writes the modified database to the database file.
+/// 
+/// Returns the number of deleted documents.
 pub fn delete_all_documents_from_collection(
     file_path: &Path,
     collection_name: &str,
-) -> Result<(), Box<dyn Error>>
+) -> Result<usize, Box<dyn Error>>
 {
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
@@ -306,11 +308,14 @@ pub fn delete_all_documents_from_collection(
 
     for collection in database.collections_mut() {
         if collection.name() == collection_name {
-            collection.documents_mut().clear();
+            // collection.documents_mut().clear();
+            let removed_count = collection.documents_mut()
+                .drain(..)
+                .count();
             let buf = serialize_database(&database)?;
 
             match write_database_to_file(&buf, file_path) {
-                Ok(()) => return Ok(()),
+                Ok(()) => return Ok(removed_count),
                 Err(e) => return Err(e.into()),
             }
         }
