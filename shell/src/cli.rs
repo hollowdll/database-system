@@ -120,7 +120,7 @@ pub fn run() {
 
   /get collections               List all collections in the connected database
   /create collection             Create a new collection to the connected database
-  /delete collection             Delete a collection. The collection has to be empty
+  /delete collection             Delete a collection from the connected database. The collection has to be empty
 
   ** DOCUMENT COMMANDS **
 
@@ -131,6 +131,7 @@ pub fn run() {
   /create document               Create a new document to a collection
   /replace document              Replace a document with new data
   /delete document               Delete a document from a collection
+  /delete all documents          Delete all documents from a collection
 
   ** CONFIG COMMANDS **
 
@@ -201,6 +202,9 @@ More commands in the future...");
             },
             "/delete document" => {
                 cli.delete_document();
+            },
+            "/delete all documents" => {
+                cli.delete_all_documents();
             },
             "/config get all" => {
                 Cli::list_all_configs(&config);

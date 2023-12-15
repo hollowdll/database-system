@@ -181,6 +181,49 @@ impl Cli {
         }
     }
 
+    /// Show menu to delete all documents.
+    pub fn delete_all_documents(&self) {
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+        let confirm = match ask_action_confirm(
+            &format!("Delete all documents in collection '{}'?", collection_name)
+        ) {
+            Ok(confirm) => confirm,
+            Err(_) => return,
+        };
+
+        match confirm.as_str() {
+            CONFIRM_OPTION_YES => {
+                let result = self.engine
+                    .storage_api()
+                    .delete_all_documents(connected_db.file_path(), &collection_name);
+
+                if result.success {
+                    event_log_failed(result.log_error);
+                    
+                    if let Some(deleted_count) = result.data {
+                        println!("Documents deleted: {}", deleted_count);
+                    } else {
+                        println!("Documents deleted");
+                    }
+                } else {
+                    error_log_failed(result.log_error);
+
+                    if let Some(e) = result.error {
+                        eprintln!("Error: {}", e);
+                    }
+                }
+            },
+            _ => return println!("Canceled action"),
+        }
+    }
+
     /// Show menu to list all documents of a collection.
     pub fn list_all_documents(&self) {
         let connected_db = match &self.connected_db {
