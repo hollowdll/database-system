@@ -37,6 +37,38 @@ pub struct StorageRequestResult<T> {
     pub log_error: Option<LogError>,
 }
 
+/// Returns successful storage API response.
+fn request_success<T>(
+    data: Option<T>,
+    log_result: Result<(), LogError>
+) -> StorageRequestResult<T> {
+    StorageRequestResult {
+        success: true,
+        error: None,
+        data,
+        log_error: match log_result {
+            Ok(()) => None,
+            Err(e) => Some(e),
+        },
+    }
+}
+
+/// Returns failed storage API response.
+fn request_fail<T>(
+    error: DatabaseOperationError,
+    log_result: Result<(), LogError>
+) -> StorageRequestResult<T> {
+    StorageRequestResult {
+        success: true,
+        error: Some(error),
+        data: None,
+        log_error: match log_result {
+            Ok(()) => None,
+            Err(e) => Some(e),
+        },
+    }
+}
+
 /// Data storage API.
 /// 
 /// Provides methods to do database operations.
@@ -74,19 +106,16 @@ impl StorageApi {
         match self.db_manager.create_database_to_db_dir(db_name) {
             Ok(()) => {
                 let content = format!("Created database '{}' to database directory", db_name);
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -95,21 +124,17 @@ impl StorageApi {
                     db_name,
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -127,19 +152,16 @@ impl StorageApi {
         match self.db_manager.create_database_by_file_path(db_name, db_file_path) {
             Ok(()) => {
                 let content = format!("Created database '{}'", db_file_path.display());
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -148,21 +170,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -179,19 +197,16 @@ impl StorageApi {
         match self.db_manager.delete_database(db_file_path) {
             Ok(()) => {
                 let content = format!("Deleted database '{}'", db_file_path.display());
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -200,21 +215,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -232,19 +243,16 @@ impl StorageApi {
         match self.db_manager.change_database_description(db_file_path, description) {
             Ok(()) => {
                 let content = format!("Changed description of database '{}'", db_file_path.display());
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -253,21 +261,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -289,19 +293,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -311,21 +312,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -347,19 +344,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -369,21 +363,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -407,19 +397,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(created_document),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(created_document),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -429,21 +416,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -470,19 +453,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -493,21 +473,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -531,19 +507,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: None,
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -554,21 +527,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -636,19 +605,16 @@ impl StorageApi {
         match self.db_manager.find_all_databases() {
             Ok(databases) => {
                 let content = "Fetched all databases from database directory".to_string();
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(databases),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(databases),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -656,21 +622,17 @@ impl StorageApi {
                     "Failed to find all databases from database directory: {}",
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -687,19 +649,16 @@ impl StorageApi {
         match self.db_manager.find_database(db_name) {
             Ok(database) => {
                 let content = format!("Fetched database '{}' from database directory", db_name);
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(database),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(database),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -708,21 +667,17 @@ impl StorageApi {
                     db_name,
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -739,19 +694,16 @@ impl StorageApi {
         match self.db_manager.find_database_by_file_path(db_file_path) {
             Ok(database) => {
                 let content = format!("Fetched database '{}'", db_file_path.display());
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(database),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(database),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -760,21 +712,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -794,19 +742,16 @@ impl StorageApi {
                     "Fetched all collections from database '{}'",
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(collections),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(collections),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -815,21 +760,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -851,19 +792,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(collection),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(collection),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -873,21 +811,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -909,19 +843,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(documents),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(documents),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -931,21 +862,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -969,19 +896,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(documents),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(documents),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -992,21 +916,17 @@ impl StorageApi {
                     limit,
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
@@ -1030,19 +950,16 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                if let Err(e) = self.logger.log_event(&content) {
-                    return StorageRequestResult {
-                        success: true,
-                        error: None,
-                        data: Some(document),
-                        log_error: Some(e),
-                    };
-                }
+                let result = self.logger.log_event(&content);
+                
                 return StorageRequestResult {
                     success: true,
                     error: None,
                     data: Some(document),
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
             Err(err) => {
@@ -1053,21 +970,17 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return StorageRequestResult {
-                        success: false,
-                        error: Some(err),
-                        data: None,
-                        log_error: Some(log_err),
-                    };
-                }
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
                 return StorageRequestResult {
                     success: false,
                     error: Some(err),
                     data: None,
-                    log_error: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
                 };
             },
         }
