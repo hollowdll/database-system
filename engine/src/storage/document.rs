@@ -481,8 +481,7 @@ mod tests {
         insert_document_test_data(&mut data);
         assert!(data.len() > 0);
 
-        let mut document = Document::new(
-            db.collections_mut()
+        let mut document = Document::new(db.collections_mut()
             .get_mut(0)
             .unwrap());
         document.data = data.clone();
@@ -524,8 +523,7 @@ mod tests {
         insert_document_test_data(&mut data);
         assert!(data.len() > 0);
 
-        let mut document = Document::new(
-            db.collections_mut()
+        let mut document = Document::new(db.collections_mut()
             .get_mut(0)
             .unwrap());
         document.data = data;
@@ -577,8 +575,7 @@ mod tests {
         insert_document_test_data(&mut data);
         assert!(data.len() > 0);
 
-        let mut document = Document::new(
-            db.collections_mut()
+        let mut document = Document::new(db.collections_mut()
             .get_mut(0)
             .unwrap());
         document.data = data;
@@ -610,6 +607,52 @@ mod tests {
         dir.close().unwrap();
     }
 
+    #[test]
+    fn test_delete_all_documents_from_collection() {
+        let mut db = Database::from("test");
+        let collection_name = "test_collection";
+        let mut collection = Collection::from(collection_name);
+        db.collections_mut().push(collection);
+
+        for _ in 0..3 {
+            let mut document = Document::new(db.collections_mut()
+                .get_mut(0)
+                .unwrap());
+            db.collections_mut()
+                .get_mut(0)
+                .unwrap()
+                .documents_mut()
+                .push(document);
+        }
+        let document_count = db.collections()
+            .get(0)
+            .unwrap()
+            .documents()
+            .len();
+        let db_buf = serialize_database(&db).unwrap();
+
+        db.collections_mut()
+            .get_mut(0)
+            .unwrap()
+            .documents_mut()
+            .clear();
+        let expected_db_buf = serialize_database(&db).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
+        let mut file = File::create(&file_path).unwrap();
+
+        assert!(file.write_all(&db_buf).is_ok());
+        let deleted_count = delete_all_documents_from_collection(&file_path, collection_name)
+            .unwrap();
+        assert_eq!(deleted_count, document_count);
+        assert_eq!(fs::read(&file_path).unwrap(), expected_db_buf);
+
+        drop(file);
+        dir.close().unwrap();
+    }
     
     #[test]
     fn test_find_all_documents_from_collection() {
@@ -622,8 +665,7 @@ mod tests {
         insert_document_test_data(&mut data);
         assert!(data.len() > 0);
 
-        let mut document = Document::new(
-            db.collections_mut()
+        let mut document = Document::new(db.collections_mut()
             .get_mut(0)
             .unwrap());
         document.data = data;
@@ -662,8 +704,7 @@ mod tests {
         insert_document_test_data(&mut data);
         assert!(data.len() > 0);
 
-        let mut document = Document::new(
-            db.collections_mut()
+        let mut document = Document::new(db.collections_mut()
             .get_mut(0)
             .unwrap());
         document.data = data;
