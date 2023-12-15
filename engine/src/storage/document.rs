@@ -308,14 +308,13 @@ pub fn delete_all_documents_from_collection(
 
     for collection in database.collections_mut() {
         if collection.name() == collection_name {
-            // collection.documents_mut().clear();
-            let removed_count = collection.documents_mut()
+            let deleted_count = collection.documents_mut()
                 .drain(..)
                 .count();
             let buf = serialize_database(&database)?;
 
             match write_database_to_file(&buf, file_path) {
-                Ok(()) => return Ok(removed_count),
+                Ok(()) => return Ok(deleted_count),
                 Err(e) => return Err(e.into()),
             }
         }

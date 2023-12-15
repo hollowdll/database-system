@@ -315,6 +315,27 @@ impl DatabaseManager {
         Ok(())
     }
 
+    /// Deletes all documents from a collection.
+    pub fn delete_all_documents(
+        &self,
+        db_file_path: &Path,
+        collection_name: &str,
+    ) -> Result<usize, DatabaseOperationError>
+    {
+        match delete_all_documents_from_collection(
+            db_file_path,
+            collection_name,
+        ) {
+            Ok(deleted_count) => return Ok(deleted_count),
+            Err(e) => {
+                return Err(DatabaseOperationError::new(
+                    DatabaseOperationErrorKind::DeleteDocument,
+                    e.to_string()
+                ));
+            }
+        };
+    }
+
     /// Finds all databases from database directory.
     pub fn find_all_databases(
         &self,

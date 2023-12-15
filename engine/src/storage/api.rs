@@ -574,6 +574,58 @@ impl StorageApi {
         }
     }
 
+    /// Requests `DatabaseManager` to delete all documents.
+    /// 
+    /// Returns the number of deleted documents.
+    pub fn delete_all_documents(
+        &self,
+        db_file_path: &Path,
+        collection_name: &str,
+    ) -> StorageRequestResult<usize>
+    {
+        match self.db_manager.delete_all_documents(db_file_path, collection_name) {
+            Ok(deleted_count) => {
+                let content = format!(
+                    "Deleted {} documents from collection '{}' in database '{}'",
+                    deleted_count,
+                    collection_name,
+                    db_file_path.display()
+                );
+                let result = self.logger.log_event(&content);
+                
+                return StorageRequestResult {
+                    success: true,
+                    error: None,
+                    data: Some(deleted_count),
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    }
+                };
+            },
+            Err(err) => {
+                let content = format!(
+                    "Failed to delete documents from collection '{}' in database '{}': {}",
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
+                return StorageRequestResult {
+                    success: false,
+                    error: Some(err),
+                    data: None,
+                    log_error: match result {
+                        Ok(()) => None,
+                        Err(e) => Some(e),
+                    },
+                };
+            },
+        }
+    }
+
     /// Requests `DatabaseManager` to find all databases from database directory.
     /// 
     /// Forwards the result to the caller.
