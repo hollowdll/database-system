@@ -513,7 +513,7 @@ impl StorageApi {
         }
     }
 
-    /// Requests `DatabaseManager` to delete a document.
+    /// Requests `DatabaseManager` to delete a document from a collection.
     /// 
     /// Forwards the result to the caller.
     pub fn delete_document(
@@ -574,7 +574,7 @@ impl StorageApi {
         }
     }
 
-    /// Requests `DatabaseManager` to delete all documents.
+    /// Requests `DatabaseManager` to delete all documents from a collection.
     /// 
     /// Returns the number of deleted documents.
     pub fn delete_all_documents(
