@@ -291,6 +291,34 @@ pub fn delete_document_from_collection(
     Err(Box::new(CollectionError::NotFound))
 }
 
+/// Deletes all documents from a collection.
+/// 
+/// Writes the modified database to the database file.
+pub fn delete_all_documents_from_collection(
+    file_path: &Path,
+    collection_name: &str,
+) -> Result<(), Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let mut database = deserialize_database(&fs::read(file_path)?)?;
+
+    for collection in database.collections_mut() {
+        if collection.name() == collection_name {
+            collection.documents_mut().clear();
+            let buf = serialize_database(&database)?;
+
+            match write_database_to_file(&buf, file_path) {
+                Ok(()) => return Ok(()),
+                Err(e) => return Err(e.into()),
+            }
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
+
 /// Finds all documents from a collection.
 /// 
 /// Returns the found documents.
