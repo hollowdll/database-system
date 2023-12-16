@@ -1,5 +1,4 @@
 use std::{
-    io,
     fs,
     path::Path,
     error::Error,
@@ -18,7 +17,6 @@ use crate::storage::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-    DB_FILE_EXTENSION,
 };
 
 // Implements methods for protobuf type
@@ -47,7 +45,7 @@ impl pb::Document {
     /// 
     /// Returns any errors that may occur during the process.
     pub fn validate_errors(&self) -> Result<(), DocumentError> {
-        for (key, value) in self.data.iter() {
+        for (key, _value) in self.data.iter() {
             if key.is_empty() {
                 return Err(DocumentError::EmptyFieldName);
             }
@@ -268,7 +266,7 @@ pub fn delete_document_from_collection(
 
     for collection in database.collections_mut() {
         if collection.name() == collection_name {
-            if let Some(document) = collection
+            if let Some(_document) = collection
                 .documents()
                 .iter()
                 .find(|document| document.id() == document_id)
@@ -323,10 +321,10 @@ pub fn delete_all_documents_from_collection(
     Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds all documents from a collection.
+/// Finds all documents in a collection.
 /// 
 /// Returns the found documents.
-pub fn find_all_documents_from_collection(
+pub fn find_all_documents_in_collection(
     file_path: &Path,
     collection_name: &str
 ) -> Result<Vec<DocumentDto>, Box<dyn Error>>
@@ -334,7 +332,7 @@ pub fn find_all_documents_from_collection(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
     let mut documents = Vec::new();
 
     for collection in database.collections.into_iter() {
@@ -355,10 +353,10 @@ pub fn find_all_documents_from_collection(
     Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds the first documents from a collection specified by limit.
+/// Finds the first documents in a collection specified by limit.
 /// 
 /// Returns the found documents.
-pub fn find_documents_from_collection_limit(
+pub fn find_documents_in_collection_limit(
     file_path: &Path,
     collection_name: &str,
     limit: usize,
@@ -367,7 +365,7 @@ pub fn find_documents_from_collection_limit(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
     let mut documents = Vec::new();
 
     for collection in database.collections.into_iter() {
@@ -392,10 +390,10 @@ pub fn find_documents_from_collection_limit(
     Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds a document from a collection by document id.
+/// Finds a document in a collection by document id.
 /// 
 /// Returns the found document.
-pub fn find_document_from_collection_by_id(
+pub fn find_document_in_collection_by_id(
     file_path: &Path,
     document_id: &u64,
     collection_name: &str,
@@ -404,7 +402,7 @@ pub fn find_document_from_collection_by_id(
     if !file_path.is_file() {
         return Err(Box::new(DatabaseError::NotFound));
     }
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
 
     for collection in database.collections.into_iter() {
         if collection.name() == collection_name {
@@ -431,20 +429,20 @@ pub fn find_document_from_collection_by_id(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        io::{self, Write, Read},
-        hash::Hash
-    };
+    use std::io::Write;
     use tempfile::tempdir;
     use std::fs::File;
-    use crate::storage::pb::{
-        Database,
-        Collection,
-        Document,
-        document::{
-            DataType,
-            data_type,
-        }
+    use crate::storage::{
+        DB_FILE_EXTENSION,
+        pb::{
+            Database,
+            Collection,
+            Document,
+            document::{
+                DataType,
+                data_type,
+            },
+        },
     };
 
     // Inserts some data to documents that are created in tests
@@ -473,7 +471,7 @@ mod tests {
     fn test_create_document_to_collection() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
-        let mut collection = Collection::from(collection_name);
+        let collection = Collection::from(collection_name);
         db.collections_mut().push(collection);
         let db_buf = serialize_database(&db).unwrap();
 
@@ -516,7 +514,7 @@ mod tests {
     fn test_replace_document_in_collection() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
-        let mut collection = Collection::from(collection_name);
+        let collection = Collection::from(collection_name);
         db.collections_mut().push(collection);
 
         let mut data = HashMap::new();
@@ -568,7 +566,7 @@ mod tests {
     fn test_delete_document_from_collection() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
-        let mut collection = Collection::from(collection_name);
+        let collection = Collection::from(collection_name);
         db.collections_mut().push(collection);
         
         let mut data = HashMap::new();
@@ -611,11 +609,11 @@ mod tests {
     fn test_delete_all_documents_from_collection() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
-        let mut collection = Collection::from(collection_name);
+        let collection = Collection::from(collection_name);
         db.collections_mut().push(collection);
 
         for _ in 0..3 {
-            let mut document = Document::new(db.collections_mut()
+            let document = Document::new(db.collections_mut()
                 .get_mut(0)
                 .unwrap());
             db.collections_mut()
@@ -655,10 +653,10 @@ mod tests {
     }
     
     #[test]
-    fn test_find_all_documents_from_collection() {
+    fn test_find_all_documents_in_collection() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
-        let mut collection = Collection::from(collection_name);
+        let collection = Collection::from(collection_name);
         db.collections_mut().push(collection);
 
         let mut data = HashMap::new();
@@ -683,7 +681,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let documents = find_all_documents_from_collection(
+        let documents = find_all_documents_in_collection(
             &file_path,
             collection_name
         ).unwrap();
@@ -694,10 +692,10 @@ mod tests {
     }
     
     #[test]
-    fn test_find_document_from_collection_by_id() {
+    fn test_find_document_in_collection_by_id() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
-        let mut collection = Collection::from(collection_name);
+        let collection = Collection::from(collection_name);
         db.collections_mut().push(collection);
 
         let mut data = HashMap::new();
@@ -722,7 +720,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let document = find_document_from_collection_by_id(
+        let document = find_document_in_collection_by_id(
             &file_path,
             &1,
             collection_name

@@ -1,5 +1,4 @@
 use std::{
-    io,
     fs,
     path::Path,
     error::Error,
@@ -13,7 +12,6 @@ use crate::storage::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-    DB_FILE_EXTENSION,
 };
 
 // Implements methods for protobuf type
@@ -162,10 +160,10 @@ pub fn delete_collection_from_database(
     }
 }
 
-/// Finds all collections from a database.
+/// Finds all collections in a database.
 /// 
 /// Returns the found collections.
-pub fn find_all_collections_from_database(
+pub fn find_all_collections_in_database(
     file_path: &Path
 ) -> Result<Vec<CollectionDto>, Box<dyn Error>>
 {
@@ -173,7 +171,7 @@ pub fn find_all_collections_from_database(
         return Err(Box::new(DatabaseError::NotFound));
     }
 
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
     if let Err(e) = database.validate_errors() {
         return Err(Box::new(e));
     }
@@ -195,10 +193,10 @@ pub fn find_all_collections_from_database(
     Ok(collections)
 }
 
-/// Finds a collection from a database.
+/// Finds a collection in a database.
 /// 
 /// Returns the found collection.
-pub fn find_collection_from_database(
+pub fn find_collection_in_database(
     collection_name: &str,
     file_path: &Path
 ) -> Result<Option<CollectionDto>, Box<dyn Error>>
@@ -207,7 +205,7 @@ pub fn find_collection_from_database(
         return Err(Box::new(DatabaseError::NotFound));
     }
 
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
     if let Err(e) = database.validate_errors() {
         return Err(Box::new(e));
     }
@@ -231,12 +229,15 @@ pub fn find_collection_from_database(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{self, Write, Read};
+    use std::io::Write;
     use tempfile::tempdir;
     use std::fs::File;
-    use crate::storage::pb::{
-        Database,
-        Collection,
+    use crate::storage::{
+        DB_FILE_EXTENSION,
+        pb::{
+            Database,
+            Collection,
+        },
     };
 
     #[test]
@@ -286,7 +287,7 @@ mod tests {
     }
     
     #[test]
-    fn test_find_all_collections_from_database() {
+    fn test_find_all_collections_in_database() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
         db.collections_mut().push(Collection::from(collection_name));
@@ -299,7 +300,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let collections = find_all_collections_from_database(&file_path).unwrap();
+        let collections = find_all_collections_in_database(&file_path).unwrap();
         assert_eq!(collections.get(0).unwrap().name(), collection_name);
         assert!(collections.len() == 1);
 
@@ -321,7 +322,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let collection = find_collection_from_database(collection_name, &file_path).unwrap();
+        let collection = find_collection_in_database(collection_name, &file_path).unwrap();
         assert!(collection.is_some());
         assert_eq!(collection.unwrap().name(), collection_name);
 
