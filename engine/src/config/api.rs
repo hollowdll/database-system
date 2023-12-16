@@ -27,6 +27,33 @@ pub struct ConfigRequestResult {
     pub log_error: Option<LogError>,
 }
 
+/// Returns successful config API response.
+fn request_success(log_result: Result<(), LogError>) -> ConfigRequestResult {
+    ConfigRequestResult {
+        success: true,
+        error: None,
+        log_error: match log_result {
+            Ok(()) => None,
+            Err(e) => Some(e),
+        },
+    }
+}
+
+/// Returns failed config API response.
+fn request_fail(
+    error: io::Error,
+    log_result: Result<(), LogError>
+) -> ConfigRequestResult {
+    ConfigRequestResult {
+        success: false,
+        error: Some(error),
+        log_error: match log_result {
+            Ok(()) => None,
+            Err(e) => Some(e),
+        },
+    }
+}
+
 /// Engine configuration API.
 /// 
 /// Provides methods to change engine configurations.
@@ -53,81 +80,39 @@ impl ConfigApi {
 
 impl ConfigApi {
     /// Requests `ConfigManager` to set database directory path config.
-    /// 
-    /// Forwards the result to the caller.
     pub fn set_db_dir_path(&self, path: &Path) -> ConfigRequestResult {
         match self.config_manager.set_db_dir_path(path) {
             Ok(()) => {
                 let content = format!("Changed database directory path configuration to '{}'", path.display());
-                if let Err(e) = self.logger.log_event(&content) {
-                    return ConfigRequestResult {
-                        success: true,
-                        error: None,
-                        log_error: Some(e),
-                    };
-                }
-                return ConfigRequestResult {
-                    success: true,
-                    error: None,
-                    log_error: None,
-                };
+                let result = self.logger.log_event(&content);
+
+                return request_success(result);
             },
             Err(err) => {
                 let content = format!("Failed to change database directory path configuration: {}", err);
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return ConfigRequestResult {
-                        success: false,
-                        error: Some(err),
-                        log_error: Some(log_err),
-                    };
-                }
-                return ConfigRequestResult {
-                    success: false,
-                    error: Some(err),
-                    log_error: None,
-                };
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+                
+                return request_fail(err, result);
             },
         };
     }
 
     /// Requests `ConfigManager` to set logs directory path config.
-    /// 
-    /// Forwards the result to the caller.
     pub fn set_logs_dir_path(&self, path: &Path) -> ConfigRequestResult {
         match self.config_manager.set_logs_dir_path(path) {
             Ok(()) => {
                 let content = format!("Changed logs directory path configuration to '{}'", path.display());
-                if let Err(e) = self.logger.log_event(&content) {
-                    return ConfigRequestResult {
-                        success: true,
-                        error: None,
-                        log_error: Some(e),
-                    };
-                }
-                return ConfigRequestResult {
-                    success: true,
-                    error: None,
-                    log_error: None,
-                };
+                let result = self.logger.log_event(&content);
+
+                return request_success(result);
             },
             Err(err) => {
                 let content = format!("Failed to change logs directory path configuration: {}", err);
-                if let Err(log_err) = self.logger
-                    .log_error(ErrorLogType::Error, &content)
-                {
-                    return ConfigRequestResult {
-                        success: false,
-                        error: Some(err),
-                        log_error: Some(log_err),
-                    };
-                }
-                return ConfigRequestResult {
-                    success: false,
-                    error: Some(err),
-                    log_error: None,
-                };
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+                
+                return request_fail(err, result);
             },
         };
     }
