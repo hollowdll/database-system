@@ -109,7 +109,7 @@ impl Cli {
 
     }
 
-    /// List all collections of the connected database.
+    /// List all collections in the connected database.
     pub fn list_all_collections(&self) {
         let connected_db = match &self.connected_db {
             Some(db) => db,

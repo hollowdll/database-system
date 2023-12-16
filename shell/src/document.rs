@@ -224,7 +224,7 @@ impl Cli {
         }
     }
 
-    /// Show menu to list all documents of a collection.
+    /// Show menu to list all documents in a collection.
     pub fn list_all_documents(&self) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
@@ -257,7 +257,7 @@ impl Cli {
         }
     }
 
-    /// Show menu to list specific documents of a collection.
+    /// Show menu to list specific documents in a collection.
     pub fn list_documents(&self) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
@@ -298,7 +298,7 @@ impl Cli {
         }
     }
 
-    /// Show menu to list a single document of a collection.
+    /// Show menu to list a single document in a collection.
     pub fn list_single_document(&self) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
