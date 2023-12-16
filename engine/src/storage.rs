@@ -1,7 +1,7 @@
 // Data storage module. This module contains everything for storing data.
 // Contains file system access and database file read and write operations.
 
-#![allow(unused)]
+// #![allow(unused)]
 
 pub mod database;
 pub mod collection;
@@ -19,12 +19,8 @@ pub mod pb {
 use std::{
     fs::{self, OpenOptions},
     io::{self, Write, Cursor},
-    path::{
-        Path,
-        PathBuf,
-    },
+    path::Path,
 };
-use self::error::DatabaseError;
 use prost::{
     Message,
     EncodeError,
@@ -75,16 +71,6 @@ fn write_database_to_file(buf: &[u8], file_path: &Path) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        io::{
-            self,
-            Write,
-            Read,
-            Seek,
-            SeekFrom
-        },
-        fs::File,
-    };
     use tempfile::tempdir;
 
     #[test]

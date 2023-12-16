@@ -1,5 +1,4 @@
 use std::{
-    io,
     fs,
     path::Path,
     error::Error,
@@ -13,7 +12,6 @@ use crate::storage::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-    DB_FILE_EXTENSION,
 };
 
 // Implements methods for protobuf type
@@ -173,7 +171,7 @@ pub fn find_all_collections_from_database(
         return Err(Box::new(DatabaseError::NotFound));
     }
 
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
     if let Err(e) = database.validate_errors() {
         return Err(Box::new(e));
     }
@@ -207,7 +205,7 @@ pub fn find_collection_from_database(
         return Err(Box::new(DatabaseError::NotFound));
     }
 
-    let mut database = deserialize_database(&fs::read(file_path)?)?;
+    let database = deserialize_database(&fs::read(file_path)?)?;
     if let Err(e) = database.validate_errors() {
         return Err(Box::new(e));
     }
@@ -231,12 +229,15 @@ pub fn find_collection_from_database(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{self, Write, Read};
+    use std::io::Write;
     use tempfile::tempdir;
     use std::fs::File;
-    use crate::storage::pb::{
-        Database,
-        Collection,
+    use crate::storage::{
+        DB_FILE_EXTENSION,
+        pb::{
+            Database,
+            Collection,
+        },
     };
 
     #[test]

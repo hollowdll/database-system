@@ -146,7 +146,7 @@ pub fn create_database_file(
         return Err(Box::new(e));
     }
 
-    let file = fs::File::create(file_path)?;
+    fs::File::create(file_path)?;
     let buf = serialize_database(&database)?;
 
     match write_database_to_file(&buf, file_path) {
@@ -198,7 +198,7 @@ pub fn change_database_description(
     }
 }
 
-/// Finds all databases from a directory.
+/// Finds all databases in a directory.
 /// 
 /// Returns the found databases.
 pub fn find_all_databases(
@@ -244,7 +244,7 @@ pub fn find_all_databases(
     Ok(databases)
 }
 
-/// Finds a database from a directory.
+/// Finds a database in a directory.
 /// 
 /// Returns the found database.
 pub fn find_database(
@@ -313,7 +313,7 @@ mod tests {
     use super::*;
     use tempfile::tempdir;
     use fs::File;
-    use std::io::{self, Read, Write};
+    use std::io::Write;
     use crate::storage::pb::Database;
 
     #[test]
