@@ -394,13 +394,13 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds all collections from a database.
+    /// Finds all collections in a database.
     pub fn find_all_collections(
         &self,
         db_file_path: &Path,
     ) -> Result<Vec<CollectionDto>, DatabaseOperationError>
     {
-        match find_all_collections_from_database(db_file_path) {
+        match find_all_collections_in_database(db_file_path) {
             Ok(collections) => return Ok(collections),
             Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindCollectionMany,
@@ -409,14 +409,14 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds a collection from a database.
+    /// Finds a collection in a database.
     pub fn find_collection(
         &self,
         collection_name: &str,
         db_file_path: &Path,
     ) -> Result<Option<CollectionDto>, DatabaseOperationError>
     {
-        match find_collection_from_database(
+        match find_collection_in_database(
             collection_name,
             db_file_path
         ) {
@@ -428,14 +428,14 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds all documents from a collection.
+    /// Finds all documents in a collection.
     pub fn find_all_documents(
         &self,
         db_file_path: &Path,
         collection_name: &str,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
-        match find_all_documents_from_collection(
+        match find_all_documents_in_collection(
             db_file_path,
             collection_name
         ) {
@@ -447,7 +447,7 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds the first documents from a collection specified by limit.
+    /// Finds the first documents in a collection specified by limit.
     pub fn find_documents_limit(
         &self,
         db_file_path: &Path,
@@ -455,7 +455,7 @@ impl DatabaseManager {
         limit: usize,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
-        match find_documents_from_collection_limit(
+        match find_documents_in_collection_limit(
             db_file_path,
             collection_name,
             limit
@@ -468,7 +468,7 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds a document from a collection by document id.
+    /// Finds a document in a collection by document id.
     pub fn find_document_by_id(
         &self,
         document_id: &u64,
@@ -476,7 +476,7 @@ impl DatabaseManager {
         collection_name: &str,
     ) -> Result<Option<DocumentDto>, DatabaseOperationError>
     {
-        match find_document_from_collection_by_id(
+        match find_document_in_collection_by_id(
             db_file_path,
             document_id,
             collection_name,

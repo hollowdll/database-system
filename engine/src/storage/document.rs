@@ -321,10 +321,10 @@ pub fn delete_all_documents_from_collection(
     Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds all documents from a collection.
+/// Finds all documents in a collection.
 /// 
 /// Returns the found documents.
-pub fn find_all_documents_from_collection(
+pub fn find_all_documents_in_collection(
     file_path: &Path,
     collection_name: &str
 ) -> Result<Vec<DocumentDto>, Box<dyn Error>>
@@ -353,10 +353,10 @@ pub fn find_all_documents_from_collection(
     Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds the first documents from a collection specified by limit.
+/// Finds the first documents in a collection specified by limit.
 /// 
 /// Returns the found documents.
-pub fn find_documents_from_collection_limit(
+pub fn find_documents_in_collection_limit(
     file_path: &Path,
     collection_name: &str,
     limit: usize,
@@ -390,10 +390,10 @@ pub fn find_documents_from_collection_limit(
     Err(Box::new(CollectionError::NotFound))
 }
 
-/// Finds a document from a collection by document id.
+/// Finds a document in a collection by document id.
 /// 
 /// Returns the found document.
-pub fn find_document_from_collection_by_id(
+pub fn find_document_in_collection_by_id(
     file_path: &Path,
     document_id: &u64,
     collection_name: &str,
@@ -653,7 +653,7 @@ mod tests {
     }
     
     #[test]
-    fn test_find_all_documents_from_collection() {
+    fn test_find_all_documents_in_collection() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
         let collection = Collection::from(collection_name);
@@ -681,7 +681,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let documents = find_all_documents_from_collection(
+        let documents = find_all_documents_in_collection(
             &file_path,
             collection_name
         ).unwrap();
@@ -692,7 +692,7 @@ mod tests {
     }
     
     #[test]
-    fn test_find_document_from_collection_by_id() {
+    fn test_find_document_in_collection_by_id() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
         let collection = Collection::from(collection_name);
@@ -720,7 +720,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let document = find_document_from_collection_by_id(
+        let document = find_document_in_collection_by_id(
             &file_path,
             &1,
             collection_name

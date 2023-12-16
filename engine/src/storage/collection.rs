@@ -160,10 +160,10 @@ pub fn delete_collection_from_database(
     }
 }
 
-/// Finds all collections from a database.
+/// Finds all collections in a database.
 /// 
 /// Returns the found collections.
-pub fn find_all_collections_from_database(
+pub fn find_all_collections_in_database(
     file_path: &Path
 ) -> Result<Vec<CollectionDto>, Box<dyn Error>>
 {
@@ -193,10 +193,10 @@ pub fn find_all_collections_from_database(
     Ok(collections)
 }
 
-/// Finds a collection from a database.
+/// Finds a collection in a database.
 /// 
 /// Returns the found collection.
-pub fn find_collection_from_database(
+pub fn find_collection_in_database(
     collection_name: &str,
     file_path: &Path
 ) -> Result<Option<CollectionDto>, Box<dyn Error>>
@@ -287,7 +287,7 @@ mod tests {
     }
     
     #[test]
-    fn test_find_all_collections_from_database() {
+    fn test_find_all_collections_in_database() {
         let mut db = Database::from("test");
         let collection_name = "test_collection";
         db.collections_mut().push(Collection::from(collection_name));
@@ -300,7 +300,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let collections = find_all_collections_from_database(&file_path).unwrap();
+        let collections = find_all_collections_in_database(&file_path).unwrap();
         assert_eq!(collections.get(0).unwrap().name(), collection_name);
         assert!(collections.len() == 1);
 
@@ -322,7 +322,7 @@ mod tests {
         let mut file = File::create(&file_path).unwrap();
 
         assert!(file.write_all(&db_buf).is_ok());
-        let collection = find_collection_from_database(collection_name, &file_path).unwrap();
+        let collection = find_collection_in_database(collection_name, &file_path).unwrap();
         assert!(collection.is_some());
         assert_eq!(collection.unwrap().name(), collection_name);
 
