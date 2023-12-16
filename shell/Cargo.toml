@@ -1,11 +1,13 @@
 [package]
 name = "shell"
-version = "0.2.1"
-edition = "2021"
-description = "Database shell"
+description = "NoSQL document database system shell"
 default-run = "shell"
-license = "MIT"
-repository = "https://github.com/hollowdll/database-system"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

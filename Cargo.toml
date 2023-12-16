@@ -7,3 +7,11 @@ members = [
     "examples/driver-test",
     "examples/bookstore",
 ]
+
+[workspace.package]
+version = "0.2.2"
+edition = "2021"
+description = "NoSQL document database system"
+license = "MIT"
+repository = "https://github.com/hollowdll/database-system"
+homepage = "https://github.com/hollowdll/database-system"

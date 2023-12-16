@@ -1,10 +1,12 @@
 [package]
 name = "engine"
-version = "0.2.1"
-edition = "2021"
-description = "Database engine"
-license = "MIT"
-repository = "https://github.com/hollowdll/database-system"
+description = "NoSQL document database system engine"
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 
 [dependencies]
 serde_json = "1"
