@@ -33,6 +33,8 @@ pub enum DatabaseClientErrorKind {
     ReplaceOneDocument,
     /// Failed to delete document.
     DeleteOneDocument,
+    /// Failed to delete documents.
+    DeleteManyDocuments,
     /// Failed to find all documents.
     FindAllDocuments,
     /// Failed to find document.
@@ -56,6 +58,7 @@ impl fmt::Display for DatabaseClientError {
                 DatabaseClientErrorKind::InsertOneDocument => "Failed to insert document",
                 DatabaseClientErrorKind::ReplaceOneDocument => "Failed to replace document",
                 DatabaseClientErrorKind::DeleteOneDocument => "Failed to delete document",
+                DatabaseClientErrorKind::DeleteManyDocuments => "Failed to delete documents",
                 DatabaseClientErrorKind::FindAllDocuments => "Failed to find all documents",
                 DatabaseClientErrorKind::FindOneDocument => "Failed to find document",
             },

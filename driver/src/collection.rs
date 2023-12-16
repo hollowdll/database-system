@@ -180,6 +180,34 @@ impl<'a> Collection<'a> {
             DatabaseClientErrorKind::Unexpected,
             "Failed to delete a document".to_string()));
     }
+
+    /// Deletes all documents from this collection.
+    /// 
+    /// Returns the number of deleted documents.
+    pub fn delete_all(&self) -> Result<usize, DatabaseClientError> {
+        let result = self.client.engine
+            .storage_api()
+            .delete_all_documents(self.database.connection_string(), self.name());
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::DeleteManyDocuments,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(deleted_count) = result.data {
+                return Ok(deleted_count);
+            }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::DeleteManyDocuments,
+                "Data not received".to_string()));
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to delete all documents".to_string()));
+    }
 }
 
 /// Transforms driver document model to engine input data.
