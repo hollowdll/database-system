@@ -783,5 +783,71 @@ mod tests {
         drop(file);
         dir.close().unwrap();
     }
+
+    #[test]
+    fn test_find_documents_in_collection() {
+        let mut db = Database::from("test");
+        let collection_name = "test_collection";
+        let collection = Collection::from(collection_name);
+        db.collections_mut().push(collection);
+        let max_documents = 4;
+
+        for i in 1..=max_documents {
+            let mut data = HashMap::new();
+            if i == 1 {
+                data.insert(
+                    String::from("age"),
+                    DataType {
+                        data_type: Some(data_type::DataType::Int32(55))
+                    }
+                );
+            } else {
+                data.insert(
+                    String::from("age"),
+                    DataType {
+                        data_type: Some(data_type::DataType::Int32(40))
+                    }
+                );
+            }
+
+            let mut document = Document::new(db.collections_mut()
+                .get_mut(0)
+                .unwrap());
+            document.data = data;
+
+            db.collections_mut()
+                .get_mut(0)
+                .unwrap()
+                .documents_mut()
+                .push(document);
+        }
+        let document_count = db.collections()
+            .get(0)
+            .unwrap()
+            .documents()
+            .len();
+        let expected_document_count = max_documents - 1;
+        let db_buf = serialize_database(&db).unwrap();
+
+        let dir = tempdir().unwrap();
+        let file_path = dir
+            .path()
+            .join(&format!("{}.{}", db.name(), DB_FILE_EXTENSION));
+        let mut file = File::create(&file_path).unwrap();
+        let mut query = HashMap::new();
+        query.insert("age".to_string(), data_type::DataType::Int32(40));
+
+        assert!(file.write_all(&db_buf).is_ok());
+        let documents = find_documents_in_collection(
+            &file_path,
+            collection_name,
+            query
+        ).unwrap();
+        assert_ne!(documents.len(), document_count);
+        assert_eq!(documents.len(), expected_document_count);
+
+        drop(file);
+        dir.close().unwrap();
+    }
 }
 
