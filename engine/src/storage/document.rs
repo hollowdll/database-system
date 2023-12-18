@@ -424,6 +424,58 @@ pub fn find_document_in_collection_by_id(
     Err(Box::new(CollectionError::NotFound))
 }
 
+/// Finds documents in a collection.
+/// Accepts query to find specific documents.
+/// 
+/// The query contains fields of key-values that the document must match.
+/// 
+/// Returns the found documents.
+pub fn find_documents_in_collection(
+    file_path: &Path,
+    collection_name: &str,
+    query: HashMap<String, data_type::DataType>,
+) -> Result<Vec<DocumentDto>, Box<dyn Error>>
+{
+    if !file_path.is_file() {
+        return Err(Box::new(DatabaseError::NotFound));
+    }
+    let database = deserialize_database(&fs::read(file_path)?)?;
+    let mut documents = Vec::new();
+
+    for collection in database.collections.into_iter() {
+        if collection.name() == collection_name {
+            if query.is_empty() {
+                return Ok(documents);
+            }
+
+            for document in collection.documents.into_iter() {
+                let mut fields_match = 0;
+                for (document_key, document_value) in document.data.iter() {
+                    if let Some(query_value) = query.get(document_key) {
+                        if let Some(document_value) = &document_value.data_type {
+                            if query_value == document_value {
+                                fields_match += 1;
+                            }
+                            if fields_match == query.len() {
+                                let document_dto = DocumentDto {
+                                    id: document.id,
+                                    data: document.data,
+                                };
+                                documents.push(document_dto);
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+
+            return Ok(documents);
+        }
+    }
+
+    Err(Box::new(CollectionError::NotFound))
+}
+
 
 
 #[cfg(test)]

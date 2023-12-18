@@ -17,6 +17,7 @@ use crate::{
             DatabaseOperationErrorKind,
         },
         pb::document::DataType,
+        pb::document::data_type,
         database::*,
         collection::*,
         document::*,
@@ -439,7 +440,7 @@ impl DatabaseManager {
             db_file_path,
             collection_name
         ) {
-            Ok(document) => return Ok(document),
+            Ok(documents) => return Ok(documents),
             Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDocumentMany,
                 err.to_string()
@@ -460,7 +461,7 @@ impl DatabaseManager {
             collection_name,
             limit
         ) {
-            Ok(document) => return Ok(document),
+            Ok(documents) => return Ok(documents),
             Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDocumentMany,
                 err.to_string()
@@ -484,6 +485,50 @@ impl DatabaseManager {
             Ok(document) => return Ok(document),
             Err(err) => return Err(DatabaseOperationError::new(
                 DatabaseOperationErrorKind::FindDocumentOne,
+                err.to_string()
+            )),
+        }
+    }
+
+    /// Finds documents in a collection using query.
+    pub fn find_documents(
+        &self,
+        db_file_path: &Path,
+        collection_name: &str,
+        query: Vec<DocumentInputDataField>,
+    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
+    {
+        let mut transformed_query: HashMap<String, data_type::DataType> = HashMap::new();
+
+        for data_field in query {
+            let converted_value = match data_field.parse_to_document_data_type(
+                data_field.value(),
+                data_field.data_type()
+            ) {
+                Ok(converted_value) => converted_value,
+                Err(err) => return Err(DatabaseOperationError::new(
+                    DatabaseOperationErrorKind::FindDocumentMany,
+                    format!(
+                        "Data type '{}' is not valid: {}",
+                        data_field.data_type(),
+                        err
+                    )
+                )),
+            };
+
+            if let Some(converted_value) = converted_value.data_type {
+                transformed_query.insert(data_field.field().to_string(), converted_value);
+            }
+        }
+
+        match find_documents_in_collection(
+            db_file_path,
+            collection_name,
+            transformed_query
+        ) {
+            Ok(documents) => return Ok(documents),
+            Err(err) => return Err(DatabaseOperationError::new(
+                DatabaseOperationErrorKind::FindDocumentMany,
                 err.to_string()
             )),
         }
