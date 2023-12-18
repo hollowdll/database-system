@@ -495,12 +495,12 @@ impl DatabaseManager {
         &self,
         db_file_path: &Path,
         collection_name: &str,
-        query_input: Vec<DocumentInputDataField>,
+        query: Vec<DocumentInputDataField>,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
-        let mut query: HashMap<String, data_type::DataType> = HashMap::new();
+        let mut transformed_query: HashMap<String, data_type::DataType> = HashMap::new();
 
-        for data_field in query_input {
+        for data_field in query {
             let converted_value = match data_field.parse_to_document_data_type(
                 data_field.value(),
                 data_field.data_type()
@@ -517,14 +517,14 @@ impl DatabaseManager {
             };
 
             if let Some(converted_value) = converted_value.data_type {
-                query.insert(data_field.field().to_string(), converted_value);
+                transformed_query.insert(data_field.field().to_string(), converted_value);
             }
         }
 
         match find_documents_in_collection(
             db_file_path,
             collection_name,
-            query
+            transformed_query
         ) {
             Ok(documents) => return Ok(documents),
             Err(err) => return Err(DatabaseOperationError::new(

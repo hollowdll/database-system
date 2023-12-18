@@ -79,7 +79,7 @@ impl<'a> Collection<'a> {
             "Failed to find all documents from collection".to_string()));
     }
 
-    /// Finds a document by id from this collection.
+    /// Finds a document by id in this collection.
     /// 
     /// Returns the found document.
     pub fn find_one_by_id(&self, id: &DocumentId) -> Result<Option<DocumentModel>, DatabaseClientError> {

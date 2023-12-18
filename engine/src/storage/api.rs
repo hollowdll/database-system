@@ -571,7 +571,7 @@ impl StorageApi {
         }
     }
 
-    /// Requests `DatabaseManager` to find all documents from a collection.
+    /// Requests `DatabaseManager` to find all documents in a collection.
     /// 
     /// Returns the found documents.
     pub fn find_all_documents(
@@ -606,7 +606,7 @@ impl StorageApi {
         }
     }
 
-    /// Requests `DatabaseManager` to find the first documents from a collection specified by limit.
+    /// Requests `DatabaseManager` to find the first documents in a collection specified by limit.
     /// 
     /// Returns the found documents.
     pub fn find_documents_limit(
@@ -644,7 +644,7 @@ impl StorageApi {
         }
     }
 
-    /// Requests `DatabaseManager` to find a document from a collection by document id.
+    /// Requests `DatabaseManager` to find a document in a collection by document id.
     /// 
     /// Returns the found document.
     pub fn find_document_by_id(
@@ -670,6 +670,49 @@ impl StorageApi {
                 let content = format!(
                     "Failed to find document with ID '{}' from collection '{}' in database '{}': {}",
                     document_id,
+                    collection_name,
+                    db_file_path.display(),
+                    &err.message
+                );
+                let result = self.logger
+                    .log_error(ErrorLogType::Error, &content);
+
+                return request_fail(err, result);
+            },
+        }
+    }
+
+    /// Requests `DatabaseManager` to find documents in a collection using query.
+    /// 
+    /// The query contains fields of key-values to find documents that contain
+    /// the matching fields.
+    /// 
+    /// For example, this could return all the documents that contain field
+    /// `first_name` with value `John`.
+    /// 
+    /// Returns the found documents.
+    pub fn find_documents(
+        &self,
+        db_file_path: &Path,
+        collection_name: &str,
+        query: Vec<DocumentInputDataField>,
+    ) -> StorageRequestResult<Vec<DocumentDto>>
+    {
+        match self.db_manager.find_documents(db_file_path, collection_name, query) {
+            Ok(documents) => {
+                let content = format!(
+                    "Fetched {} documents from collection '{}' in database '{}'",
+                    documents.len(),
+                    collection_name,
+                    db_file_path.display()
+                );
+                let result = self.logger.log_event(&content);
+                
+                return request_success(Some(documents), result);
+            },
+            Err(err) => {
+                let content = format!(
+                    "Failed to find documents from collection '{}' in database '{}': {}",
                     collection_name,
                     db_file_path.display(),
                     &err.message
