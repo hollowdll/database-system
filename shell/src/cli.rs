@@ -125,6 +125,7 @@ pub fn run() {
   ** DOCUMENT COMMANDS **
 
   /get all documents             List all documents in a collection
+  /get documents query           List documents that match the query
   /get documents                 List the first documents in a collection specified by limit
                                  This command will be changed in the future to support different kinds of queries
   /get document                  List a single document in a collection
@@ -187,6 +188,9 @@ More commands in the future...");
             },
             "/get all documents" => {
                 cli.list_all_documents();
+            },
+            "/get documents query" => {
+                cli.list_documents_query();
             },
             "/get documents" => {
                 cli.list_documents();

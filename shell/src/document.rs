@@ -338,4 +338,68 @@ impl Cli {
             }
         }
     }
+
+    /// Show menu to list documents in a collection using query.
+    /// 
+    /// The query contains data fields with values that the document needs to match.
+    pub fn list_documents_query(&self) {
+        let connected_db = match &self.connected_db {
+            Some(db) => db,
+            None => return db_not_connected(),
+        };
+        let collection_name = match ask_user_input("Collection: ") {
+            Ok(collection_name) => collection_name,
+            Err(_) => return,
+        };
+        let mut query: Vec<DocumentInputDataField> = Vec::new();
+        
+        println!("Specify fields that will be added to query");
+        loop {
+            let field = match ask_user_input("Field: ") {
+                Ok(field) => field,
+                Err(_) => return,
+            };
+            let data_type = match ask_user_input("Data type: ") {
+                Ok(data_type) => data_type,
+                Err(_) => return,
+            };
+            let value = match ask_user_input("Value: ") {
+                Ok(value) => value,
+                Err(_) => return,
+            };
+            query.push(DocumentInputDataField::new(&field, &data_type, &value));
+
+            let confirm = match ask_action_confirm("Field added to query. Stop inserting fields?") {
+                Ok(confirm) => confirm,
+                Err(_) => return,
+            };
+            if confirm.as_str() == CONFIRM_OPTION_YES {
+                break;
+            }
+        }
+
+        let result = self.engine
+            .storage_api()
+            .find_documents(connected_db.file_path(), &collection_name, &query);
+
+        if result.success {
+            event_log_failed(result.log_error);
+
+            if let Some(documents) = result.data {
+                println!("Number of documents: {}", documents.len());
+
+                for document in documents {
+                    println!("{}", &document);
+                }
+            } else {
+                println!("No documents found");
+            }
+        } else {
+            error_log_failed(result.log_error);
+
+            if let Some(e) = result.error {
+                eprintln!("Error: {}", e);
+            }
+        }
+    }
 }
