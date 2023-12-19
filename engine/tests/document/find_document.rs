@@ -125,9 +125,10 @@ fn find_documents_success() {
 
     let mut query = Vec::new();
     query.push(DocumentInputDataField::new("age", "Int32", "35"));
+    
     let result = engine
         .storage_api()
-        .find_documents(&file_path, collection_name, query);
+        .find_documents(&file_path, collection_name, &query);
     assert!(result.success);
     assert!(result.data.is_some());
     assert!(result.error.is_none());

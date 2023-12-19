@@ -695,7 +695,7 @@ impl StorageApi {
         &self,
         db_file_path: &Path,
         collection_name: &str,
-        query: Vec<DocumentInputDataField>,
+        query: &Vec<DocumentInputDataField>,
     ) -> StorageRequestResult<Vec<DocumentDto>>
     {
         match self.db_manager.find_documents(db_file_path, collection_name, query) {

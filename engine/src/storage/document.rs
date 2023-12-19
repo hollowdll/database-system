@@ -433,7 +433,7 @@ pub fn find_document_in_collection_by_id(
 pub fn find_documents_in_collection(
     file_path: &Path,
     collection_name: &str,
-    query: HashMap<String, data_type::DataType>,
+    query: &HashMap<String, data_type::DataType>,
 ) -> Result<Vec<DocumentDto>, Box<dyn Error>>
 {
     if !file_path.is_file() {
@@ -841,7 +841,7 @@ mod tests {
         let documents = find_documents_in_collection(
             &file_path,
             collection_name,
-            query
+            &query
         ).unwrap();
         assert_ne!(documents.len(), document_count);
         assert_eq!(documents.len(), expected_document_count);
