@@ -13,13 +13,16 @@ use crate::{
         error::{
             DatabaseClientError,
             DatabaseClientErrorKind,
+            UNEXPECTED_ERROR,
+            DATA_NOT_RECEIVED,
         },
     },
     database::Database,
     document::{
         DocumentModel,
         DataType,
-        DocumentId
+        DocumentId,
+        DocumentQuery,
     },
 };
 
@@ -72,11 +75,50 @@ impl<'a> Collection<'a> {
 
                 return Ok(documents);
             }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindAllDocuments,
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to find all documents from collection".to_string()));
+            DatabaseClientErrorKind::FindAllDocuments,
+            UNEXPECTED_ERROR.to_string()));
+    }
+
+    /// Finds documents in this collection using query.
+    /// 
+    /// Query contains fields with values that the document needs to match.
+    /// 
+    /// Returns the found documents.
+    pub fn find_many(&self, query: &DocumentQuery) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+        let query = transform_document_data_to_input(&query.data);
+        let result = self.client.engine
+            .storage_api()
+            .find_documents(self.database.connection_string(), self.name(), &query);
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindManyDocuments,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(document_dtos) = result.data {
+                let documents: Vec<DocumentModel> = document_dtos
+                    .into_iter()
+                    .map(|document| transform_document_dto_to_document(document))
+                    .collect();
+
+                return Ok(documents);
+            }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindManyDocuments,
+                DATA_NOT_RECEIVED.to_string()));
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::FindManyDocuments,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Finds a document by id in this collection.
@@ -101,18 +143,21 @@ impl<'a> Collection<'a> {
                     return Ok(None);
                 }
             }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindOneDocument,
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to find document from collection".to_string()));
+            DatabaseClientErrorKind::FindOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Inserts a document to this collection.
     /// 
     /// Returns the new document with id populated.
     pub fn insert_one(&self, document: DocumentModel) -> Result<DocumentModel, DatabaseClientError> {
-        let input = transform_document_to_input(document);
+        let input = transform_document_data_to_input(&document.data);
 
         let result = self.client.engine
             .storage_api()
@@ -128,18 +173,21 @@ impl<'a> Collection<'a> {
             if let Some(document) = result.data {
                 return Ok(transform_document_dto_to_document(document));
             }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::InsertOneDocument,
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to insert a document".to_string()));
+            DatabaseClientErrorKind::InsertOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Replaces a document in this collection with a new one.
     /// 
     /// Only the data is replaced, id remains the same.
     pub fn replace_one_by_id(&self, id: &DocumentId, document: DocumentModel) -> Result<(), DatabaseClientError> {
-        let input = transform_document_to_input(document);
+        let input = transform_document_data_to_input(&document.data);
         
         let result = self.client.engine
             .storage_api()
@@ -156,8 +204,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to replace a document".to_string()));
+            DatabaseClientErrorKind::ReplaceOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Deletes a document by id from this collection.
@@ -177,8 +225,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to delete a document".to_string()));
+            DatabaseClientErrorKind::DeleteOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Deletes all documents from this collection.
@@ -201,38 +249,18 @@ impl<'a> Collection<'a> {
             }
             return Err(DatabaseClientError::new(
                 DatabaseClientErrorKind::DeleteManyDocuments,
-                "Data not received".to_string()));
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to delete all documents".to_string()));
+            DatabaseClientErrorKind::DeleteManyDocuments,
+            UNEXPECTED_ERROR.to_string()));
     }
-}
-
-/// Transforms driver document model to engine input data.
-fn transform_document_to_input(document: DocumentModel) -> Vec<DocumentInputDataField> {
-    let mut data = Vec::new();
-
-    for (key, value) in document.data {
-        let (data_type, data_value) = match value {
-            DataType::Int32(v) => ("Int32", v.to_string()),
-            DataType::Int64(v) => ("Int64", v.to_string()),
-            DataType::Decimal(v) => ("Decimal", v.to_string()),
-            DataType::Bool(v) => ("Bool", v.to_string()),
-            DataType::Text(v) => ("Text", v.to_string()),
-        };
-
-        data.push(DocumentInputDataField::new(&key, data_type, &data_value));
-    }
-
-    return data;
 }
 
 /// Transforms engine `DocumentDto` to driver document model.
 fn transform_document_dto_to_document(document_dto: DocumentDto) -> DocumentModel {
     let mut data = HashMap::new();
-
     for (key, value) in document_dto.data {
         let data_type = match value.data_type {
             Some(data_type::DataType::Int32(v)) => DataType::Int32(v),
@@ -250,4 +278,22 @@ fn transform_document_dto_to_document(document_dto: DocumentDto) -> DocumentMode
         id: DocumentId(document_dto.id),
         data
     };
+}
+
+/// Transforms driver document data to engine input data.
+fn transform_document_data_to_input(data: &HashMap<String, DataType>) -> Vec<DocumentInputDataField> {
+    let mut input = Vec::new();
+    for (key, value) in data {
+        let (data_type, data_value) = match value {
+            DataType::Int32(v) => ("Int32", v.to_string()),
+            DataType::Int64(v) => ("Int64", v.to_string()),
+            DataType::Decimal(v) => ("Decimal", v.to_string()),
+            DataType::Bool(v) => ("Bool", v.to_string()),
+            DataType::Text(v) => ("Text", v.to_string()),
+        };
+
+        input.push(DocumentInputDataField::new(&key, data_type, &data_value));
+    }
+
+    return input;
 }

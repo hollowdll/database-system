@@ -69,3 +69,15 @@ impl DocumentModel {
         &self.data
     }
 }
+
+/// Query used to match specific documents in collection.
+pub struct DocumentQuery {
+    pub data: HashMap<String, DataType>,
+}
+
+impl DocumentQuery {
+    /// Creates a new document query.
+    pub fn new() -> DocumentQuery {
+        DocumentQuery { data: HashMap::new() }
+    }
+}
