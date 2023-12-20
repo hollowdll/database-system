@@ -14,6 +14,7 @@ use crate::{
             DatabaseClientError,
             DatabaseClientErrorKind,
             UNEXPECTED_ERROR,
+            DATA_NOT_RECEIVED,
         },
     },
     database::Database,
@@ -74,6 +75,9 @@ impl<'a> Collection<'a> {
 
                 return Ok(documents);
             }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindAllDocuments,
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
@@ -109,7 +113,7 @@ impl<'a> Collection<'a> {
             }
             return Err(DatabaseClientError::new(
                 DatabaseClientErrorKind::FindManyDocuments,
-                "Data expected but not received".to_string()));
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
@@ -139,6 +143,9 @@ impl<'a> Collection<'a> {
                     return Ok(None);
                 }
             }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindOneDocument,
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
@@ -166,6 +173,9 @@ impl<'a> Collection<'a> {
             if let Some(document) = result.data {
                 return Ok(transform_document_dto_to_document(document));
             }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::InsertOneDocument,
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(
@@ -239,7 +249,7 @@ impl<'a> Collection<'a> {
             }
             return Err(DatabaseClientError::new(
                 DatabaseClientErrorKind::DeleteManyDocuments,
-                "Data expected but not received".to_string()));
+                DATA_NOT_RECEIVED.to_string()));
         }
 
         return Err(DatabaseClientError::new(

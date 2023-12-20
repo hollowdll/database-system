@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fmt;
 
 pub const UNEXPECTED_ERROR: &str = "Unexpected error";
+pub const DATA_NOT_RECEIVED: &str = "Data expected but not received";
 
 /// Error type for database client errors.
 #[derive(Debug)]
