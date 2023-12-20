@@ -1,6 +1,8 @@
 use std::error::Error;
 use std::fmt;
 
+pub const UNEXPECTED_ERROR: &str = "Unexpected error";
+
 /// Error type for database client errors.
 #[derive(Debug)]
 pub struct DatabaseClientError {

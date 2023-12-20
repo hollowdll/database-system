@@ -26,6 +26,7 @@ use crate::{
 use self::error::{
     DatabaseClientError,
     DatabaseClientErrorKind,
+    UNEXPECTED_ERROR,
 };
 use tempfile::tempdir;
 
@@ -66,7 +67,7 @@ impl DatabaseClient {
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
-                DatabaseClientErrorKind::ConnectionFailed,
+                DatabaseClientErrorKind::GetDatabase,
                 e.message));
         }
 
@@ -75,8 +76,8 @@ impl DatabaseClient {
                 if let None = db {
                     if let Err(e) = self.create_database(name) {
                         return Err(DatabaseClientError::new(
-                            DatabaseClientErrorKind::CreateDatabase,
-                            e.message));
+                            DatabaseClientErrorKind::GetDatabase,
+                            format!("Cannot create database: {}", e.message)));
                     }
                 }
 
@@ -85,8 +86,8 @@ impl DatabaseClient {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to get database".to_string()));
+            DatabaseClientErrorKind::GetDatabase,
+            UNEXPECTED_ERROR.to_string()));
     }
 }
 
@@ -107,6 +108,6 @@ impl DatabaseClient {
 
         return Err(DatabaseOperationError::new(
             DatabaseOperationErrorKind::CreateDatabase,
-            "Unexpected error creating database".to_string()));
+            UNEXPECTED_ERROR.to_string()));
     }
 }

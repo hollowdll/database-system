@@ -77,7 +77,7 @@ impl<'a> Collection<'a> {
 
         return Err(DatabaseClientError::new(
             DatabaseClientErrorKind::Unexpected,
-            "Failed to find all documents from collection".to_string()));
+            "Failed to find all documents".to_string()));
     }
 
     /// Finds documents in this collection using query.
@@ -113,7 +113,7 @@ impl<'a> Collection<'a> {
 
         return Err(DatabaseClientError::new(
             DatabaseClientErrorKind::Unexpected,
-            "Failed to find documents in collection".to_string()));
+            "Failed to find documents".to_string()));
     }
 
     /// Finds a document by id in this collection.
@@ -142,7 +142,7 @@ impl<'a> Collection<'a> {
 
         return Err(DatabaseClientError::new(
             DatabaseClientErrorKind::Unexpected,
-            "Failed to find document from collection".to_string()));
+            "Failed to find document".to_string()));
     }
 
     /// Inserts a document to this collection.
