@@ -14,6 +14,7 @@ use crate::client::{
     error::{
         DatabaseClientError,
         DatabaseClientErrorKind,
+        UNEXPECTED_ERROR,
     },
     DatabaseClient,
 };
@@ -61,8 +62,8 @@ impl<'a> Database<'a> {
                 if let None = collection {
                     if let Err(e) = self.create_collection(name) {
                         return Err(DatabaseClientError::new(
-                            DatabaseClientErrorKind::CreateCollection,
-                            e.message));
+                            DatabaseClientErrorKind::GetCollection,
+                            format!("Cannot create collection: {}", e.message)));
                     }
                 }
 
@@ -71,8 +72,8 @@ impl<'a> Database<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to get collection".to_string()));
+            DatabaseClientErrorKind::GetCollection,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Gets this database's metadata.
@@ -93,15 +94,15 @@ impl<'a> Database<'a> {
                     return Ok(db);
                 } else {
                     return Err(DatabaseClientError::new(
-                        DatabaseClientErrorKind::DatabaseNotFound,
-                        format!("Failed to get database '{}'", self.connection_string().display())));
+                        DatabaseClientErrorKind::GetDatabase,
+                        "Database not found".to_string()));
                 }
             }
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to get database".to_string()));
+            DatabaseClientErrorKind::GetDatabase,
+            UNEXPECTED_ERROR.to_string()));
     }
 }
 
@@ -122,6 +123,6 @@ impl<'a> Database<'a> {
 
         return Err(DatabaseOperationError::new(
             DatabaseOperationErrorKind::CreateCollection,
-            "Unexpected error creating collection".to_string()));
+            UNEXPECTED_ERROR.to_string()));
     }
 }
