@@ -13,6 +13,7 @@ use crate::{
         error::{
             DatabaseClientError,
             DatabaseClientErrorKind,
+            UNEXPECTED_ERROR,
         },
     },
     database::Database,
@@ -76,8 +77,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to find all documents".to_string()));
+            DatabaseClientErrorKind::FindAllDocuments,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Finds documents in this collection using query.
@@ -112,8 +113,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to find documents".to_string()));
+            DatabaseClientErrorKind::FindManyDocuments,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Finds a document by id in this collection.
@@ -141,8 +142,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to find document".to_string()));
+            DatabaseClientErrorKind::FindOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Inserts a document to this collection.
@@ -168,8 +169,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to insert a document".to_string()));
+            DatabaseClientErrorKind::InsertOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Replaces a document in this collection with a new one.
@@ -193,8 +194,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to replace a document".to_string()));
+            DatabaseClientErrorKind::ReplaceOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Deletes a document by id from this collection.
@@ -214,8 +215,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to delete a document".to_string()));
+            DatabaseClientErrorKind::DeleteOneDocument,
+            UNEXPECTED_ERROR.to_string()));
     }
 
     /// Deletes all documents from this collection.
@@ -242,8 +243,8 @@ impl<'a> Collection<'a> {
         }
 
         return Err(DatabaseClientError::new(
-            DatabaseClientErrorKind::Unexpected,
-            "Failed to delete all documents".to_string()));
+            DatabaseClientErrorKind::DeleteManyDocuments,
+            UNEXPECTED_ERROR.to_string()));
     }
 }
 
