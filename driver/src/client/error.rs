@@ -39,6 +39,8 @@ pub enum DatabaseClientErrorKind {
     FindAllDocuments,
     /// Failed to find document.
     FindOneDocument,
+    /// Failed to find documents.
+    FindManyDocuments,
 }
 
 impl fmt::Display for DatabaseClientError {
@@ -61,6 +63,7 @@ impl fmt::Display for DatabaseClientError {
                 DatabaseClientErrorKind::DeleteManyDocuments => "Failed to delete documents",
                 DatabaseClientErrorKind::FindAllDocuments => "Failed to find all documents",
                 DatabaseClientErrorKind::FindOneDocument => "Failed to find document",
+                DatabaseClientErrorKind::FindManyDocuments => "Failed to find documents",
             },
             self.message,
         )

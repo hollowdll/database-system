@@ -80,6 +80,42 @@ impl<'a> Collection<'a> {
             "Failed to find all documents from collection".to_string()));
     }
 
+    /// Finds documents in this collection using query.
+    /// 
+    /// Query contains fields with values that the document needs to match.
+    /// 
+    /// Returns the found documents.
+    pub fn find_many(&self, query: &DocumentQuery) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+        let query = transform_document_data_to_input(&query.data);
+        let result = self.client.engine
+            .storage_api()
+            .find_documents(self.database.connection_string(), self.name(), &query);
+
+        if let Some(e) = result.error {
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindManyDocuments,
+                e.message));
+        }
+
+        if result.success {
+            if let Some(document_dtos) = result.data {
+                let documents: Vec<DocumentModel> = document_dtos
+                    .into_iter()
+                    .map(|document| transform_document_dto_to_document(document))
+                    .collect();
+
+                return Ok(documents);
+            }
+            return Err(DatabaseClientError::new(
+                DatabaseClientErrorKind::FindManyDocuments,
+                "Data expected but not received".to_string()));
+        }
+
+        return Err(DatabaseClientError::new(
+            DatabaseClientErrorKind::Unexpected,
+            "Failed to find documents in collection".to_string()));
+    }
+
     /// Finds a document by id in this collection.
     /// 
     /// Returns the found document.
@@ -202,7 +238,7 @@ impl<'a> Collection<'a> {
             }
             return Err(DatabaseClientError::new(
                 DatabaseClientErrorKind::DeleteManyDocuments,
-                "Data not received".to_string()));
+                "Data expected but not received".to_string()));
         }
 
         return Err(DatabaseClientError::new(
@@ -234,9 +270,9 @@ fn transform_document_dto_to_document(document_dto: DocumentDto) -> DocumentMode
 }
 
 /// Transforms driver document data to engine input data.
-fn transform_document_data_to_input(document_data: &HashMap<String, DataType>) -> Vec<DocumentInputDataField> {
-    let mut document_input = Vec::new();
-    for (key, value) in document_data {
+fn transform_document_data_to_input(data: &HashMap<String, DataType>) -> Vec<DocumentInputDataField> {
+    let mut input = Vec::new();
+    for (key, value) in data {
         let (data_type, data_value) = match value {
             DataType::Int32(v) => ("Int32", v.to_string()),
             DataType::Int64(v) => ("Int64", v.to_string()),
@@ -245,8 +281,8 @@ fn transform_document_data_to_input(document_data: &HashMap<String, DataType>) -
             DataType::Text(v) => ("Text", v.to_string()),
         };
 
-        document_input.push(DocumentInputDataField::new(&key, data_type, &data_value));
+        input.push(DocumentInputDataField::new(&key, data_type, &data_value));
     }
 
-    return document_input;
+    return input;
 }
