@@ -37,7 +37,7 @@ fn find_all_documents_success() {
     let document = result.data.unwrap();
     let result = engine
         .storage_api()
-        .find_all_documents(&file_path, collection_name);
+        .find_all_documents(&file_path, collection_name, None);
     assert!(result.success);
     assert!(result.data.is_some());
     assert!(result.error.is_none());
@@ -128,7 +128,7 @@ fn find_documents_success() {
     
     let result = engine
         .storage_api()
-        .find_documents(&file_path, collection_name, &query);
+        .find_documents(&file_path, collection_name, &query, None);
     assert!(result.success);
     assert!(result.data.is_some());
     assert!(result.error.is_none());

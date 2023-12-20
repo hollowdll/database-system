@@ -236,7 +236,7 @@ impl Cli {
         };
         let result = self.engine
             .storage_api()
-            .find_all_documents(connected_db.file_path(), &collection_name);
+            .find_all_documents(connected_db.file_path(), &collection_name, None);
 
         if result.success {
             event_log_failed(result.log_error);
@@ -380,7 +380,7 @@ impl Cli {
 
         let result = self.engine
             .storage_api()
-            .find_documents(connected_db.file_path(), &collection_name, &query);
+            .find_documents(connected_db.file_path(), &collection_name, &query, None);
 
         if result.success {
             event_log_failed(result.log_error);

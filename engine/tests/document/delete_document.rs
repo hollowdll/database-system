@@ -80,7 +80,7 @@ fn delete_all_documents_success() {
     }
 
     let result = engine.storage_api()
-        .find_all_documents(&file_path, collection_name);
+        .find_all_documents(&file_path, collection_name, None);
     let document_count = result.data.unwrap().len();
     assert!(document_count > 0);
 
@@ -92,7 +92,7 @@ fn delete_all_documents_success() {
     assert_eq!(result.data.unwrap(), document_count);
 
     let result = engine.storage_api()
-        .find_all_documents(&file_path, collection_name);
+        .find_all_documents(&file_path, collection_name, None);
     assert_eq!(result.data.unwrap().len(), 0);
 
     config_settings.close_temp_dirs();

@@ -323,10 +323,13 @@ pub fn delete_all_documents_from_collection(
 
 /// Finds all documents in a collection.
 /// 
+/// Limit specifies the maximum number of documents to return.
+/// 
 /// Returns the found documents.
 pub fn find_all_documents_in_collection(
     file_path: &Path,
-    collection_name: &str
+    collection_name: &str,
+    limit: Option<usize>,
 ) -> Result<Vec<DocumentDto>, Box<dyn Error>>
 {
     if !file_path.is_file() {
@@ -337,15 +340,24 @@ pub fn find_all_documents_in_collection(
 
     for collection in database.collections.into_iter() {
         if collection.name() == collection_name {
-            for document in collection.documents.into_iter() {
-                let document_dto = DocumentDto {
-                    id: document.id,
-                    data: document.data,
-                };
-
-                documents.push(document_dto)
+            if let Some(limit) = limit {
+                for document in collection.documents.into_iter() {
+                    if documents.len() >= limit {
+                        return Ok(documents)
+                    }
+                    documents.push(DocumentDto {
+                        id: document.id,
+                        data: document.data,
+                    });
+                }
+            } else {
+                for document in collection.documents.into_iter() {
+                    documents.push(DocumentDto {
+                        id: document.id,
+                        data: document.data,
+                    });
+                }
             }
-
             return Ok(documents);
         }
     }
@@ -429,11 +441,14 @@ pub fn find_document_in_collection_by_id(
 /// 
 /// The query contains fields of key-values that the document must match.
 /// 
+/// Limit specifies the maximum number of documents to return.
+/// 
 /// Returns the found documents.
 pub fn find_documents_in_collection(
     file_path: &Path,
     collection_name: &str,
     query: &HashMap<String, data_type::DataType>,
+    limit: Option<usize>,
 ) -> Result<Vec<DocumentDto>, Box<dyn Error>>
 {
     if !file_path.is_file() {
@@ -448,21 +463,45 @@ pub fn find_documents_in_collection(
                 return Ok(documents);
             }
 
-            for document in collection.documents.into_iter() {
-                let mut fields_match = 0;
-                for (document_key, document_value) in document.data.iter() {
-                    if let Some(query_value) = query.get(document_key) {
-                        if let Some(document_value) = &document_value.data_type {
-                            if query_value == document_value {
-                                fields_match += 1;
+            if let Some(limit) = limit {
+                for document in collection.documents.into_iter() {
+                    if documents.len() >= limit {
+                        return Ok(documents)
+                    }
+                    let mut fields_match = 0;
+                    for (document_key, document_value) in document.data.iter() {
+                        if let Some(query_value) = query.get(document_key) {
+                            if let Some(document_value) = &document_value.data_type {
+                                if query_value == document_value {
+                                    fields_match += 1;
+                                }
+                                if fields_match == query.len() {
+                                    documents.push(DocumentDto {
+                                        id: document.id,
+                                        data: document.data,
+                                    });
+                                    break
+                                }
                             }
-                            if fields_match == query.len() {
-                                let document_dto = DocumentDto {
-                                    id: document.id,
-                                    data: document.data,
-                                };
-                                documents.push(document_dto);
-                                break
+                        }
+                    }
+                }
+            } else {
+                for document in collection.documents.into_iter() {
+                    let mut fields_match = 0;
+                    for (document_key, document_value) in document.data.iter() {
+                        if let Some(query_value) = query.get(document_key) {
+                            if let Some(document_value) = &document_value.data_type {
+                                if query_value == document_value {
+                                    fields_match += 1;
+                                }
+                                if fields_match == query.len() {
+                                    documents.push(DocumentDto {
+                                        id: document.id,
+                                        data: document.data,
+                                    });
+                                    break
+                                }
                             }
                         }
                     }
@@ -735,7 +774,8 @@ mod tests {
         assert!(file.write_all(&db_buf).is_ok());
         let documents = find_all_documents_in_collection(
             &file_path,
-            collection_name
+            collection_name,
+            None,
         ).unwrap();
         assert!(documents.len() == 1);
 
@@ -841,7 +881,8 @@ mod tests {
         let documents = find_documents_in_collection(
             &file_path,
             collection_name,
-            &query
+            &query,
+            None,
         ).unwrap();
         assert_ne!(documents.len(), document_count);
         assert_eq!(documents.len(), expected_document_count);
