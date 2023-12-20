@@ -19,7 +19,8 @@ use crate::{
     document::{
         DocumentModel,
         DataType,
-        DocumentId
+        DocumentId,
+        DocumentQuery,
     },
 };
 
@@ -112,7 +113,7 @@ impl<'a> Collection<'a> {
     /// 
     /// Returns the new document with id populated.
     pub fn insert_one(&self, document: DocumentModel) -> Result<DocumentModel, DatabaseClientError> {
-        let input = transform_document_to_input(document);
+        let input = transform_document_data_to_input(&document.data);
 
         let result = self.client.engine
             .storage_api()
@@ -139,7 +140,7 @@ impl<'a> Collection<'a> {
     /// 
     /// Only the data is replaced, id remains the same.
     pub fn replace_one_by_id(&self, id: &DocumentId, document: DocumentModel) -> Result<(), DatabaseClientError> {
-        let input = transform_document_to_input(document);
+        let input = transform_document_data_to_input(&document.data);
         
         let result = self.client.engine
             .storage_api()
@@ -210,29 +211,9 @@ impl<'a> Collection<'a> {
     }
 }
 
-/// Transforms driver document model to engine input data.
-fn transform_document_to_input(document: DocumentModel) -> Vec<DocumentInputDataField> {
-    let mut data = Vec::new();
-
-    for (key, value) in document.data {
-        let (data_type, data_value) = match value {
-            DataType::Int32(v) => ("Int32", v.to_string()),
-            DataType::Int64(v) => ("Int64", v.to_string()),
-            DataType::Decimal(v) => ("Decimal", v.to_string()),
-            DataType::Bool(v) => ("Bool", v.to_string()),
-            DataType::Text(v) => ("Text", v.to_string()),
-        };
-
-        data.push(DocumentInputDataField::new(&key, data_type, &data_value));
-    }
-
-    return data;
-}
-
 /// Transforms engine `DocumentDto` to driver document model.
 fn transform_document_dto_to_document(document_dto: DocumentDto) -> DocumentModel {
     let mut data = HashMap::new();
-
     for (key, value) in document_dto.data {
         let data_type = match value.data_type {
             Some(data_type::DataType::Int32(v)) => DataType::Int32(v),
@@ -250,4 +231,22 @@ fn transform_document_dto_to_document(document_dto: DocumentDto) -> DocumentMode
         id: DocumentId(document_dto.id),
         data
     };
+}
+
+/// Transforms driver document data to engine input data.
+fn transform_document_data_to_input(document_data: &HashMap<String, DataType>) -> Vec<DocumentInputDataField> {
+    let mut document_input = Vec::new();
+    for (key, value) in document_data {
+        let (data_type, data_value) = match value {
+            DataType::Int32(v) => ("Int32", v.to_string()),
+            DataType::Int64(v) => ("Int64", v.to_string()),
+            DataType::Decimal(v) => ("Decimal", v.to_string()),
+            DataType::Bool(v) => ("Bool", v.to_string()),
+            DataType::Text(v) => ("Text", v.to_string()),
+        };
+
+        document_input.push(DocumentInputDataField::new(&key, data_type, &data_value));
+    }
+
+    return document_input;
 }
