@@ -434,11 +434,13 @@ impl DatabaseManager {
         &self,
         db_file_path: &Path,
         collection_name: &str,
+        limit: Option<usize>,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         match find_all_documents_in_collection(
             db_file_path,
-            collection_name
+            collection_name,
+            limit,
         ) {
             Ok(documents) => return Ok(documents),
             Err(err) => return Err(DatabaseOperationError::new(
@@ -496,6 +498,7 @@ impl DatabaseManager {
         db_file_path: &Path,
         collection_name: &str,
         query: &Vec<DocumentInputDataField>,
+        limit: Option<usize>,
     ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
     {
         let mut transformed_query: HashMap<String, data_type::DataType> = HashMap::new();
@@ -524,7 +527,8 @@ impl DatabaseManager {
         match find_documents_in_collection(
             db_file_path,
             collection_name,
-            &transformed_query
+            &transformed_query,
+            limit,
         ) {
             Ok(documents) => return Ok(documents),
             Err(err) => return Err(DatabaseOperationError::new(

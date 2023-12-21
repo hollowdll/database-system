@@ -578,9 +578,10 @@ impl StorageApi {
         &self,
         db_file_path: &Path,
         collection_name: &str,
+        limit: Option<usize>,
     ) -> StorageRequestResult<Vec<DocumentDto>>
     {
-        match self.db_manager.find_all_documents(db_file_path, collection_name) {
+        match self.db_manager.find_all_documents(db_file_path, collection_name, limit) {
             Ok(documents) => {
                 let content = format!(
                     "Fetched all documents from collection '{}' in database '{}'",
@@ -696,9 +697,10 @@ impl StorageApi {
         db_file_path: &Path,
         collection_name: &str,
         query: &Vec<DocumentInputDataField>,
+        limit: Option<usize>
     ) -> StorageRequestResult<Vec<DocumentDto>>
     {
-        match self.db_manager.find_documents(db_file_path, collection_name, query) {
+        match self.db_manager.find_documents(db_file_path, collection_name, query, limit) {
             Ok(documents) => {
                 let content = format!(
                     "Fetched {} documents from collection '{}' in database '{}'",

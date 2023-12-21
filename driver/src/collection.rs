@@ -58,7 +58,7 @@ impl<'a> Collection<'a> {
     pub fn find_all(&self) -> Result<Vec<DocumentModel>, DatabaseClientError> {
         let result = self.client.engine
             .storage_api()
-            .find_all_documents(self.database.connection_string(), self.name());
+            .find_all_documents(self.database.connection_string(), self.name(), None);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
@@ -94,7 +94,7 @@ impl<'a> Collection<'a> {
         let query = transform_document_data_to_input(&query.data);
         let result = self.client.engine
             .storage_api()
-            .find_documents(self.database.connection_string(), self.name(), &query);
+            .find_documents(self.database.connection_string(), self.name(), &query, None);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
