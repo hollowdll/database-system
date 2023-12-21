@@ -225,7 +225,7 @@ impl Cli {
     }
 
     /// Show menu to list all documents in a collection.
-    pub fn list_all_documents(&self) {
+    pub fn list_all_documents(&self, use_limit: bool) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
             None => return db_not_connected(),
@@ -234,9 +234,22 @@ impl Cli {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
+        let mut limit = None;
+        if use_limit {
+            let input = match ask_user_input("Limit: ") {
+                Ok(input) => input,
+                Err(_) => return,
+            };
+            let result: usize = match input.parse() {
+                Ok(result) => result,
+                Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
+            };
+            limit = Some(result);
+        }
+
         let result = self.engine
             .storage_api()
-            .find_all_documents(connected_db.file_path(), &collection_name, None);
+            .find_all_documents(connected_db.file_path(), &collection_name, limit);
 
         if result.success {
             event_log_failed(result.log_error);
@@ -342,7 +355,7 @@ impl Cli {
     /// Show menu to list documents in a collection using query.
     /// 
     /// The query contains data fields with values that the document needs to match.
-    pub fn list_documents_query(&self) {
+    pub fn list_documents_query(&self, use_limit: bool) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
             None => return db_not_connected(),
@@ -351,6 +364,18 @@ impl Cli {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
+        let mut limit = None;
+        if use_limit {
+            let input = match ask_user_input("Limit: ") {
+                Ok(input) => input,
+                Err(_) => return,
+            };
+            let result: usize = match input.parse() {
+                Ok(result) => result,
+                Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
+            };
+            limit = Some(result);
+        }
         let mut query: Vec<DocumentInputDataField> = Vec::new();
         
         println!("Specify fields that will be added to query");
@@ -380,7 +405,7 @@ impl Cli {
 
         let result = self.engine
             .storage_api()
-            .find_documents(connected_db.file_path(), &collection_name, &query, None);
+            .find_documents(connected_db.file_path(), &collection_name, &query, limit);
 
         if result.success {
             event_log_failed(result.log_error);
