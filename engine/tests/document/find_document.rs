@@ -52,6 +52,48 @@ fn find_all_documents_success() {
 }
 
 #[test]
+fn find_all_documents_with_limit_success() {
+    let config_settings = ConfigSettings::new();
+    let engine = Engine::build(&config_settings.config);
+    let db_name = "test";
+    let collection_name = "people";
+    let file_path = config_settings.db_dir
+        .path()
+        .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
+    let limit_under = 3;
+    let document_count = limit_under + 1;
+    let limit_over = document_count + 1;
+
+    engine.storage_api()
+        .create_database_by_file_path(db_name, &file_path);
+    
+    engine.storage_api()
+        .create_collection(collection_name, &file_path);
+
+    for _ in 1..=document_count {
+        let data = create_document_input_data();
+        engine.storage_api()
+            .create_document(&file_path, collection_name, data);
+    }
+
+    let result = engine
+        .storage_api()
+        .find_all_documents(&file_path, collection_name, Some(limit_under));
+    assert!(result.success);
+    assert!(result.data.is_some());
+    assert!(result.error.is_none());
+    assert!(result.log_error.is_none());
+    assert_eq!(result.data.unwrap().len(), limit_under);
+
+    let result = engine
+        .storage_api()
+        .find_all_documents(&file_path, collection_name, Some(limit_over));
+    assert_eq!(result.data.unwrap().len(), document_count);
+
+    config_settings.close_temp_dirs();
+}
+
+#[test]
 fn find_document_by_id_success() {
     let config_settings = ConfigSettings::new();
     let engine = Engine::build(&config_settings.config);
