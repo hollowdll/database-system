@@ -270,47 +270,6 @@ impl Cli {
         }
     }
 
-    /// Show menu to list specific documents in a collection.
-    pub fn list_documents(&self) {
-        let connected_db = match &self.connected_db {
-            Some(db) => db,
-            None => return db_not_connected(),
-        };
-        let collection_name = match ask_user_input("Collection: ") {
-            Ok(collection_name) => collection_name,
-            Err(_) => return,
-        };
-        let limit = match ask_user_input("Limit: ") {
-            Ok(limit) => limit,
-            Err(_) => return,
-        };
-        let limit: usize = match limit.parse() {
-            Ok(limit) => limit,
-            Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
-        };
-        let result = self.engine
-            .storage_api()
-            .find_documents_limit(connected_db.file_path(), &collection_name, limit);
-
-        if result.success {
-            event_log_failed(result.log_error);
-
-            if let Some(documents) = result.data {
-                println!("Number of documents: {}", documents.len());
-
-                for document in documents {
-                    println!("{}", &document);
-                }
-            }
-        } else {
-            error_log_failed(result.log_error);
-
-            if let Some(e) = result.error {
-                eprintln!("Error: {}", e);
-            }
-        }
-    }
-
     /// Show menu to list a single document in a collection.
     pub fn list_single_document(&self) {
         let connected_db = match &self.connected_db {
