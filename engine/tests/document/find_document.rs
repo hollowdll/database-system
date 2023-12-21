@@ -182,3 +182,50 @@ fn find_documents_success() {
 
     config_settings.close_temp_dirs();
 }
+
+#[test]
+fn find_documents_with_limit_success() {
+    let config_settings = ConfigSettings::new();
+    let engine = Engine::build(&config_settings.config);
+    let db_name = "test";
+    let collection_name = "people";
+    let file_path = config_settings.db_dir
+        .path()
+        .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
+    let max_documents = 3;
+    let limit_under = max_documents - 1;
+    let limit_over = max_documents + 1;
+
+    engine.storage_api()
+        .create_database_by_file_path(db_name, &file_path);
+    
+    engine.storage_api()
+        .create_collection(collection_name, &file_path);
+
+    for _ in 1..=max_documents {
+        let mut data = Vec::new();
+        data.push(DocumentInputDataField::new("age", "Int32", "35"));
+
+        engine.storage_api()
+            .create_document(&file_path, collection_name, data);
+    }
+
+    let mut query = Vec::new();
+    query.push(DocumentInputDataField::new("age", "Int32", "35"));
+    
+    let result = engine
+        .storage_api()
+        .find_documents(&file_path, collection_name, &query, Some(limit_under));
+    assert!(result.success);
+    assert!(result.data.is_some());
+    assert!(result.error.is_none());
+    assert!(result.log_error.is_none());
+    assert_eq!(result.data.unwrap().len(), limit_under);
+
+    let result = engine
+        .storage_api()
+        .find_documents(&file_path, collection_name, &query, Some(limit_over));
+    assert_eq!(result.data.unwrap().len(), max_documents);
+
+    config_settings.close_temp_dirs();
+}
