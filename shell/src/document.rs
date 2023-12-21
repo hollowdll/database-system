@@ -8,6 +8,7 @@ use crate::{
     error_log_failed,
 };
 use engine::DocumentInputDataField;
+use std::io;
 
 impl Cli {
     /// Show menu to create a new document to a collection.
@@ -26,21 +27,11 @@ impl Cli {
         
         loop {
             println!("\n{}", "Insert new field");
-
-            let field = match ask_user_input("Field name: ") {
-                Ok(field) => field,
+            let field_input = match prompt_data_field_input() {
+                Ok(field_input) => field_input,
                 Err(_) => return,
             };
-            let data_type = match ask_user_input("Data type: ") {
-                Ok(data_type) => data_type,
-                Err(_) => return,
-            };
-            let value = match ask_user_input("Value: ") {
-                Ok(value) => value,
-                Err(_) => return,
-            };
-
-            data.push(DocumentInputDataField::new(&field, &data_type, &value));
+            data.push(field_input);
 
             let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
                 Ok(confirm) => confirm,
@@ -92,21 +83,11 @@ impl Cli {
         
         loop {
             println!("\n{}", "Insert new field");
-
-            let field = match ask_user_input("Field name: ") {
-                Ok(field) => field,
+            let field_input = match prompt_data_field_input() {
+                Ok(field_input) => field_input,
                 Err(_) => return,
             };
-            let data_type = match ask_user_input("Data type: ") {
-                Ok(data_type) => data_type,
-                Err(_) => return,
-            };
-            let value = match ask_user_input("Value: ") {
-                Ok(value) => value,
-                Err(_) => return,
-            };
-
-            data.push(DocumentInputDataField::new(&field, &data_type, &value));
+            data.push(field_input);
 
             let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
                 Ok(confirm) => confirm,
@@ -339,19 +320,11 @@ impl Cli {
         
         println!("Specify fields that will be added to query");
         loop {
-            let field = match ask_user_input("Field: ") {
-                Ok(field) => field,
+            let field_input = match prompt_data_field_input() {
+                Ok(field_input) => field_input,
                 Err(_) => return,
             };
-            let data_type = match ask_user_input("Data type: ") {
-                Ok(data_type) => data_type,
-                Err(_) => return,
-            };
-            let value = match ask_user_input("Value: ") {
-                Ok(value) => value,
-                Err(_) => return,
-            };
-            query.push(DocumentInputDataField::new(&field, &data_type, &value));
+            query.push(field_input);
 
             let confirm = match ask_action_confirm("Field added to query. Stop inserting fields?") {
                 Ok(confirm) => confirm,
@@ -386,4 +359,13 @@ impl Cli {
             }
         }
     }
+}
+
+/// Prompts user input for document field data.
+fn prompt_data_field_input() -> io::Result<DocumentInputDataField> {
+    let field = ask_user_input("Field: ")?;
+    let data_type = ask_user_input("Data type: ")?;
+    let value = ask_user_input("Value: ")?;
+
+    Ok(DocumentInputDataField::new(&field, &data_type, &value))
 }
