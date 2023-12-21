@@ -8,6 +8,7 @@ use crate::{
     error_log_failed,
 };
 use engine::DocumentInputDataField;
+use std::io;
 
 impl Cli {
     /// Show menu to create a new document to a collection.
@@ -26,21 +27,11 @@ impl Cli {
         
         loop {
             println!("\n{}", "Insert new field");
-
-            let field = match ask_user_input("Field name: ") {
-                Ok(field) => field,
+            let field_input = match prompt_data_field_input() {
+                Ok(field_input) => field_input,
                 Err(_) => return,
             };
-            let data_type = match ask_user_input("Data type: ") {
-                Ok(data_type) => data_type,
-                Err(_) => return,
-            };
-            let value = match ask_user_input("Value: ") {
-                Ok(value) => value,
-                Err(_) => return,
-            };
-
-            data.push(DocumentInputDataField::new(&field, &data_type, &value));
+            data.push(field_input);
 
             let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
                 Ok(confirm) => confirm,
@@ -92,21 +83,11 @@ impl Cli {
         
         loop {
             println!("\n{}", "Insert new field");
-
-            let field = match ask_user_input("Field name: ") {
-                Ok(field) => field,
+            let field_input = match prompt_data_field_input() {
+                Ok(field_input) => field_input,
                 Err(_) => return,
             };
-            let data_type = match ask_user_input("Data type: ") {
-                Ok(data_type) => data_type,
-                Err(_) => return,
-            };
-            let value = match ask_user_input("Value: ") {
-                Ok(value) => value,
-                Err(_) => return,
-            };
-
-            data.push(DocumentInputDataField::new(&field, &data_type, &value));
+            data.push(field_input);
 
             let confirm = match ask_action_confirm("Stop inserting data and save this document?") {
                 Ok(confirm) => confirm,
@@ -225,7 +206,7 @@ impl Cli {
     }
 
     /// Show menu to list all documents in a collection.
-    pub fn list_all_documents(&self) {
+    pub fn list_all_documents(&self, use_limit: bool) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
             None => return db_not_connected(),
@@ -234,50 +215,22 @@ impl Cli {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
-        let result = self.engine
-            .storage_api()
-            .find_all_documents(connected_db.file_path(), &collection_name, None);
-
-        if result.success {
-            event_log_failed(result.log_error);
-
-            if let Some(documents) = result.data {
-                println!("Number of documents: {}", documents.len());
-
-                for document in documents {
-                    println!("{}", &document);
-                }
-            }
-        } else {
-            error_log_failed(result.log_error);
-
-            if let Some(e) = result.error {
-                eprintln!("Error: {}", e);
-            }
+        let mut limit = None;
+        if use_limit {
+            let input = match ask_user_input("Limit: ") {
+                Ok(input) => input,
+                Err(_) => return,
+            };
+            let result: usize = match input.parse() {
+                Ok(result) => result,
+                Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
+            };
+            limit = Some(result);
         }
-    }
 
-    /// Show menu to list specific documents in a collection.
-    pub fn list_documents(&self) {
-        let connected_db = match &self.connected_db {
-            Some(db) => db,
-            None => return db_not_connected(),
-        };
-        let collection_name = match ask_user_input("Collection: ") {
-            Ok(collection_name) => collection_name,
-            Err(_) => return,
-        };
-        let limit = match ask_user_input("Limit: ") {
-            Ok(limit) => limit,
-            Err(_) => return,
-        };
-        let limit: usize = match limit.parse() {
-            Ok(limit) => limit,
-            Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
-        };
         let result = self.engine
             .storage_api()
-            .find_documents_limit(connected_db.file_path(), &collection_name, limit);
+            .find_all_documents(connected_db.file_path(), &collection_name, limit);
 
         if result.success {
             event_log_failed(result.log_error);
@@ -342,7 +295,7 @@ impl Cli {
     /// Show menu to list documents in a collection using query.
     /// 
     /// The query contains data fields with values that the document needs to match.
-    pub fn list_documents_query(&self) {
+    pub fn list_documents_query(&self, use_limit: bool) {
         let connected_db = match &self.connected_db {
             Some(db) => db,
             None => return db_not_connected(),
@@ -351,23 +304,27 @@ impl Cli {
             Ok(collection_name) => collection_name,
             Err(_) => return,
         };
+        let mut limit = None;
+        if use_limit {
+            let input = match ask_user_input("Limit: ") {
+                Ok(input) => input,
+                Err(_) => return,
+            };
+            let result: usize = match input.parse() {
+                Ok(result) => result,
+                Err(e) => return eprintln!("Invalid limit. Limit must be a positive integer: {e}"),
+            };
+            limit = Some(result);
+        }
         let mut query: Vec<DocumentInputDataField> = Vec::new();
         
         println!("Specify fields that will be added to query");
         loop {
-            let field = match ask_user_input("Field: ") {
-                Ok(field) => field,
+            let field_input = match prompt_data_field_input() {
+                Ok(field_input) => field_input,
                 Err(_) => return,
             };
-            let data_type = match ask_user_input("Data type: ") {
-                Ok(data_type) => data_type,
-                Err(_) => return,
-            };
-            let value = match ask_user_input("Value: ") {
-                Ok(value) => value,
-                Err(_) => return,
-            };
-            query.push(DocumentInputDataField::new(&field, &data_type, &value));
+            query.push(field_input);
 
             let confirm = match ask_action_confirm("Field added to query. Stop inserting fields?") {
                 Ok(confirm) => confirm,
@@ -380,7 +337,7 @@ impl Cli {
 
         let result = self.engine
             .storage_api()
-            .find_documents(connected_db.file_path(), &collection_name, &query, None);
+            .find_documents(connected_db.file_path(), &collection_name, &query, limit);
 
         if result.success {
             event_log_failed(result.log_error);
@@ -402,4 +359,13 @@ impl Cli {
             }
         }
     }
+}
+
+/// Prompts user input for document field data.
+fn prompt_data_field_input() -> io::Result<DocumentInputDataField> {
+    let field = ask_user_input("Field: ")?;
+    let data_type = ask_user_input("Data type: ")?;
+    let value = ask_user_input("Value: ")?;
+
+    Ok(DocumentInputDataField::new(&field, &data_type, &value))
 }

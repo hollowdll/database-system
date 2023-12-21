@@ -125,9 +125,9 @@ pub fn run() {
   ** DOCUMENT COMMANDS **
 
   /get all documents             List all documents in a collection
-  /get documents query           List documents that match the query
-  /get documents                 List the first documents in a collection specified by limit
-                                 This command will be changed in the future to support different kinds of queries
+  /get all documents limit       List all documents in a collection by specifying limit
+  /get documents                 List documents in a collection that match query
+  /get documents limit           List documents in a collection that match query by specifying limit
   /get document                  List a single document in a collection
   /create document               Create a new document to a collection
   /replace document              Replace a document with new data
@@ -187,13 +187,16 @@ More commands in the future...");
                 cli.delete_collection();
             },
             "/get all documents" => {
-                cli.list_all_documents();
+                cli.list_all_documents(false);
             },
-            "/get documents query" => {
-                cli.list_documents_query();
+            "/get all documents limit" => {
+                cli.list_all_documents(true);
             },
             "/get documents" => {
-                cli.list_documents();
+                cli.list_documents_query(false);
+            },
+            "/get documents limit" => {
+                cli.list_documents_query(true);
             },
             "/get document" => {
                 cli.list_single_document();
