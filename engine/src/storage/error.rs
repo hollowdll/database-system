@@ -12,8 +12,11 @@ pub enum DatabaseError {
     /// Database was not found.
     NotFound,
 
-    /// Database has empty name which is not allowed.
+    /// Database name is empty.
     EmptyName,
+
+    /// Database name contains whitespace character.
+    NameHasWhitespace,
 }
 
 impl fmt::Display for DatabaseError {
@@ -24,7 +27,8 @@ impl fmt::Display for DatabaseError {
             match self {
                 DatabaseError::Exists => "Database already exists",
                 DatabaseError::NotFound => "Database was not found",
-                DatabaseError::EmptyName => "Database cannot have empty name",
+                DatabaseError::EmptyName => "Empty database name not allowed",
+                DatabaseError::NameHasWhitespace => "Whitespace not allowed in database name",
             }
         )
     }
@@ -49,7 +53,7 @@ pub enum CollectionError {
     /// Collection name is empty.
     EmptyName,
 
-    /// Collection name contains whitespace.
+    /// Collection name contains whitespace character.
     NameHasWhitespace,
 }
 
@@ -80,7 +84,7 @@ pub enum DocumentError {
     /// Document has an empty field name.
     EmptyFieldName,
 
-    /// Document has a field name that contains whitespace.
+    /// Document has a field name that contains whitespace character.
     FieldNameHasWhitespace,
 }
 

@@ -8,14 +8,14 @@ use std::{
     error::Error,
     fmt::Display,
 };
-use crate::storage::{
+use crate::{storage::{
     error::DatabaseError,
     pb,
     serialize_database,
     deserialize_database,
     write_database_to_file,
     DB_FILE_EXTENSION,
-};
+}, util::has_whitespaces};
 
 // Implements methods for protobuf type
 impl pb::Database {
@@ -41,6 +41,9 @@ impl pb::Database {
     pub fn validate_errors(&self) -> Result<(), DatabaseError> {
         if self.name.is_empty() {
             return Err(DatabaseError::EmptyName);
+        }
+        if has_whitespaces(&self.name) {
+            return Err(DatabaseError::NameHasWhitespace);
         }
 
         Ok(())
