@@ -38,7 +38,7 @@ fn main() {
                 },
                 Some(BookCommands::FindAll(_args)) => {
                     let books = book_db_context.book_collection
-                        .find_all()
+                        .find_all(None)
                         .unwrap();
 
                     println!("Books found: {}", books.len());

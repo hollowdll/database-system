@@ -81,3 +81,15 @@ impl DocumentQuery {
         DocumentQuery { data: HashMap::new() }
     }
 }
+
+/// Options to include in queries.
+pub struct DocumentQueryOptions {
+    /// Maximum number of documents to return.
+    pub limit: Option<usize>,
+}
+
+impl DocumentQueryOptions {
+    pub fn new(limit: Option<usize>) -> DocumentQueryOptions {
+        DocumentQueryOptions { limit }
+    }
+}

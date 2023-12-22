@@ -49,13 +49,13 @@ pub fn delete_all_documents_success() {
     for _ in 0..3 {
         assert!(collection.insert_one(create_test_document()).is_ok());
     }
-    let documents = collection.find_all().unwrap();
+    let documents = collection.find_all(None).unwrap();
     assert!(documents.len() > 0);
 
     let deleted_count = collection.delete_all().unwrap();
     assert_eq!(documents.len(), deleted_count);
 
-    let documents = collection.find_all().unwrap();
+    let documents = collection.find_all(None).unwrap();
     assert!(documents.is_empty());
 
     config.close_temp_dirs();

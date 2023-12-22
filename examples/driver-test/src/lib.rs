@@ -68,7 +68,7 @@ pub fn run() {
         println!("Document not found");
     }
 
-    let people = people_collection.find_all().unwrap();
+    let people = people_collection.find_all(None).unwrap();
 
     println!("\nAll documents");
     println!("-------------");
