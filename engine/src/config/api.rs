@@ -28,7 +28,9 @@ pub struct ConfigRequestResult {
 }
 
 /// Returns successful config API response.
-fn request_success(log_result: Result<(), LogError>) -> ConfigRequestResult {
+fn request_success(logger: &Logger, log_content: &str) -> ConfigRequestResult {
+    let log_result = logger.log_event(log_content);
+
     ConfigRequestResult {
         success: true,
         error: None,
@@ -42,8 +44,11 @@ fn request_success(log_result: Result<(), LogError>) -> ConfigRequestResult {
 /// Returns failed config API response.
 fn request_fail(
     error: io::Error,
-    log_result: Result<(), LogError>
+    logger: &Logger,
+    log_content: &str,
 ) -> ConfigRequestResult {
+    let log_result = logger.log_error(ErrorLogType::Error, log_content);
+
     ConfigRequestResult {
         success: false,
         error: Some(error),
@@ -84,16 +89,11 @@ impl ConfigApi {
         match self.config_manager.set_db_dir_path(path) {
             Ok(()) => {
                 let content = format!("Changed database directory path configuration to '{}'", path.display());
-                let result = self.logger.log_event(&content);
-
-                return request_success(result);
+                return request_success(&self.logger, &content);
             },
             Err(err) => {
                 let content = format!("Failed to change database directory path configuration: {}", err);
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-                
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         };
     }
@@ -103,16 +103,11 @@ impl ConfigApi {
         match self.config_manager.set_logs_dir_path(path) {
             Ok(()) => {
                 let content = format!("Changed logs directory path configuration to '{}'", path.display());
-                let result = self.logger.log_event(&content);
-
-                return request_success(result);
+                return request_success(&self.logger, &content);
             },
             Err(err) => {
                 let content = format!("Failed to change logs directory path configuration: {}", err);
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-                
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         };
     }
