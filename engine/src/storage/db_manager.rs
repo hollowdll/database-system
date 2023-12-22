@@ -450,27 +450,6 @@ impl DatabaseManager {
         }
     }
 
-    /// Finds the first documents in a collection specified by limit.
-    pub fn find_documents_limit(
-        &self,
-        db_file_path: &Path,
-        collection_name: &str,
-        limit: usize,
-    ) -> Result<Vec<DocumentDto>, DatabaseOperationError>
-    {
-        match find_documents_in_collection_limit(
-            db_file_path,
-            collection_name,
-            limit
-        ) {
-            Ok(documents) => return Ok(documents),
-            Err(err) => return Err(DatabaseOperationError::new(
-                DatabaseOperationErrorKind::FindDocumentMany,
-                err.to_string()
-            )),
-        }
-    }
-
     /// Finds a document in a collection by document id.
     pub fn find_document_by_id(
         &self,

@@ -607,44 +607,6 @@ impl StorageApi {
         }
     }
 
-    /// Requests `DatabaseManager` to find the first documents in a collection specified by limit.
-    /// 
-    /// Returns the found documents.
-    pub fn find_documents_limit(
-        &self,
-        db_file_path: &Path,
-        collection_name: &str,
-        limit: usize,
-    ) -> StorageRequestResult<Vec<DocumentDto>>
-    {
-        match self.db_manager.find_documents_limit(db_file_path, collection_name, limit) {
-            Ok(documents) => {
-                let content = format!(
-                    "Fetched {} documents from collection '{}' in database '{}'",
-                    documents.len(),
-                    collection_name,
-                    db_file_path.display()
-                );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(documents), result);
-            },
-            Err(err) => {
-                let content = format!(
-                    "Failed to find documents from collection '{}' in database '{}' with limit {}: {}",
-                    collection_name,
-                    db_file_path.display(),
-                    limit,
-                    &err.message
-                );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
-            },
-        }
-    }
-
     /// Requests `DatabaseManager` to find a document in a collection by document id.
     /// 
     /// Returns the found document.
