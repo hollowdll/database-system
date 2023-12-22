@@ -40,8 +40,11 @@ pub struct StorageRequestResult<T> {
 /// Returns successful storage API response.
 fn request_success<T>(
     data: Option<T>,
-    log_result: Result<(), LogError>
+    logger: &Logger,
+    log_content: &str,
 ) -> StorageRequestResult<T> {
+    let log_result = logger.log_event(log_content);
+
     StorageRequestResult {
         success: true,
         error: None,
@@ -56,8 +59,11 @@ fn request_success<T>(
 /// Returns failed storage API response.
 fn request_fail<T>(
     error: DatabaseOperationError,
-    log_result: Result<(), LogError>
+    logger: &Logger,
+    log_content: &str,
 ) -> StorageRequestResult<T> {
+    let log_result = logger.log_error(ErrorLogType::Error, log_content);
+
     StorageRequestResult {
         success: false,
         error: Some(error),
@@ -104,9 +110,7 @@ impl StorageApi {
         match self.db_manager.create_database_to_db_dir(db_name) {
             Ok(()) => {
                 let content = format!("Created database '{}' to database directory", db_name);
-                let result = self.logger.log_event(&content);
-
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -114,10 +118,7 @@ impl StorageApi {
                     db_name,
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -132,9 +133,7 @@ impl StorageApi {
         match self.db_manager.create_database_by_file_path(db_name, db_file_path) {
             Ok(()) => {
                 let content = format!("Created database '{}'", db_file_path.display());
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -142,10 +141,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -159,9 +155,7 @@ impl StorageApi {
         match self.db_manager.delete_database(db_file_path) {
             Ok(()) => {
                 let content = format!("Deleted database '{}'", db_file_path.display());
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -169,10 +163,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -187,9 +178,7 @@ impl StorageApi {
         match self.db_manager.change_database_description(db_file_path, description) {
             Ok(()) => {
                 let content = format!("Changed description of database '{}'", db_file_path.display());
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -197,10 +186,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -219,9 +205,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -230,10 +214,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -252,9 +233,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -263,10 +242,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -289,9 +265,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(created_document), result);
+                return request_success(Some(created_document), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -300,10 +274,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -327,9 +298,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -339,10 +308,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -363,9 +329,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(None, result);
+                return request_success(None, &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -375,10 +339,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -400,9 +361,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(deleted_count), result);
+                return request_success(Some(deleted_count), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -411,10 +370,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -429,19 +385,14 @@ impl StorageApi {
         match self.db_manager.find_all_databases() {
             Ok(databases) => {
                 let content = "Fetched all databases from database directory".to_string();
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(databases), result);
+                return request_success(Some(databases), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
                     "Failed to find all databases from database directory: {}",
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -457,9 +408,7 @@ impl StorageApi {
         match self.db_manager.find_database(db_name) {
             Ok(database) => {
                 let content = format!("Fetched database '{}' from database directory", db_name);
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(database), result);
+                return request_success(Some(database), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -467,10 +416,7 @@ impl StorageApi {
                     db_name,
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -486,9 +432,7 @@ impl StorageApi {
         match self.db_manager.find_database_by_file_path(db_file_path) {
             Ok(database) => {
                 let content = format!("Fetched database '{}'", db_file_path.display());
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(database), result);
+                return request_success(Some(database), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -496,10 +440,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -518,9 +459,7 @@ impl StorageApi {
                     "Fetched all collections from database '{}'",
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(collections), result);
+                return request_success(Some(collections), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -528,10 +467,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -552,9 +488,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(collection), result);
+                return request_success(Some(collection), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -563,10 +497,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -588,9 +519,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(documents), result);
+                return request_success(Some(documents), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -599,10 +528,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -625,9 +551,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(document), result);
+                return request_success(Some(document), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -637,10 +561,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
@@ -670,9 +591,7 @@ impl StorageApi {
                     collection_name,
                     db_file_path.display()
                 );
-                let result = self.logger.log_event(&content);
-                
-                return request_success(Some(documents), result);
+                return request_success(Some(documents), &self.logger, &content);
             },
             Err(err) => {
                 let content = format!(
@@ -681,10 +600,7 @@ impl StorageApi {
                     db_file_path.display(),
                     &err.message
                 );
-                let result = self.logger
-                    .log_error(ErrorLogType::Error, &content);
-
-                return request_fail(err, result);
+                return request_fail(err, &self.logger, &content);
             },
         }
     }
