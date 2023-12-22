@@ -8,14 +8,17 @@ use std::{
     error::Error,
     fmt::Display,
 };
-use crate::{storage::{
-    error::DatabaseError,
-    pb,
-    serialize_database,
-    deserialize_database,
-    write_database_to_file,
-    DB_FILE_EXTENSION,
-}, util::has_whitespaces};
+use crate::{
+    storage::{
+        error::DatabaseError,
+        pb,
+        serialize_database,
+        deserialize_database,
+        write_database_to_file,
+        DB_FILE_EXTENSION,
+    },
+    util::has_whitespaces
+};
 
 // Implements methods for protobuf type
 impl pb::Database {

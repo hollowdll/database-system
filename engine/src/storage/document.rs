@@ -5,19 +5,22 @@ use std::{
     collections::HashMap,
     fmt::{self, Display},
 };
-use crate::{storage::{
-    error::{
-        DatabaseError,
-        CollectionError,
-        DocumentError,
+use crate::{
+    storage::{
+        error::{
+            DatabaseError,
+            CollectionError,
+            DocumentError,
+        },
+        pb,
+        pb::document::DataType,
+        pb::document::data_type,
+        serialize_database,
+        deserialize_database,
+        write_database_to_file,
     },
-    pb,
-    pb::document::DataType,
-    pb::document::data_type,
-    serialize_database,
-    deserialize_database,
-    write_database_to_file,
-}, util::has_whitespaces};
+    util::has_whitespaces
+};
 
 // Implements methods for protobuf type
 impl pb::Document {
