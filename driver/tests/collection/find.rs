@@ -6,7 +6,9 @@ use driver::{
     client::DatabaseClient,
     document::{
         DocumentModel,
-        DataType, DocumentQuery
+        DataType,
+        DocumentQuery,
+        DocumentQueryOptions,
     }
 };
 use engine::storage::DB_FILE_EXTENSION;
@@ -28,7 +30,7 @@ pub fn find_all_documents_success() {
     let collection = database.get_collection(collection_name).unwrap();
     let document = create_test_document();
     let created_document = collection.insert_one(document).unwrap();
-    let found_documents = collection.find_all(&None).unwrap();
+    let found_documents = collection.find_all(None).unwrap();
 
     assert_eq!(found_documents.len(), 1);
     assert_eq!(found_documents.first().unwrap().id.0, created_document.id.0);
@@ -67,7 +69,7 @@ pub fn find_documents_success() {
 
     let mut query = DocumentQuery::new();
     query.data.insert("age".to_string(), DataType::Int32(35));
-    let found_documents = collection.find_many(&query, &None).unwrap();
+    let found_documents = collection.find_many(&query, None).unwrap();
 
     assert!(found_documents.len() > 0);
     assert_eq!(found_documents.len(), expected_document_count);
@@ -97,6 +99,34 @@ pub fn find_one_document_by_id_success() {
     let found_document = found_document.unwrap();
     assert_eq!(found_document.id.0, created_document.id.0);
     assert_eq!(found_document.data.len(), created_document.data.len());
+
+    config.close_temp_dirs();
+}
+
+#[test]
+pub fn find_all_documents_with_options_success() {
+    let config = Config::new();
+    let client = DatabaseClient::build(config.db_dir.path());
+    let db_name = "testdb123";
+    let collection_name = "collection1";
+    let file_path = config.db_dir
+        .path()
+        .join(&format!("{}.{}", db_name, DB_FILE_EXTENSION));
+    let database = client.get_database(db_name).unwrap();
+    let max_documents = 3;
+    let limit = max_documents - 1;
+    let options = DocumentQueryOptions::new(Some(limit));
+
+    assert_eq!(database.connection_string(), &file_path);
+    assert!(file_path.is_file());
+
+    let collection = database.get_collection(collection_name).unwrap();
+    for _ in 1..=max_documents {
+        let document = DocumentModel::new();
+        assert!(collection.insert_one(document).is_ok());
+    }
+    let found_documents = collection.find_all(Some(&options)).unwrap();
+    assert_eq!(found_documents.len(), limit);
 
     config.close_temp_dirs();
 }

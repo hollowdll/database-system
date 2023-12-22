@@ -22,7 +22,8 @@ use crate::{
         DocumentModel,
         DataType,
         DocumentId,
-        DocumentQuery, DocumentQueryOptions,
+        DocumentQuery,
+        DocumentQueryOptions,
     },
 };
 
@@ -57,7 +58,7 @@ impl<'a> Collection<'a> {
     /// Returns the found documents.
     pub fn find_all(
         &self,
-        options: &Option<DocumentQueryOptions>,
+        options: Option<&DocumentQueryOptions>,
     ) -> Result<Vec<DocumentModel>, DatabaseClientError> {
         let mut limit = None;
         if let Some(options) = options {
@@ -101,7 +102,7 @@ impl<'a> Collection<'a> {
     pub fn find_many(
         &self,
         query: &DocumentQuery,
-        options: &Option<DocumentQueryOptions>,
+        options: Option<&DocumentQueryOptions>,
     ) -> Result<Vec<DocumentModel>, DatabaseClientError> {
         let mut limit = None;
         if let Some(options) = options {
