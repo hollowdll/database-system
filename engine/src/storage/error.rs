@@ -62,8 +62,8 @@ impl fmt::Display for CollectionError {
                 CollectionError::Exists => "Collection already exists",
                 CollectionError::NotFound => "Collection was not found",
                 CollectionError::HasDocuments => "Collection has documents",
-                CollectionError::EmptyName => "Collection name cannot be empty",
-                CollectionError::NameHasWhitespace => "Collection name cannot contain whitespaces",
+                CollectionError::EmptyName => "Empty collection name not allowed",
+                CollectionError::NameHasWhitespace => "Whitespaces not allowed in collection name",
             }
         )
     }
@@ -79,6 +79,9 @@ pub enum DocumentError {
 
     /// Document has an empty field name.
     EmptyFieldName,
+
+    /// Document has a field name that contains whitespace.
+    FieldNameHasWhitespace,
 }
 
 impl fmt::Display for DocumentError {
@@ -88,7 +91,8 @@ impl fmt::Display for DocumentError {
             "{}",
             match self {
                 DocumentError::NotFound => "Document was not found",
-                DocumentError::EmptyFieldName => "Document has an empty field name",
+                DocumentError::EmptyFieldName => "Empty field name not allowed",
+                DocumentError::FieldNameHasWhitespace => "Whitespaces not allowed in field name",
             }
         )
     }

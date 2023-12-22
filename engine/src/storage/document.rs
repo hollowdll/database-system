@@ -5,7 +5,7 @@ use std::{
     collections::HashMap,
     fmt::{self, Display},
 };
-use crate::storage::{
+use crate::{storage::{
     error::{
         DatabaseError,
         CollectionError,
@@ -17,7 +17,7 @@ use crate::storage::{
     serialize_database,
     deserialize_database,
     write_database_to_file,
-};
+}, util::has_whitespaces};
 
 // Implements methods for protobuf type
 impl pb::Document {
@@ -48,6 +48,9 @@ impl pb::Document {
         for (key, _value) in self.data.iter() {
             if key.is_empty() {
                 return Err(DocumentError::EmptyFieldName);
+            }
+            if has_whitespaces(key) {
+                return Err(DocumentError::FieldNameHasWhitespace);
             }
         }
 
