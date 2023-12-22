@@ -22,7 +22,7 @@ use crate::{
         DocumentModel,
         DataType,
         DocumentId,
-        DocumentQuery,
+        DocumentQuery, DocumentQueryOptions,
     },
 };
 
@@ -55,10 +55,18 @@ impl<'a> Collection<'a> {
     /// Finds all documents in this collection.
     /// 
     /// Returns the found documents.
-    pub fn find_all(&self) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+    pub fn find_all(
+        &self,
+        options: &Option<DocumentQueryOptions>,
+    ) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+        let mut limit = None;
+        if let Some(options) = options {
+            limit = options.limit;
+        }
+
         let result = self.client.engine
             .storage_api()
-            .find_all_documents(self.database.connection_string(), self.name(), None);
+            .find_all_documents(self.database.connection_string(), self.name(), limit);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(
@@ -90,11 +98,20 @@ impl<'a> Collection<'a> {
     /// Query contains fields with values that the document needs to match.
     /// 
     /// Returns the found documents.
-    pub fn find_many(&self, query: &DocumentQuery) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+    pub fn find_many(
+        &self,
+        query: &DocumentQuery,
+        options: &Option<DocumentQueryOptions>,
+    ) -> Result<Vec<DocumentModel>, DatabaseClientError> {
+        let mut limit = None;
+        if let Some(options) = options {
+            limit = options.limit;
+        }
         let query = transform_document_data_to_input(&query.data);
+
         let result = self.client.engine
             .storage_api()
-            .find_documents(self.database.connection_string(), self.name(), &query, None);
+            .find_documents(self.database.connection_string(), self.name(), &query, limit);
 
         if let Some(e) = result.error {
             return Err(DatabaseClientError::new(

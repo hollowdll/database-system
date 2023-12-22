@@ -28,7 +28,7 @@ pub fn find_all_documents_success() {
     let collection = database.get_collection(collection_name).unwrap();
     let document = create_test_document();
     let created_document = collection.insert_one(document).unwrap();
-    let found_documents = collection.find_all().unwrap();
+    let found_documents = collection.find_all(&None).unwrap();
 
     assert_eq!(found_documents.len(), 1);
     assert_eq!(found_documents.first().unwrap().id.0, created_document.id.0);
@@ -67,7 +67,7 @@ pub fn find_documents_success() {
 
     let mut query = DocumentQuery::new();
     query.data.insert("age".to_string(), DataType::Int32(35));
-    let found_documents = collection.find_many(&query).unwrap();
+    let found_documents = collection.find_many(&query, &None).unwrap();
 
     assert!(found_documents.len() > 0);
     assert_eq!(found_documents.len(), expected_document_count);
