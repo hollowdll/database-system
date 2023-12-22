@@ -46,8 +46,11 @@ pub enum CollectionError {
     /// This will occur when deleting a collection if it has documents.
     HasDocuments,
 
-    /// Collection has empty name which is not allowed.
+    /// Collection name is empty.
     EmptyName,
+
+    /// Collection name contains whitespace.
+    NameHasWhitespace,
 }
 
 impl fmt::Display for CollectionError {
@@ -59,7 +62,8 @@ impl fmt::Display for CollectionError {
                 CollectionError::Exists => "Collection already exists",
                 CollectionError::NotFound => "Collection was not found",
                 CollectionError::HasDocuments => "Collection has documents",
-                CollectionError::EmptyName => "Collection cannot have empty name",
+                CollectionError::EmptyName => "Collection name cannot be empty",
+                CollectionError::NameHasWhitespace => "Collection name cannot contain whitespaces",
             }
         )
     }

@@ -3,15 +3,18 @@ use std::{
     path::Path,
     error::Error,
 };
-use crate::storage::{
-    error::{
-        DatabaseError,
-        CollectionError,
+use crate::{
+    storage::{
+        error::{
+            DatabaseError,
+            CollectionError,
+        },
+        pb,
+        serialize_database,
+        deserialize_database,
+        write_database_to_file,
     },
-    pb,
-    serialize_database,
-    deserialize_database,
-    write_database_to_file,
+    util::has_whitespaces,
 };
 
 // Implements methods for protobuf type
@@ -38,6 +41,9 @@ impl pb::Collection {
     pub fn validate_errors(&self) -> Result<(), CollectionError> {
         if self.name.is_empty() {
             return Err(CollectionError::EmptyName);
+        }
+        if has_whitespaces(&self.name) {
+            return Err(CollectionError::NameHasWhitespace);
         }
 
         Ok(())
@@ -101,7 +107,7 @@ pub fn create_collection_to_database(
         }
     }
 
-    let collection = pb::Collection::from(collection_name);
+    let collection = pb::Collection::from(collection_name.trim());
     if let Err(e) = collection.validate_errors() {
         return Err(Box::new(e));
     }
